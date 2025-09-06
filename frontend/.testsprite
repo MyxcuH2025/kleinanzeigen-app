@@ -1,0 +1,11 @@
+{
+  "projectName": "kleinanzeigen",
+  "apiKey": "sk-user-6kgUmFsuYbqqT6dicdiJla2n3pWOdEZTm0WE8gYwSpgv1czQa5UijFwDZIliL9UWIY6bKXJM8BftSCPZrDyoiBrqcxL2pa2l0tDDa4uMu_Pi3ZHxyOvf_yzNgk8Bb_WEjq4",
+  "baseUrl": "https://api.testsprite.com",
+  "cloudSync": true,
+  "trackCredits": true,
+  "framework": "react",
+  "testRunner": "jest",
+  "autoGenerate": true,
+  "sendToCloud": true
+}

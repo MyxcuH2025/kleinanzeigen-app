@@ -1,0 +1,9 @@
+@echo off
+echo Starting Backend Server...
+cd /d "%~dp0backend"
+echo Current directory: %CD%
+echo Activating virtual environment...
+call venv_clean\Scripts\activate
+echo Starting uvicorn server...
+python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
+pause

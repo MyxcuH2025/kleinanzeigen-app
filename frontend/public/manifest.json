@@ -1,0 +1,53 @@
+{
+  "name": "tüka - Kleinanzeigen Plattform",
+  "short_name": "tüka",
+  "description": "Die moderne Kleinanzeigen Plattform für Unterkünfte, Autos, Kleinanzeigen und Services",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1F2937",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "de",
+  "categories": ["shopping", "business", "lifestyle"],
+  "icons": [
+    {
+      "src": "/images/logo.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/logo.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Neue Anzeige",
+      "short_name": "Anzeige erstellen",
+      "description": "Erstelle eine neue Anzeige",
+      "url": "/create",
+      "icons": [
+        {
+          "src": "/images/logo.webp",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Öffne das Dashboard",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/images/logo.webp",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}

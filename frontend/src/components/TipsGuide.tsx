@@ -8,7 +8,6 @@ import {
   Avatar,
   Divider,
   useTheme,
-  Grid,
   Chip
 } from "@mui/material";
 import {
@@ -97,9 +96,9 @@ export default function TipsGuide() {
 
       {/* Tipps für Käufer */}
       <Typography variant="h5" fontWeight={700} sx={{ mb: 2, color: theme.palette.primary.main }}>👤 Für Käufer</Typography>
-      <Grid container spacing={2} sx={{ mb: 4 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 2, mb: 4 }}>
         {tipsKaeufer.map((tip, i) => (
-          <Grid item xs={12} sm={6} key={i}>
+          <Box key={i}>
             <Card variant="outlined" sx={{ borderRadius: 3, height: '100%' }}>
               <CardContent>
                 <Stack direction="row" spacing={2} alignItems="flex-start">
@@ -113,15 +112,15 @@ export default function TipsGuide() {
                 </Stack>
               </CardContent>
             </Card>
-          </Grid>
+          </Box>
         ))}
-      </Grid>
+      </Box>
 
       {/* Tipps für Verkäufer */}
       <Typography variant="h5" fontWeight={700} sx={{ mb: 2, color: theme.palette.secondary.main }}>🧾 Für Verkäufer</Typography>
-      <Grid container spacing={2} sx={{ mb: 4 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 2, mb: 4 }}>
         {tipsVerkaeufer.map((tip, i) => (
-          <Grid item xs={12} sm={6} key={i}>
+          <Box key={i}>
             <Card variant="outlined" sx={{ borderRadius: 3, height: '100%' }}>
               <CardContent>
                 <Stack direction="row" spacing={2} alignItems="flex-start">
@@ -135,9 +134,9 @@ export default function TipsGuide() {
                 </Stack>
               </CardContent>
             </Card>
-          </Grid>
+          </Box>
         ))}
-      </Grid>
+      </Box>
 
       {/* Sicherheitstipps */}
       <Typography variant="h6" fontWeight={700} sx={{ mt: 5, mb: 2, color: theme.palette.success.main }}>🔐 Zusätzliche Sicherheitstipps</Typography>

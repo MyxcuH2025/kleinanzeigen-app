@@ -27,7 +27,7 @@ export async function createListing(listing: Omit<Listing, "id">): Promise<Listi
 }
 
 export async function register(email: string, password: string) {
-  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/register`, {
+  const res = await fetch(`http://localhost:8000/api/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -37,7 +37,7 @@ export async function register(email: string, password: string) {
 }
 
 export async function login(email: string, password: string) {
-  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/login`, {
+  const res = await fetch(`http://localhost:8000/api/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -45,3 +45,76 @@ export async function login(email: string, password: string) {
   if (!res.ok) throw new Error(await res.text());
   return res.json(); // { access_token, token_type }
 }
+
+// API Service für Vorlagen und andere Funktionen
+export class ApiService {
+  private baseUrl = 'http://localhost:8000';
+
+  private getAuthHeaders(): HeadersInit {
+    const token = localStorage.getItem('token');
+    return {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+  }
+
+  async get<T = unknown>(endpoint: string): Promise<T> {
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `HTTP ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  async post<T = unknown>(endpoint: string, data?: unknown): Promise<T> {
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: data ? JSON.stringify(data) : undefined,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `HTTP ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  async put<T = unknown>(endpoint: string, data?: unknown): Promise<T> {
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: data ? JSON.stringify(data) : undefined,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `HTTP ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  async delete<T = unknown>(endpoint: string): Promise<T> {
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `HTTP ${response.status}`);
+    }
+
+    return response.json();
+  }
+}
+
+export const apiService = new ApiService();

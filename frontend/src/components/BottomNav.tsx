@@ -1,20 +1,34 @@
-import { BottomNavigation, BottomNavigationAction, Paper } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
-import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import React from 'react';
+import {
+  BottomNavigation,
+  BottomNavigationAction,
+  Paper,
+  Badge
+} from '@mui/material';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useFavorites } from '@/context/FavoritesContext';
+import homeIcon from '@/assets/icons/home.svg';
+import favoriteIcon from '@/assets/icons/favorite.svg';
+import addIcon from '@/assets/icons/add.svg';
+import chatIcon from '@/assets/icons/chat.svg';
+import kategorienIcon from '@/assets/icons/kategorien.svg';
 
-export const BottomNav = () => {
-  const [value, setValue] = useState(0);
+export const BottomNav: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const location = useLocation();
+  const { favorites } = useFavorites();
 
-  const handleChange = (_: any, newValue: number) => {
-    setValue(newValue);
+  const getCurrentValue = () => {
+    const path = location.pathname;
+    if (path === '/') return 0;
+    if (path === '/favorites') return 1;
+    if (path.startsWith('/create')) return 2;
+    if (path === '/chat') return 3;
+    if (path === '/dashboard') return 4;
+    return 0;
+  };
+
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     switch (newValue) {
       case 0:
         navigate('/');
@@ -23,64 +37,101 @@ export const BottomNav = () => {
         navigate('/favorites');
         break;
       case 2:
-        navigate('/new');
+        navigate('/create-listing');
         break;
       case 3:
         navigate('/chat');
         break;
       case 4:
-        navigate(user ? '/profile' : '/login');
+        navigate('/dashboard');
         break;
     }
   };
 
   return (
-    <Paper
-      sx={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1300,
-        display: { xs: 'block', sm: 'none' },
-        borderTop: '1px solid #eee',
-      }}
-      elevation={3}
-    >
+    <>
+      <style>
+        {`
+          .MuiBottomNavigationAction-label {
+            color: #000000 !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            display: block !important;
+          }
+          .MuiBottomNavigationAction-root:not(.Mui-selected) .MuiBottomNavigationAction-label {
+            color: #000000 !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+          }
+          .MuiBottomNavigationAction-root.Mui-selected .MuiBottomNavigationAction-label {
+            color: #1976d2 !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+          }
+        `}
+      </style>
+      <Paper
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1300,
+          display: { xs: 'block', md: 'none' },
+          elevation: 3
+        }}
+      >
       <BottomNavigation
-        showLabels
-        value={value}
+        value={getCurrentValue()}
         onChange={handleChange}
-        sx={{ 
-          bgcolor: '#fff',
-          height: 64,
+        sx={{
+          height: 90,
           '& .MuiBottomNavigationAction-root': {
             minWidth: 'auto',
-            padding: '6px 12px',
+            padding: '12px 8px 8px',
+            flexDirection: 'column'
+          },
+          '& .MuiBottomNavigationAction-label': {
+            fontSize: '0.7rem',
+            fontWeight: 500,
+            marginTop: '4px'
           }
         }}
       >
-        <BottomNavigationAction 
-          label="Suchen" 
-          icon={<SearchIcon />} 
+        <BottomNavigationAction
+          label="Start"
+          icon={<img src={homeIcon} alt="Home" width="28" height="28" />}
         />
-        <BottomNavigationAction 
-          label="Favoriten" 
-          icon={<FavoriteBorderIcon />} 
+        <BottomNavigationAction
+          label="Favoriten"
+          icon={
+            <Badge badgeContent={favorites.size} color="error" sx={{ '& .MuiBadge-badge': { fontSize: '0.8rem', minWidth: '18px', height: '18px' } }}>
+              <img src={favoriteIcon} alt="Favoriten" width="28" height="28" />
+            </Badge>
+          }
         />
-        <BottomNavigationAction 
-          label="Inserieren" 
-          icon={<AddCircleOutlineIcon sx={{ fontSize: 32 }} color="primary" />} 
+        <BottomNavigationAction
+          label="Erstellen"
+          icon={<img src={addIcon} alt="Erstellen" width="28" height="28" />}
         />
-        <BottomNavigationAction 
-          label="Chat" 
-          icon={<ChatBubbleOutlineIcon />} 
+        <BottomNavigationAction
+          label="Chat"
+          icon={
+            <Badge badgeContent="3" color="error" sx={{ '& .MuiBadge-badge': { fontSize: '0.8rem', minWidth: '18px', height: '18px' } }}>
+              <img src={chatIcon} alt="Chat" width="28" height="28" />
+            </Badge>
+          }
         />
-        <BottomNavigationAction 
-          label={user ? "Profil" : "Login"} 
-          icon={<PersonOutlineIcon />} 
+        <BottomNavigationAction
+          label="Dashboard"
+          icon={
+            <Badge badgeContent="2" color="error" sx={{ '& .MuiBadge-badge': { fontSize: '0.8rem', minWidth: '18px', height: '18px' } }}>
+              <img src={kategorienIcon} alt="Dashboard" width="28" height="28" />
+            </Badge>
+          }
         />
       </BottomNavigation>
-    </Paper>
+      </Paper>
+    </>
   );
-}; 
+};

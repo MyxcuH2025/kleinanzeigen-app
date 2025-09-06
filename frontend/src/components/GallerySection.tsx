@@ -1,4 +1,4 @@
-import { Box, Typography, Card, CardContent, CardMedia, IconButton, Container } from '@mui/material';
+import { Box, Typography, Card, CardContent, IconButton } from '@mui/material';
 import NoImageIcon from '@mui/icons-material/Image';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
@@ -106,7 +106,7 @@ export const GallerySection = () => {
                     boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
                     bgcolor: '#fff',
                     transition: 'box-shadow 0.2s',
-                    '&:hover': { boxShadow: '0 2px 8px rgba(0,0,0,0.10)' },
+                    '&:hover': { boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }, /* Weniger Schatten */
                     m: '0 auto',
                   }}
                 >

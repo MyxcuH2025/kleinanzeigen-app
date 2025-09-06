@@ -1,14 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { 
-  getAuth, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged, 
-  updateProfile
-} from "firebase/auth";
-import type { User as FirebaseUser } from "firebase/auth";
 
 // Typ für den User in deiner App
 interface User {
@@ -20,71 +11,57 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
-  logout: () => Promise<void>;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: false,
-  login: async () => {},
-  register: async () => {},
-  logout: async () => {},
+  logout: () => {}
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const auth = getAuth();
 
-  // Firebase Auth State Observer
+  // Initial auth check aus localStorage
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
-        // Konvertiere Firebase User zu deinem User-Typ
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    
+    if (token && userStr) {
+      try {
+        const userData = JSON.parse(userStr);
         setUser({
-          id: firebaseUser.uid,
-          email: firebaseUser.email,
-          name: firebaseUser.displayName
+          id: userData.id?.toString() || '',
+          email: userData.email || null,
+          name: userData.first_name || userData.email || null
         });
-      } else {
+      } catch (error) {
+        console.error('Failed to parse user data:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
         setUser(null);
+      }
+    } else {
+      setUser(null);
     }
+    
     setLoading(false);
-    });
-
-    return () => unsubscribe();
   }, []);
 
-  const login = async (email: string, password: string) => {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (error: any) {
-      throw new Error(error.message || 'Login fehlgeschlagen');
-    }
-  };
-
-  const register = async (email: string, password: string, name: string) => {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      // Setze den Namen des Users
-      await updateProfile(userCredential.user, { displayName: name });
-    } catch (error: any) {
-      throw new Error(error.message || 'Registrierung fehlgeschlagen');
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error: any) {
-      throw new Error(error.message || 'Logout fehlgeschlagen');
-    }
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{
+      user,
+      loading,
+      logout
+    }}>
       {children}
     </AuthContext.Provider>
   );

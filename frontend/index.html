@@ -1,10 +1,84 @@
 <!doctype html>
-<html lang="en">
+<html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
+    <link rel="icon" type="image/webp" href="/images/logo.webp" />
+    
+    <!-- Mobile Viewport Optimierung -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    
+    <!-- Mobile-spezifische Meta-Tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="tüka" />
+    <meta name="application-name" content="tüka" />
+    <meta name="theme-color" content="#e31b23" />
+    <meta name="msapplication-TileColor" content="#e31b23" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Touch-Icons für mobile Geräte -->
+    <link rel="apple-touch-icon" href="/images/logo.webp" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/images/logo.webp" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/logo.webp" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/images/logo.webp" />
+    
+    <title>tüka - Kleinanzeigen Plattform</title>
+    <meta name="description" content="Die moderne Kleinanzeigen Plattform für Unterkünfte, Autos, Kleinanzeigen und Services" />
+    <meta name="keywords" content="kleinanzeigen, unterkünfte, autos, services, mieten, verkaufen" />
+    <meta name="author" content="tüka" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://tüka.de/" />
+    <meta property="og:title" content="tüka - Kleinanzeigen Plattform" />
+    <meta property="og:description" content="Die moderne Kleinanzeigen Plattform für Unterkünfte, Autos, Kleinanzeigen und Services" />
+    <meta property="og:image" content="/images/logo.webp" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://tüka.de/" />
+    <meta property="twitter:title" content="tüka - Kleinanzeigen Plattform" />
+    <meta property="twitter:description" content="Die moderne Kleinanzeigen Plattform für Unterkünfte, Autos, Kleinanzeigen und Services" />
+    <meta property="twitter:image" content="/images/logo.webp" />
+    
+    <!-- Mobile-spezifische CSS für bessere Performance -->
+    <style>
+      /* Mobile-spezifische Optimierungen */
+      @media (max-width: 768px) {
+        /* Verhindert Zoom bei Fokus auf Input-Feldern */
+        input[type="text"], input[type="email"], input[type="password"], textarea, select {
+          font-size: 16px !important;
+        }
+        
+        /* Bessere Touch-Targets */
+        button, a, [role="button"] {
+          min-height: 44px;
+          min-width: 44px;
+        }
+        
+        /* Verhindert ungewolltes Scrollen */
+        body {
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior: none;
+        }
+        
+        /* Bessere Performance für Animationen */
+        * {
+          -webkit-transform: translateZ(0);
+          transform: translateZ(0);
+        }
+      }
+      
+      /* Verhindert Hover-Effekte auf Touch-Geräten */
+      @media (hover: none) and (pointer: coarse) {
+        *:hover {
+          transform: none !important;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

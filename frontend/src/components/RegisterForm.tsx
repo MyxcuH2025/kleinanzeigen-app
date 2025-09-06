@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   Box,
   TextField,
@@ -7,9 +7,13 @@ import {
   Link,
   Alert,
 } from '@mui/material';
-import { register } from "../services/api";
+import { useUser } from '@/context/UserContext';
+import { useSnackbar } from '@/context/SnackbarContext';
+import { Logo } from './Logo';
 
 export default function RegisterForm() {
+  const navigate = useNavigate();
+  const { showSnackbar } = useSnackbar();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,15 +32,59 @@ export default function RegisterForm() {
     }
 
     try {
-      await register(email, password);
-      setSuccess(true);
-    } catch (err: any) {
-      setError(err.message);
+      // Sende Registrierung direkt ans Backend
+      const res = await fetch('http://localhost:8000/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.detail || 'Registrierung fehlgeschlagen');
+      }
+      
+      const data = await res.json();
+      
+      // Nach Registrierung automatisch einloggen
+      if (data.access_token && data.user) {
+        // Token und User-Daten im localStorage speichern
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        showSnackbar('Registrierung erfolgreich! Sie sind jetzt eingeloggt.', 'success');
+        setSuccess(true);
+        
+        // Direkt zum Dashboard weiterleiten
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1500);
+      } else {
+        // Fallback: Zur Login-Seite weiterleiten
+        showSnackbar('Registrierung erfolgreich! Sie können sich jetzt anmelden.', 'success');
+        setSuccess(true);
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unbekannter Fehler');
     }
   };
 
   return (
     <Box component="form" onSubmit={handleSubmit}>
+      {/* Logo Branding */}
+      <Box sx={{ textAlign: 'center', mb: 4 }}>
+        <Logo 
+          height={100}
+          sx={{
+            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
+            mb: 2
+          }}
+        />
+      </Box>
+      
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
@@ -45,7 +93,7 @@ export default function RegisterForm() {
 
       {success && (
         <Alert severity="success" sx={{ mb: 2 }}>
-          Registrierung erfolgreich!
+          Registrierung erfolgreich! Sie können sich jetzt anmelden.
         </Alert>
       )}
 
@@ -86,6 +134,7 @@ export default function RegisterForm() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         error={!!error}
+        inputProps={{ 'data-testid': 'password-input' }}
       />
       <TextField
         margin="normal"
@@ -99,6 +148,7 @@ export default function RegisterForm() {
         value={confirmPassword}
         onChange={(e) => setConfirmPassword(e.target.value)}
         error={!!error}
+        inputProps={{ 'data-testid': 'confirmPassword-input' }}
       />
       <Button
         type="submit"

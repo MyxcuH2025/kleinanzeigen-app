@@ -1,128 +1,176 @@
-import { db } from '@/config/firebase';
-import { collection, addDoc, query, where, orderBy, getDocs, Timestamp, writeBatch } from 'firebase/firestore';
+import { getFullApiUrl } from '@/config/config';
 
 export interface Message {
-  id?: string;
-  senderId: string;
-  receiverId: string;
-  listingId: string;
+  id: number;
+  sender_id: number;
+  receiver_id: number;
   content: string;
-  timestamp: Date;
-  read: boolean;
+  is_read: boolean;
+  created_at: string;
 }
 
-export interface Chat {
-  id?: string;
-  participants: string[];
-  listingId: string;
-  lastMessage?: Message;
-  updatedAt: Date;
+export interface Conversation {
+  id: number;
+  listing: {
+    id: number;
+    title: string;
+    price: number;
+    images: string | string[];
+  };
+  other_user: {
+    id: number;
+    email: string;
+    name?: string;
+    avatar?: string;
+  };
+  last_message: {
+    content: string;
+    created_at: string;
+    sender_id: number | null;
+  };
+  unread_count: number;
+  created_at: string;
+  updated_at: string;
 }
 
-export const chatService = {
-  // Neue Nachricht senden
-  async sendMessage(message: Omit<Message, 'id' | 'timestamp' | 'read'>): Promise<string> {
-    const messageData = {
-      ...message,
-      participants: [message.senderId, message.receiverId],
-      timestamp: Timestamp.now(),
-      read: false
-    };
-    
-    const docRef = await addDoc(collection(db, 'messages'), messageData);
+class ChatService {
 
-    // Chat-Dokument anlegen oder aktualisieren
-    const chatsRef = collection(db, 'chats');
-    const chatQuery = query(
-      chatsRef,
-      where('participants', 'array-contains', message.senderId),
-      where('listingId', '==', message.listingId)
-    );
-    const chatSnapshot = await getDocs(chatQuery);
-    const lastMessage = {
-      ...messageData,
-      id: docRef.id
+  private getAuthHeaders(): HeadersInit {
+    const token = localStorage.getItem('token');
+    return {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
     };
-    if (chatSnapshot.empty) {
-      // Chat existiert noch nicht, also anlegen
-      await addDoc(chatsRef, {
-        participants: [message.senderId, message.receiverId],
-        listingId: message.listingId,
-        lastMessage,
-        updatedAt: Timestamp.now()
-      });
-    } else {
-      // Chat existiert, also updaten (nur das erste gefundene Dokument)
-      const chatDoc = chatSnapshot.docs[0];
-      await import('firebase/firestore').then(({ updateDoc }) =>
-        updateDoc(chatDoc.ref, {
-          lastMessage,
-          updatedAt: Timestamp.now()
-        })
-      );
+  }
+
+  async createConversation(listingId: number, _sellerId: number): Promise<number> {
+    // 1) Zuerst lokal prüfen, ob es bereits eine Konversation zu diesem Listing gibt
+    try {
+      const existing = (await this.getConversations()).find(c => c.listing?.id === listingId);
+      if (existing) return existing.id;
+    } catch (_) {
+      // Ignorieren – wir versuchen dann normal zu erstellen
     }
 
-    return docRef.id;
-  },
-
-  // Chat-Verlauf abrufen
-  async getChatHistory(listingId: string, userId1: string, userId2: string) {
-    const q = query(
-      collection(db, 'messages'),
-      where('listingId', '==', listingId),
-      where('participants', 'array-contains', userId1),
-      orderBy('timestamp', 'desc')
-    );
-
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs
-      .map(doc => {
-        const data = doc.data() as Message & { timestamp: any };
-        return {
-          id: doc.id,
-          ...data,
-          timestamp: data.timestamp && typeof data.timestamp.toDate === 'function'
-            ? data.timestamp.toDate()
-            : new Date(data.timestamp)
-        };
-      })
-      .filter(msg =>
-        (msg.senderId === userId1 && msg.receiverId === userId2) ||
-        (msg.senderId === userId2 && msg.receiverId === userId1)
-      );
-  },
-
-  // Alle Chats eines Users abrufen
-  async getUserChats(userId: string) {
-    const q = query(
-      collection(db, 'chats'),
-      where('participants', 'array-contains', userId),
-      orderBy('updatedAt', 'desc')
-    );
-
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...(doc.data() as Chat)
-    }));
-  },
-
-  // Nachrichten als gelesen markieren
-  async markMessagesAsRead(chatId: string, userId: string) {
-    const q = query(
-      collection(db, 'messages'),
-      where('chatId', '==', chatId),
-      where('receiverId', '==', userId),
-      where('read', '==', false)
-    );
-
-    const querySnapshot = await getDocs(q);
-    const batch = writeBatch(db);
-
-    querySnapshot.docs.forEach(doc => {
-      batch.update(doc.ref, { read: true });
+    // 2) Backend erwartet einen rohen JSON-Integer als Body (kein Objekt)
+    const payload = Number(listingId);
+    const response = await fetch(getFullApiUrl('api/conversations'), {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(payload),
     });
 
-    await batch.commit();
+    if (!response.ok) {
+      const text = await response.text();
+      // Fallback: Wenn Konversation bereits existiert, passende ID ermitteln
+      if (response.status === 400 && text?.toLowerCase().includes('konversation existiert bereits')) {
+        const conversations = await this.getConversations();
+        const existing = conversations.find(c => c.listing?.id === listingId);
+        if (existing) return existing.id;
+      }
+      throw new Error(text || 'Failed to create conversation');
+    }
+
+    const data = await response.json();
+    return data.id;  // Backend gibt 'id' zurück, nicht 'conversation_id'
   }
-}; 
+
+  async getConversations(): Promise<Conversation[]> {
+    try {
+      const response = await fetch(getFullApiUrl('api/conversations'), {
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        console.log('Backend nicht verfügbar, keine Konversationen geladen');
+        return [];
+      }
+
+      const data = await response.json();
+      return data.conversations || [];
+    } catch (error) {
+      console.error('Fehler beim Laden der Konversationen:', error);
+      return [];
+    }
+  }
+
+  async getMessages(conversationId: number): Promise<Message[]> {
+    try {
+      const response = await fetch(getFullApiUrl(`api/conversations/${conversationId}/messages`), {
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        console.log('Backend nicht verfügbar, keine Nachrichten geladen');
+        return [];
+      }
+
+      const data = await response.json();
+      return data.messages || [];
+    } catch (error) {
+      console.error('Fehler beim Laden der Nachrichten:', error);
+      return [];
+    }
+  }
+
+  async sendMessage(conversationId: number, content: string): Promise<Message> {
+    // Backend erwartet einen rohen JSON-String als Body (kein Objekt)
+    const response = await fetch(getFullApiUrl(`api/conversations/${conversationId}/messages`), {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(String(content)),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error || 'Failed to send message');
+    }
+
+    return response.json();
+  }
+
+  // Legacy method for compatibility
+  async sendMessageLegacy(message: {
+    senderId: string;
+    receiverId: string;
+    listingId: string;
+    content: string;
+  }): Promise<string> {
+    try {
+      // sendMessageLegacy called
+      
+      // First, try to find existing conversation
+      const conversations = await this.getConversations();
+              // Existing conversations loaded
+      
+      const existingConversation = conversations.find(conv => 
+        conv.listing.id.toString() === message.listingId
+      );
+
+      let conversationId: number;
+      if (existingConversation) {
+        conversationId = existingConversation.id;
+        // Using existing conversation
+      } else {
+        // Create new conversation
+                  // Creating new conversation
+        conversationId = await this.createConversation(
+          parseInt(message.listingId),
+          parseInt(message.receiverId)
+        );
+                  // Conversation created
+      }
+
+      // Send message
+              // Sending message to conversation
+      const sentMessage = await this.sendMessage(conversationId, message.content);
+              // Message sent successfully
+      return sentMessage.id?.toString() || 'unknown';
+    } catch (error) {
+      console.error('Error in sendMessageLegacy:', error);
+      throw error;
+    }
+  }
+}
+
+export const chatService = new ChatService(); 

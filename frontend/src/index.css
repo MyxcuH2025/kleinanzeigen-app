@@ -1,11 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color-scheme: light;
+  color: #213547;
+  background-color: #ffffff;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -38,7 +42,7 @@ html, body {
 
 body {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  background: #f8fafc;
+  background: #ffffff;
   color: #213547;
   line-height: 1.5;
   font-weight: 400;
@@ -56,7 +60,7 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: #f9f9f9;
   cursor: pointer;
   transition: border-color 0.25s;
 }
@@ -68,39 +72,95 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+/* Mobile-spezifische Optimierungen */
+@media (max-width: 768px) {
+  /* Verbesserte Touch-Targets */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
   }
-  a:hover {
-    color: #747bff;
+  
+  /* Verhindert Zoom bei Fokus auf Input-Feldern */
+  input[type="text"], 
+  input[type="email"], 
+  input[type="password"], 
+  textarea, 
+  select {
+    font-size: 16px !important;
   }
-  button {
-    background-color: #f9f9f9;
+  
+  /* Verbesserte Scrollbar für mobile Geräte */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
   }
 }
 
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  *:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+}
+
+/* Kategorien Grid */
 .categories-grid {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 16px;
 }
 
 .category-card {
-  min-width: 0;
-  max-width: 130px;
-  width: 100%;
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 @media (max-width: 600px) {
   .categories-grid {
-    gap: 8px;
-    padding: 0 4px;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    padding: 12px;
   }
+  
   .category-card {
-    max-width: 48vw;
-    min-width: 0;
-    font-size: 12px;
+    padding: 12px;
   }
 }

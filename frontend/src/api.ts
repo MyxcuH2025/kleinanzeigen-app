@@ -1,3 +1,5 @@
+import { getFullApiUrl } from './config/config';
+
 export interface Listing {
   id?: number;
   title: string;
@@ -7,7 +9,7 @@ export interface Listing {
 // ... (getListings bleibt wie gehabt)
 
 export async function createListing(listing: Omit<Listing, "id">): Promise<Listing> {
-  const res = await fetch("http://localhost:8000/api/listings", {
+  const res = await fetch(getFullApiUrl('api/listings'), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(listing),

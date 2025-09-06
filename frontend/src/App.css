@@ -39,3 +39,149 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Spezielle Schriftarten-Klassen für Kleinanzeigen */
+
+/* Preise - Inter, fett, optimierte Größe */
+.price-display {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 1.1rem !important; /* Kleiner gemacht (war 1.25rem) */
+  letter-spacing: -0.02em !important;
+  color: #111827 !important; /* Sehr dunkles Grau */
+}
+
+.price-large {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-weight: 800 !important;
+  font-size: 1.3rem !important; /* Kleiner gemacht (war 1.5rem) */
+  letter-spacing: -0.03em !important;
+  color: #000000 !important; /* Schwarz für maximale Wirkung */
+}
+
+/* Kategorie-Titel - Inter, modern, größer */
+.category-title {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 1.2rem !important; /* Größer gemacht */
+  letter-spacing: -0.01em !important;
+  color: #111827 !important; /* Sehr dunkles Grau */
+}
+
+/* Anzeigen-Titel - Source Sans Pro, lesbar, größer */
+.listing-title {
+  font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 1.1rem !important; /* Größer gemacht (war 1rem) */
+  letter-spacing: 0.01em !important;
+  line-height: 1.4 !important;
+  color: #111827 !important; /* Sehr dunkles Grau */
+}
+
+/* Navigation - Inter, modern, größer */
+.nav-text {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 1rem !important; /* Größer gemacht */
+  letter-spacing: 0.02em !important;
+  color: #111827 !important; /* Sehr dunkles Grau */
+}
+
+/* Buttons - Inter, fett, größer */
+.button-text {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important; /* Größer gemacht */
+  letter-spacing: 0.02em !important;
+}
+
+/* Beschreibungen - Source Sans Pro, lesbar, größer */
+.description-text {
+  font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 1rem !important; /* Größer gemacht */
+  line-height: 1.6 !important;
+  letter-spacing: 0.01em !important;
+  color: #4B5563 !important; /* Dunkles Grau */
+}
+
+/* Kleinere Texte - Source Sans Pro, größer */
+.small-text {
+  font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 0.95rem !important; /* Größer gemacht (war 0.875rem) */
+  line-height: 1.5 !important;
+  color: #6B7280 !important; /* Mittleres Grau */
+}
+
+/* Verbesserte Lesbarkeit für alle Texte */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  background-color: #F9FAFB !important; /* Sehr helles Grau */
+  font-size: 1rem !important; /* Basis-Schriftgröße */
+}
+
+/* Spezielle Hervorhebung für wichtige Elemente */
+.emphasis-text {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 1.1rem !important; /* Größer gemacht */
+  letter-spacing: -0.01em !important;
+  color: #111827 !important; /* Sehr dunkles Grau */
+}
+
+/* Akzent-Farbe für besondere Elemente */
+.accent-color {
+  color: #374151 !important; /* Dunkles Grau */
+}
+
+/* Erfolgs-Farbe */
+.success-color {
+  color: #059669 !important; /* Dunkles Grün */
+}
+
+/* Warnung-Farbe */
+.warning-color {
+  color: #D97706 !important; /* Dunkles Orange */
+}
+
+/* Fehler-Farbe */
+.error-color {
+  color: #DC2626 !important; /* Dunkles Rot */
+}
+
+/* Elegante dunkle Farben */
+.elegant-dark {
+  color: #1F2937 !important; /* Dunkles Grau */
+}
+
+.elegant-darker {
+  color: #111827 !important; /* Sehr dunkles Grau */
+}
+
+.elegant-medium {
+  color: #374151 !important; /* Mittleres Grau */
+}
+
+/* Zusätzliche Schriftgrößen für verschiedene Elemente */
+.text-large {
+  font-size: 1.3rem !important;
+}
+
+.text-medium {
+  font-size: 1.1rem !important;
+}
+
+.text-normal {
+  font-size: 1rem !important;
+}
+
+.text-small {
+  font-size: 0.95rem !important;
+}
+
+.text-xs {
+  font-size: 0.875rem !important;
+}

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifizierung abgelehnt</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #dc3545;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background-color: #f8f9fa;
+            padding: 30px;
+            border-radius: 0 0 8px 8px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #667eea;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+        }
+        .info-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .reason-box {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>❌ Verifizierung abgelehnt</h1>
+    </div>
+    
+    <div class="content">
+        <h2>Hallo!</h2>
+        
+        <div class="info-box">
+            <strong>Ihr Verifizierungsantrag als Verkäufer wurde leider abgelehnt.</strong>
+        </div>
+        
+        <p><strong>Unternehmen:</strong> {{ company_name }}</p>
+        
+        {% if reason %}
+        <div class="reason-box">
+            <h3>Grund für die Ablehnung:</h3>
+            <p>{{ reason }}</p>
+        </div>
+        {% endif %}
+        
+        <h3>Was können Sie tun?</h3>
+        <ul>
+            <li>🔍 Überprüfen Sie die abgelehnten Dokumente</li>
+            <li>📝 Stellen Sie sicher, dass alle Informationen korrekt sind</li>
+            <li>📋 Reichen Sie fehlende oder korrigierte Dokumente ein</li>
+            <li>🔄 Stellen Sie einen neuen Verifizierungsantrag</li>
+        </ul>
+        
+        <h3>Häufige Gründe für Ablehnungen:</h3>
+        <ul>
+            <li>Unvollständige oder unleserliche Dokumente</li>
+            <li>Abgelaufene Dokumente</li>
+            <li>Falsche oder unvollständige Unternehmensdaten</li>
+            <li>Fehlende Nachweise für die Geschäftstätigkeit</li>
+        </ul>
+        
+        <h3>Neuen Antrag stellen</h3>
+        <p>Nach der Korrektur der Probleme können Sie einen neuen Verifizierungsantrag stellen.</p>
+        
+        <a href="http://localhost:5173/seller-verification" class="button">Neuen Antrag stellen</a>
+        
+        <h3>Fragen?</h3>
+        <p>Falls Sie Fragen haben oder Hilfe benötigen, kontaktieren Sie uns gerne über unser Support-Formular.</p>
+    </div>
+    
+    <div class="footer">
+        <p>© 2024 Kleinanzeigen. Alle Rechte vorbehalten.</p>
+        <p>Diese E-Mail wurde automatisch generiert. Bitte nicht antworten.</p>
+    </div>
+</body>
+</html>

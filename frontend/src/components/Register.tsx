@@ -1,5 +1,5 @@
 import { Box, Typography, Container, Paper } from '@mui/material';
-import { RegisterForm } from './RegisterForm';
+import RegisterForm from './RegisterForm';
 
 export const Register = () => {
   return (
