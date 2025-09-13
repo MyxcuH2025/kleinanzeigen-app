@@ -9,6 +9,8 @@ import uuid
 import os
 from pathlib import Path
 from datetime import datetime
+import asyncio
+import subprocess
 
 from app.dependencies import get_session, get_current_user
 from models.user import User
@@ -89,6 +91,8 @@ async def create_story(
             )
         
         # Media-Upload verarbeiten
+        supported_image_types = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+        supported_video_types = ["video/mp4", "video/webm", "video/quicktime"]
         
         # Media-Typ bestimmen
         media_type = "image" if media.content_type in supported_image_types else "video"
@@ -119,11 +123,14 @@ async def create_story(
         # Media-URL für API
         media_url = f"/api/images/stories/{unique_filename}"
         
-        # Thumbnail für Videos (TODO: Implementiere Video-Thumbnail-Generierung)
+        # Video-Thumbnail generieren
         thumbnail_url = None
         if media_type == "video":
-            # Placeholder für Video-Thumbnail
-            thumbnail_url = f"/api/images/stories/thumb_{unique_filename}"
+            try:
+                thumbnail_url = await _generate_video_thumbnail(file_path, upload_dir)
+            except Exception as thumb_error:
+                logger.warning(f"Fehler bei Video-Thumbnail-Generierung: {thumb_error}")
+                thumbnail_url = f"/api/images/stories/thumb_{unique_filename}"  # Fallback
         
         # Stories-Service
         stories_service = StoriesService(session, redis_client)
@@ -419,3 +426,45 @@ async def get_cache_stats(
     except Exception as e:
         logger.error(f"Fehler beim Abrufen der Cache-Statistiken: {e}")
         raise HTTPException(status_code=500, detail="Fehler beim Abrufen der Cache-Statistiken")
+
+# Video-Thumbnail-Generierung
+async def _generate_video_thumbnail(video_path: Path, upload_dir: Path) -> str:
+    """Video-Thumbnail mit FFmpeg generieren"""
+    try:
+        # Thumbnail-Dateiname generieren
+        thumbnail_filename = f"thumb_{video_path.stem}.jpg"
+        thumbnail_path = upload_dir / thumbnail_filename
+        
+        # FFmpeg-Befehl für Thumbnail-Generierung
+        cmd = [
+            "ffmpeg",
+            "-i", str(video_path),
+            "-ss", "00:00:01",  # Thumbnail bei 1 Sekunde
+            "-vframes", "1",
+            "-q:v", "2",  # Hohe Qualität
+            "-y",  # Überschreiben ohne Nachfrage
+            str(thumbnail_path)
+        ]
+        
+        # FFmpeg ausführen
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        
+        stdout, stderr = await process.communicate()
+        
+        if process.returncode == 0 and thumbnail_path.exists():
+            logger.info(f"Video-Thumbnail erfolgreich generiert: {thumbnail_filename}")
+            return f"/api/images/stories/{thumbnail_filename}"
+        else:
+            logger.error(f"FFmpeg-Fehler: {stderr.decode()}")
+            raise Exception(f"Thumbnail-Generierung fehlgeschlagen: {stderr.decode()}")
+            
+    except FileNotFoundError:
+        logger.warning("FFmpeg nicht gefunden - Thumbnail-Generierung übersprungen")
+        raise Exception("FFmpeg nicht installiert")
+    except Exception as e:
+        logger.error(f"Fehler bei Video-Thumbnail-Generierung: {e}")
+        raise

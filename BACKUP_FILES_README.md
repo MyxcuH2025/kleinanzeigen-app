@@ -60,6 +60,25 @@
 4. **Input-Validierung**: Caption-Länge, Duration-Limits, File-Size-Checks
 
 ### Tests erforderlich:
-- [ ] Upload-Limits testen
-- [ ] Redis-Ausfall-Simulation
-- [ ] Database-Error-Handling validieren
+- [x] Upload-Limits testen
+- [x] Redis-Ausfall-Simulation
+- [x] Database-Error-Handling validieren
+
+## 2025-01-13 - Video-Support Implementation
+
+### Geänderte Dateien:
+- **alt**: `backend/app/stories/routes.py`
+- **neu**: `backend/app/stories/routes.py.BAK.20250113.VIDEO`
+- **grund**: Video-Support mit FFmpeg-Thumbnail-Generierung implementiert
+- **datum**: 2025-01-13
+
+### Änderungen:
+1. **Video-Upload**: MP4, WebM, QuickTime Support (50MB Limit)
+2. **FFmpeg-Integration**: Automatische Video-Thumbnail-Generierung
+3. **Fallback-Strategie**: Graceful Degradation wenn FFmpeg nicht verfügbar
+4. **Media-Type-Detection**: Automatische Unterscheidung zwischen Bild/Video
+
+### Tests erforderlich:
+- [ ] Video-Upload testen
+- [ ] FFmpeg-Thumbnail-Generierung validieren
+- [ ] Video-Player im Frontend implementieren
