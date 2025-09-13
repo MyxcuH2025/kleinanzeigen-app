@@ -14,6 +14,7 @@ import subprocess
 
 from app.dependencies import get_session, get_current_user
 from models.user import User
+from app.websocket.manager import manager
 from models.story import (
     Story, StoryCreate, StoryResponse, StoryUpdate,
     StoryReactionType, StoriesFeedResponse, StoryStatsResponse
@@ -147,6 +148,36 @@ async def create_story(
         
         logger.info(f"Story {story.id} für User {current_user.id} erstellt")
         
+        # WebSocket-Broadcast für neue Story
+        try:
+            import json
+            story_data = {
+                "id": story.id,
+                "user_id": story.user_id,
+                "media_url": media_url,
+                "media_type": media_type,
+                "thumbnail_url": thumbnail_url,
+                "caption": caption,
+                "duration": duration,
+                "views_count": 0,
+                "reactions_count": 0,
+                "created_at": story.created_at.isoformat(),
+                "expires_at": story.expires_at.isoformat(),
+                "is_active": True,
+                "has_viewed": False,
+                "user_reaction": None,
+                "user_name": f"{current_user.first_name} {current_user.last_name}".strip(),
+                "user_avatar": current_user.avatar
+            }
+            
+            await manager.broadcast(json.dumps({
+                "type": "new_story",
+                "story": story_data
+            }))
+            logger.info(f"Neue Story {story.id} an alle Clients gebroadcastet")
+        except Exception as e:
+            logger.error(f"Fehler beim Broadcasten der neuen Story: {e}")
+
         return {
             "message": "Story erfolgreich erstellt",
             "story_id": story.id,

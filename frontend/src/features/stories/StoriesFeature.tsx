@@ -13,6 +13,7 @@ import { useStoriesStore } from './store/stories.store';
 import { StoriesBar } from './components/StoriesBar';
 import { StoryViewer } from './components/StoryViewer';
 import { CreateStoryModal } from './components/CreateStoryModal';
+import { storiesWebSocket, type WebSocketMessage } from './services/stories.websocket';
 import { useUser } from '../../context/UserContext';
 
 interface StoriesFeatureProps {
@@ -48,8 +49,32 @@ export const StoriesFeature: React.FC<StoriesFeatureProps> = ({
   useEffect(() => {
     if (isAuthenticated && user) {
       loadStories();
+      
+      // WebSocket-Nachrichten-Handler registrieren
+      storiesWebSocket.onMessage('new_story', handleNewStory);
+      storiesWebSocket.onMessage('story_reaction_update', handleStoryReactionUpdate);
+      
+      return () => {
+        // Cleanup: Handler entfernen
+        storiesWebSocket.offMessage('new_story');
+        storiesWebSocket.offMessage('story_reaction_update');
+      };
     }
   }, [loadStories, isAuthenticated, user]);
+
+  // WebSocket-Nachrichten-Handler
+  const handleNewStory = (message: WebSocketMessage) => {
+    if (message.story) {
+      // Neue Story zum Store hinzufügen
+      console.log('📱 Neue Story empfangen:', message.story);
+      // Hier könnte der Store aktualisiert werden
+    }
+  };
+
+  const handleStoryReactionUpdate = (message: WebSocketMessage) => {
+    console.log('❤️ Story-Reaction Update:', message);
+    // Hier könnte der Store mit neuen Reaction-Daten aktualisiert werden
+  };
   
   // Nicht für nicht-authentifizierte User anzeigen
   if (!isAuthenticated || !user) {

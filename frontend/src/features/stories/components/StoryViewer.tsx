@@ -23,6 +23,7 @@ import type { Story, StoryReactionType } from '../types/stories.types';
 import { StoryProgress } from './StoryProgress';
 // import { StoryReactions } from './StoryReactions';
 import { storiesApi } from '../services/stories.api';
+import { storiesWebSocket } from '../services/stories.websocket';
 
 interface StoryViewerProps {
   stories: Story[];
@@ -171,7 +172,17 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   
   const handleReaction = (reaction: StoryReactionType) => {
     onReaction(currentStory.id, reaction);
+    
+    // WebSocket-Reaction senden
+    storiesWebSocket.sendStoryReaction(currentStory.id, reaction);
   };
+
+  // Story-View beim Öffnen senden
+  useEffect(() => {
+    if (currentStory) {
+      storiesWebSocket.sendStoryView(currentStory.id);
+    }
+  }, [currentStory]);
   
   const mediaUrl = storiesApi.getMediaUrl(currentStory.media_url);
   const avatarUrl = currentStory.user_avatar 
