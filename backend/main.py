@@ -28,6 +28,7 @@ from app.websocket.routes import router as websocket_router
 from app.stories.routes import router as stories_router  # 🆕 Stories-Feature
 from app.stories.analytics_routes import router as stories_analytics_router  # 🆕 Stories Analytics
 from app.rate_limiting.routes import router as rate_limiting_router  # 🆕 Rate-Limiting
+from app.websocket.admin_routes import router as websocket_admin_router  # 🆕 WebSocket Admin
 
 # Alle wichtigen Router sind jetzt aktiviert
 # from app.rate_limiting.routes import router as rate_limit_router
@@ -183,6 +184,7 @@ app.include_router(websocket_router)
 app.include_router(stories_router)  # 🆕 Stories-Feature
 app.include_router(stories_analytics_router)  # 🆕 Stories Analytics
 app.include_router(rate_limiting_router)  # 🆕 Rate-Limiting
+app.include_router(websocket_admin_router)  # 🆕 WebSocket Admin
 
 # Alle wichtigen Backend-Features sind jetzt aktiv
 # app.include_router(rate_limit_router)

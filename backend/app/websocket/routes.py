@@ -8,6 +8,7 @@ from models import User
 from app.dependencies import get_session
 from app.websocket.manager import manager
 from app.rate_limiting.websocket_limiter import websocket_rate_limiter
+from app.websocket.connection_pool import connection_pool
 import logging
 import json
 
@@ -67,13 +68,18 @@ async def stories_websocket_endpoint(websocket: WebSocket, token: str = Query(No
         # WebSocket-Verbindung herstellen
         await manager.connect(websocket, user.id)
         
+        # Connection Pool hinzufügen
+        websocket_id = f"stories_{user.id}_{int(time.time())}"
+        await connection_pool.add_connection(websocket_id, user.id, "stories")
+        
         logger.info(f"Stories-WebSocket verbunden für User {user.id} ({user.email})")
         
         # Heartbeat-Nachricht senden
         await websocket.send_text(json.dumps({
             "type": "connected",
             "message": "Stories-WebSocket verbunden",
-            "user_id": user.id
+            "user_id": user.id,
+            "websocket_id": websocket_id
         }))
         
         # Auf Nachrichten warten
@@ -82,6 +88,9 @@ async def stories_websocket_endpoint(websocket: WebSocket, token: str = Query(No
                 # Warten auf Client-Nachrichten
                 data = await websocket.receive_text()
                 message = json.loads(data)
+                
+                # Aktivität im Connection Pool aktualisieren
+                await connection_pool.update_activity(websocket_id)
                 
                 # Stories-spezifische Nachrichten verarbeiten
                 if message.get("type") == "story_view":
@@ -135,6 +144,8 @@ async def stories_websocket_endpoint(websocket: WebSocket, token: str = Query(No
                 
             except WebSocketDisconnect:
                 logger.info(f"Stories-WebSocket getrennt für User {user.id}")
+                # Connection Pool bereinigen
+                await connection_pool.remove_connection(websocket_id)
                 break
             except Exception as e:
                 logger.error(f"Stories-WebSocket Fehler für User {user.id}: {e}")
