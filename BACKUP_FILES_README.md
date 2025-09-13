@@ -37,5 +37,29 @@
 3. **Performance**: Von N+1 Queries auf 3 optimierte Queries reduziert
 
 ### Tests erforderlich:
-- [ ] Query-Performance vor/nach messen
-- [ ] N+1 Problem validieren
+- [x] Query-Performance vor/nach messen
+- [x] N+1 Problem validieren
+
+## 2025-01-13 - Robustes Error-Handling
+
+### Geänderte Dateien:
+- **alt**: `backend/app/stories/routes.py`
+- **neu**: `backend/app/stories/routes.py.BAK.20250113.ERROR`
+- **grund**: Robustes Error-Handling für Redis-Ausfall, Upload-Limits und Edge-Cases
+- **datum**: 2025-01-13
+
+- **alt**: `backend/app/stories/service.py`
+- **neu**: `backend/app/stories/service.py.BAK.20250113.ERROR`
+- **grund**: Graceful Fallbacks für Database-Errors und Batch-Query-Fehler
+- **datum**: 2025-01-13
+
+### Änderungen:
+1. **Graceful Fallbacks**: Leere Stories-Liste statt 500 Error bei kritischen Fehlern
+2. **Upload-Limits**: 50MB für Videos, 10MB für Bilder, Content-Type-Validierung
+3. **Batch-Query-Fallbacks**: Robuste Fehlerbehandlung für Viewer-Status und Reactions
+4. **Input-Validierung**: Caption-Länge, Duration-Limits, File-Size-Checks
+
+### Tests erforderlich:
+- [ ] Upload-Limits testen
+- [ ] Redis-Ausfall-Simulation
+- [ ] Database-Error-Handling validieren

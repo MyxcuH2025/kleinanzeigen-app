@@ -53,21 +53,42 @@ async def create_story(
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
-    """Story mit Media-Upload erstellen"""
+    """Story erstellen mit robustem Error-Handling und Upload-Limits"""
+    
+    # Upload-Limits validieren
+    MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
+    ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4']
+    
     try:
-        # Media-Validierung
-        if not media.content_type:
-            raise HTTPException(status_code=400, detail="Media-Typ nicht erkannt")
-        
-        # Unterstützte Media-Typen
-        supported_image_types = ["image/jpeg", "image/png", "image/webp", "image/gif"]
-        supported_video_types = ["video/mp4", "video/webm", "video/quicktime"]
-        
-        if media.content_type not in supported_image_types + supported_video_types:
+        # File-Size validieren
+        if media.size and media.size > MAX_FILE_SIZE:
             raise HTTPException(
-                status_code=400, 
-                detail="Nicht unterstützter Media-Typ. Erlaubt: JPEG, PNG, WebP, GIF, MP4, WebM"
+                status_code=413, 
+                detail=f"Datei zu groß. Maximum: {MAX_FILE_SIZE // (1024*1024)}MB"
             )
+        
+        # File-Type validieren
+        if media.content_type not in ALLOWED_TYPES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Nicht unterstützter Dateityp. Erlaubt: {', '.join(ALLOWED_TYPES)}"
+            )
+        
+        # Duration validieren
+        if duration and (duration < 1 or duration > 60):
+            raise HTTPException(
+                status_code=400,
+                detail="Story-Dauer muss zwischen 1 und 60 Sekunden liegen"
+            )
+        
+        # Caption-Länge validieren
+        if caption and len(caption) > 500:
+            raise HTTPException(
+                status_code=400,
+                detail="Caption zu lang. Maximum: 500 Zeichen"
+            )
+        
+        # Media-Upload verarbeiten
         
         # Media-Typ bestimmen
         media_type = "image" if media.content_type in supported_image_types else "video"
@@ -151,8 +172,12 @@ async def get_stories_feed(
             offset=offset
         )
         
-        # Gesamtanzahl für Paginierung abrufen
-        total_count = await stories_service.get_stories_count(current_user.id)
+        # Gesamtanzahl für Paginierung abrufen (mit Fallback)
+        try:
+            total_count = await stories_service.get_stories_count(current_user.id)
+        except Exception as count_error:
+            logger.warning(f"Fehler beim Zählen der Stories (Fallback): {count_error}")
+            total_count = len(stories_data)  # Fallback: Anzahl der aktuellen Stories
         
         return StoriesFeedResponse(
             stories=stories_data,
@@ -160,9 +185,17 @@ async def get_stories_feed(
             has_more=(offset + limit) < total_count
         )
         
+    except HTTPException:
+        # Re-raise HTTP-Exceptions (Authentication, etc.)
+        raise
     except Exception as e:
-        logger.error(f"Fehler beim Abrufen des Stories-Feeds: {e}")
-        raise HTTPException(status_code=500, detail="Fehler beim Abrufen des Stories-Feeds")
+        logger.error(f"Kritischer Fehler beim Abrufen des Stories-Feeds: {e}")
+        # Graceful Fallback: Leere Stories-Liste zurückgeben statt 500 Error
+        return StoriesFeedResponse(
+            stories=[],
+            total_count=0,
+            has_more=False
+        )
 
 @router.get("/{story_id}", response_model=StoryResponse)
 async def get_story(

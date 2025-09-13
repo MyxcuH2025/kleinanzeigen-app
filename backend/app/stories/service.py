@@ -63,7 +63,7 @@ class StoriesService:
         limit: int = 20, 
         offset: int = 0
     ) -> List[Dict[str, Any]]:
-        """Stories-Feed für User abrufen"""
+        """Stories-Feed für User abrufen mit robustem Error-Handling"""
         try:
             # Prüfe Redis-Cache zuerst (mit Fallback)
             if self.redis:
@@ -94,9 +94,22 @@ class StoriesService:
             stories = self.session.exec(query).all()
             
             # Batch-Query für Viewer-Status und Reactions (verhindert N+1)
-            story_ids = [story.id for story in stories]
-            viewer_status = self._batch_get_viewer_status(story_ids, user_id)
-            user_reactions = self._batch_get_user_reactions(story_ids, user_id)
+            story_ids = [story.id for story in stories] if stories else []
+            viewer_status = {}
+            user_reactions = {}
+            
+            # Robuste Batch-Queries mit Fallback
+            try:
+                viewer_status = self._batch_get_viewer_status(story_ids, user_id)
+            except Exception as view_error:
+                logger.warning(f"Fehler beim Batch-Abrufen der Viewer-Status: {view_error}")
+                viewer_status = {}
+            
+            try:
+                user_reactions = self._batch_get_user_reactions(story_ids, user_id)
+            except Exception as reaction_error:
+                logger.warning(f"Fehler beim Batch-Abrufen der User-Reactions: {reaction_error}")
+                user_reactions = {}
             
             # Stories mit User-Info und Viewer-Status anreichern
             feed_data = []
