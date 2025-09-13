@@ -10,9 +10,9 @@ const API_BASE_URL = 'http://localhost:8000';
  * @returns Vollständige URL zum Bild
  */
 export const getImageUrl = (imagePath: string): string => {
-  console.log(`getImageUrl called with: "${imagePath}"`);
+
   if (!imagePath || imagePath.trim() === '' || imagePath === '[' || imagePath === ']' || imagePath === '"[') {
-    console.log('Invalid imagePath, returning placeholder');
+
     return '/images/noimage.jpeg';
   }
 
@@ -42,10 +42,14 @@ export const getImageUrl = (imagePath: string): string => {
     cleanPath = cleanPath.replace('api/uploads/', '');
   }
   
-  // Wenn der Pfad bereits ein Dateiname ist (ohne Präfix), verwende ihn direkt
+  // Wenn der Pfad bereits /api/images/ enthält, verwende ihn direkt
+  if (cleanPath.startsWith('/api/images/')) {
+    return `${API_BASE_URL}${cleanPath}`;
+  }
   
+  // Wenn der Pfad bereits ein Dateiname ist (ohne Präfix), verwende ihn direkt
   const finalUrl = `${API_BASE_URL}/api/images/${cleanPath}`;
-  console.log(`Final URL: ${finalUrl}`);
+
   return finalUrl;
 };
 

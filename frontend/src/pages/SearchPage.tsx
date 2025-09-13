@@ -217,11 +217,11 @@ export const SearchPage: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      console.log('SearchPage: Starting search with filters:', apiFilters);
+
       
       const results: SearchResponse = await searchService.searchListings(apiFilters);
       
-      console.log('SearchPage: Received results:', results);
+
       
       // Sicherstellen dass results.listings existiert
       if (!results || !results.listings) {
@@ -248,7 +248,7 @@ export const SearchPage: React.FC = () => {
       setSearchResults(ads);
       setTotalResults(results.pagination?.total || ads.length);
       
-      console.log('SearchPage: Search completed successfully. Found', ads.length, 'results');
+
       
       // Suchverlauf speichern
       if (filters.query.trim()) {

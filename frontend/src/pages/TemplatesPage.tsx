@@ -78,7 +78,7 @@ export const TemplatesPage: React.FC = () => {
     try {
       setLoading(true);
       const response = await apiService.get('/api/templates');
-      console.log('Templates response:', response);
+
       
       // Fallback zu Beispiel-Vorlagen wenn keine Daten vom Backend kommen
       if (!(response as any).templates || (response as any).templates.length === 0) {

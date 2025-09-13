@@ -8,7 +8,7 @@ Eine moderne Kleinanzeigen-Plattform mit React Frontend und FastAPI Backend.
 ```bash
 cd backend
 # Falls bereits in .venv: direkt uvicorn starten
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+weiter mit Optimierung
 
 # Falls nicht in .venv: erst aktivieren
 # venv\Scripts\activate

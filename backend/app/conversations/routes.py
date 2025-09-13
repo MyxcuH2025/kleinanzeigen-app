@@ -43,7 +43,9 @@ def get_conversations(
         listing = session.get(Listing, conversation.listing_id)
         
         # Anderen Benutzer identifizieren
-        other_user_id = conversation.seller_id if conversation.buyer_id == current_user.id else conversation.buyer_id
+        # Wenn current_user der Käufer ist, ist other_user der Verkäufer (seller_id)
+        # Wenn current_user der Verkäufer ist, ist other_user der Käufer (buyer_id)
+        other_user_id = conversation.buyer_id if conversation.seller_id == current_user.id else conversation.seller_id
         other_user = session.get(User, other_user_id)
         
         # Letzte Nachricht abrufen
@@ -301,3 +303,46 @@ def create_conversation(
         "seller_id": listing.user_id,
         "created_at": conversation.created_at.isoformat() if conversation.created_at else None
     }
+
+@router.post("/conversations/{conversation_id}/mark-read")
+async def mark_conversation_as_read(
+    conversation_id: int = Path(...),
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    """Alle Nachrichten in einer Konversation als gelesen markieren"""
+    
+    # Konversation prüfen
+    conversation = session.exec(
+        select(Conversation)
+        .where(
+            Conversation.id == conversation_id,
+            or_(
+                Conversation.buyer_id == current_user.id,
+                Conversation.seller_id == current_user.id
+            )
+        )
+    ).first()
+    
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Konversation nicht gefunden")
+    
+    # Alle ungelesenen Nachrichten des anderen Users als gelesen markieren
+    other_user_id = conversation.seller_id if conversation.buyer_id == current_user.id else conversation.buyer_id
+    
+    unread_messages = session.exec(
+        select(Message)
+        .where(
+            Message.conversation_id == conversation_id,
+            Message.sender_id == other_user_id,
+            Message.is_read == False
+        )
+    ).all()
+    
+    for message in unread_messages:
+        message.is_read = True
+        session.add(message)
+    
+    session.commit()
+    
+    return {"message": "Nachrichten als gelesen markiert", "count": len(unread_messages)}

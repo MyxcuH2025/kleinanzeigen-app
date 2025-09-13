@@ -10,9 +10,41 @@ export default defineConfig({
     sourcemap: false, // Source-Maps deaktivieren für bessere Performance
     rollupOptions: {
       output: {
-        sourcemapExcludeSources: true
+        sourcemapExcludeSources: true,
+        // OPTIMIERT: Manual Chunks für besseres Code-Splitting
+        manualChunks: {
+          // Vendor chunks
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'mui-vendor': ['@mui/material', '@mui/icons-material', '@mui/system', '@emotion/react', '@emotion/styled'],
+          
+          // Feature chunks
+          'admin': [
+            './src/components/AdminDashboard_Optimized.tsx',
+            './src/pages/AdminVerificationPage.tsx'
+          ],
+          'chat': [
+            './src/pages/ChatPage.tsx'
+          ],
+          'dashboard': [
+            './src/pages/DashboardPage.tsx',
+            './src/pages/DashboardPage_Optimized.tsx'
+          ],
+          'listings': [
+            './src/components/ListingDetail.tsx',
+            './src/components/CreateListing_Optimized.tsx',
+            './src/components/EditListing.tsx',
+            './src/pages/ListingsPage.tsx'
+          ],
+          'forms': [
+            './src/components/LoginForm.tsx',
+            './src/components/RegisterForm.tsx',
+            './src/components/PasswordResetRequest.tsx'
+          ]
+        }
       }
-    }
+    },
+    // OPTIMIERT: Chunk-Größe-Warnungen erhöhen
+    chunkSizeWarningLimit: 1000
   },
   server: {
     proxy: {

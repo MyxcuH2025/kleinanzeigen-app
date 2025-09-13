@@ -73,12 +73,12 @@ const LokaleNewsPage: React.FC = () => {
 
   const handleBookmark = useCallback((articleId: string) => {
     // Hier würde die Lesezeichen-Funktionalität implementiert
-    console.log('Artikel mit ID', articleId, 'wurde zu Lesezeichen hinzugefügt');
+
   }, []);
 
   const handleShare = useCallback((articleId: string) => {
     // Hier würde die Teilen-Funktionalität implementiert
-    console.log('Artikel mit ID', articleId, 'wird geteilt');
+
   }, []);
 
   // Weitere Event-Handler mit useCallback optimieren
@@ -125,17 +125,38 @@ const LokaleNewsPage: React.FC = () => {
   }
 
   return (
-    <Box sx={{ bgcolor: '#ffffff', minHeight: '100vh', py: { xs: 2, md: 3 } }}>
-      <Container maxWidth="xl">
+    <Box sx={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+      position: 'relative',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '200px',
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(248,250,252,0.6) 100%)',
+        backdropFilter: 'blur(20px)',
+        zIndex: 0
+      }
+    }}>
+      <Container maxWidth="xl" sx={{ py: { xs: 3, sm: 5 }, position: 'relative', zIndex: 1 }}>
         {/* Header */}
-        <Box sx={{ textAlign: 'center', mb: { xs: 3, md: 4 } }}>
+        <Box sx={{ textAlign: 'center', mb: { xs: 4, sm: 5 } }}>
           <Typography 
             variant={isMobile ? 'h4' : 'h3'} 
             component="h1" 
             sx={{ 
-              mb: { xs: 1, md: 2 },
-              fontWeight: 600,
-              color: '#2c3e50'
+              mb: { xs: 2, md: 3 },
+              fontWeight: 800,
+              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+              background: 'linear-gradient(135deg, #0f172a 0%, #334155 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              letterSpacing: '-0.02em',
+              textShadow: '0 2px 4px rgba(0,0,0,0.1)'
             }}
           >
             Lokale Nachrichten
@@ -143,18 +164,46 @@ const LokaleNewsPage: React.FC = () => {
           <Typography 
             variant={isMobile ? 'body1' : 'h6'} 
             color="text.secondary"
-            sx={{ maxWidth: 600, mx: 'auto' }}
+            sx={{ 
+              maxWidth: 700, 
+              mx: 'auto',
+              fontSize: { xs: '1.1rem', sm: '1.25rem' },
+              fontWeight: 400,
+              lineHeight: 1.6,
+              color: '#64748b'
+            }}
           >
             Bleiben Sie auf dem Laufenden über das, was in Ihrer Stadt passiert
           </Typography>
         </Box>
 
-        {/* Tabs */}
+        {/* Tabs - Premium Glasmorphism */}
         <Box sx={{ 
           display: 'flex', 
           justifyContent: 'center', 
-          mb: { xs: 3, md: 4 },
-          gap: 1
+          mb: { xs: 4, md: 5 },
+          gap: 1,
+          p: 2,
+          background: 'rgba(255,255,255,0.6)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: 1,
+          border: '1px solid rgba(255,255,255,0.2)',
+          boxShadow: `
+            0 8px 32px rgba(0,0,0,0.08),
+            0 2px 8px rgba(0,0,0,0.05),
+            inset 0 1px 0 rgba(255,255,255,0.6)
+          `,
+          position: 'relative',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '1px',
+            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent)',
+            zIndex: 1
+          }
         }}>
           {[
             { value: 'all', label: 'Alle Nachrichten' },
@@ -167,20 +216,44 @@ const LokaleNewsPage: React.FC = () => {
               onClick={() => setActiveTab(tab.value)}
               size={isMobile ? 'small' : 'medium'}
               sx={{
-                borderRadius: 2,
-                px: { xs: 2, md: 3 },
-                py: { xs: 1, md: 1.5 },
+                borderRadius: 0.5,
+                px: { xs: 3, md: 4 },
+                py: { xs: 1.5, md: 2 },
                 textTransform: 'none',
-                fontWeight: 600,
+                fontWeight: 700,
+                fontSize: { xs: '0.9rem', md: '1rem' },
+                transition: 'all 0.2s ease',
                 ...(activeTab === tab.value ? {
-                  bgcolor: '#667eea',
-                  '&:hover': { bgcolor: '#5a6fd8' }
+                  background: 'linear-gradient(135deg, #374151 0%, #1f2937 100%)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  boxShadow: `
+                    0 4px 12px rgba(55, 65, 81, 0.3),
+                    inset 0 1px 0 rgba(255,255,255,0.2)
+                  `,
+                  '&:hover': { 
+                    background: 'linear-gradient(135deg, #1f2937 0%, #111827 100%)',
+                    transform: 'none',
+                    boxShadow: `
+                      0 6px 16px rgba(55, 65, 81, 0.4),
+                      inset 0 1px 0 rgba(255,255,255,0.3)
+                    `
+                  }
                 } : {
-                  borderColor: '#667eea',
-                  color: '#667eea',
+                  background: 'rgba(255,255,255,0.8)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  color: '#374151',
+                  boxShadow: `
+                    0 4px 12px rgba(0,0,0,0.05),
+                    inset 0 1px 0 rgba(255,255,255,0.6)
+                  `,
                   '&:hover': {
-                    borderColor: '#5a6fd8',
-                    bgcolor: 'rgba(102, 126, 234, 0.04)'
+                    background: 'rgba(255,255,255,0.95)',
+                    transform: 'none',
+                    boxShadow: `
+                      0 6px 16px rgba(0,0,0,0.08),
+                      inset 0 1px 0 rgba(255,255,255,0.8)
+                    `
                   }
                 })
               }}
@@ -190,12 +263,12 @@ const LokaleNewsPage: React.FC = () => {
           ))}
         </Box>
 
-        {/* Search and Filters */}
-        <Box sx={{ mb: { xs: 3, md: 4 } }}>
+        {/* Search and Filters - Premium Glasmorphism */}
+        <Box sx={{ mb: { xs: 4, md: 5 } }}>
           {isMobile ? (
             // Mobile Layout
             <Box>
-              <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+              <Box sx={{ display: 'flex', gap: 1.5, mb: 2 }}>
                 <TextField
                   fullWidth
                   placeholder="Nach Nachrichten suchen..."
@@ -204,17 +277,60 @@ const LokaleNewsPage: React.FC = () => {
                   size="small"
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
-                      bgcolor: '#ffffff'
-                    }
+                      background: 'rgba(255,255,255,0.8)',
+                      backdropFilter: 'blur(10px)',
+                      borderRadius: 1,
+                      border: '1px solid rgba(255,255,255,0.3)',
+                      boxShadow: `
+                        0 4px 12px rgba(0,0,0,0.05),
+                        inset 0 1px 0 rgba(255,255,255,0.6)
+                      `,
+                      transition: 'all 0.2s ease',
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(255,255,255,0.5)',
+                        boxShadow: `
+                          0 6px 16px rgba(0,0,0,0.08),
+                          inset 0 1px 0 rgba(255,255,255,0.8)
+                        `
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(55, 65, 81, 0.6)',
+                        borderWidth: 2,
+                        boxShadow: `
+                          0 8px 20px rgba(0,0,0,0.1),
+                          inset 0 1px 0 rgba(255,255,255,0.8)
+                        `
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: '#64748b',
+                      fontWeight: 500,
+                      '&.Mui-focused': {
+                        color: '#374151',
+                      },
+                    },
                   }}
                 />
                 <IconButton
                   onClick={() => setShowFilters(!showFilters)}
                   sx={{
-                    bgcolor: '#f8f9fa',
-                    border: '1px solid #e1e8ed',
-                    '&:hover': { bgcolor: '#e9ecef' }
+                    background: 'rgba(255,255,255,0.8)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    borderRadius: 1,
+                    boxShadow: `
+                      0 4px 12px rgba(0,0,0,0.05),
+                      inset 0 1px 0 rgba(255,255,255,0.6)
+                    `,
+                    transition: 'all 0.2s ease',
+                    '&:hover': { 
+                      background: 'rgba(255,255,255,0.95)',
+                      transform: 'none',
+                      boxShadow: `
+                        0 6px 16px rgba(0,0,0,0.08),
+                        inset 0 1px 0 rgba(255,255,255,0.8)
+                      `
+                    }
                   }}
                 >
                   <FilterIcon />
@@ -226,10 +342,27 @@ const LokaleNewsPage: React.FC = () => {
                   display: 'grid',
                   gridTemplateColumns: '1fr 1fr',
                   gap: 2,
-                  p: 2,
-                  bgcolor: '#f8f9fa',
-                  borderRadius: 2,
-                  border: '1px solid #e1e8ed'
+                  p: 3,
+                  background: 'rgba(255,255,255,0.7)',
+                  backdropFilter: 'blur(20px)',
+                  borderRadius: 1,
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  boxShadow: `
+                    0 8px 32px rgba(0,0,0,0.08),
+                    0 2px 8px rgba(0,0,0,0.05),
+                    inset 0 1px 0 rgba(255,255,255,0.6)
+                  `,
+                  position: 'relative',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '1px',
+                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent)',
+                    zIndex: 1
+                  }
                 }}>
                   <TextField
                     select
@@ -264,12 +397,33 @@ const LokaleNewsPage: React.FC = () => {
               )}
             </Box>
           ) : (
-            // Desktop Layout
+            // Desktop Layout - Premium Glasmorphism
             <Box sx={{ 
               display: 'grid',
               gridTemplateColumns: '1fr auto auto auto',
               gap: 3,
-              alignItems: 'end'
+              alignItems: 'end',
+              p: 4,
+              background: 'rgba(255,255,255,0.7)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: 1,
+              border: '1px solid rgba(255,255,255,0.2)',
+              boxShadow: `
+                0 8px 32px rgba(0,0,0,0.08),
+                0 2px 8px rgba(0,0,0,0.05),
+                inset 0 1px 0 rgba(255,255,255,0.6)
+              `,
+              position: 'relative',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '1px',
+                background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent)',
+                zIndex: 1
+              }
             }}>
               <TextField
                 fullWidth
@@ -278,9 +432,38 @@ const LokaleNewsPage: React.FC = () => {
                 onChange={handleSearchChange}
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    bgcolor: '#ffffff'
-                  }
+                    background: 'rgba(255,255,255,0.8)',
+                    backdropFilter: 'blur(10px)',
+                    borderRadius: 1,
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    boxShadow: `
+                      0 4px 12px rgba(0,0,0,0.05),
+                      inset 0 1px 0 rgba(255,255,255,0.6)
+                    `,
+                    transition: 'all 0.2s ease',
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'rgba(255,255,255,0.5)',
+                      boxShadow: `
+                        0 6px 16px rgba(0,0,0,0.08),
+                        inset 0 1px 0 rgba(255,255,255,0.8)
+                      `
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'rgba(55, 65, 81, 0.6)',
+                      borderWidth: 2,
+                      boxShadow: `
+                        0 8px 20px rgba(0,0,0,0.1),
+                        inset 0 1px 0 rgba(255,255,255,0.8)
+                      `
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: '#64748b',
+                    fontWeight: 500,
+                    '&.Mui-focused': {
+                      color: '#374151',
+                    },
+                  },
                 }}
               />
               <TextField
@@ -288,7 +471,42 @@ const LokaleNewsPage: React.FC = () => {
                 label="Kategorie"
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                sx={{ minWidth: 150, bgcolor: '#ffffff' }}
+                sx={{ 
+                  minWidth: 150,
+                  '& .MuiOutlinedInput-root': {
+                    background: 'rgba(255,255,255,0.8)',
+                    backdropFilter: 'blur(10px)',
+                    borderRadius: 1,
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    boxShadow: `
+                      0 4px 12px rgba(0,0,0,0.05),
+                      inset 0 1px 0 rgba(255,255,255,0.6)
+                    `,
+                    transition: 'all 0.2s ease',
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'rgba(255,255,255,0.5)',
+                      boxShadow: `
+                        0 6px 16px rgba(0,0,0,0.08),
+                        inset 0 1px 0 rgba(255,255,255,0.8)
+                      `
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'rgba(55, 65, 81, 0.6)',
+                      borderWidth: 2,
+                      boxShadow: `
+                        0 8px 20px rgba(0,0,0,0.1),
+                        inset 0 1px 0 rgba(255,255,255,0.8)
+                      `
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: '#64748b',
+                    fontWeight: 500,
+                    '&.Mui-focused': {
+                      color: '#374151',
+                    },
+                  },
+                }}
               >
                 <MenuItem value="all">Alle Kategorien</MenuItem>
                 <MenuItem value="Lokale News">Lokale News</MenuItem>
@@ -301,7 +519,42 @@ const LokaleNewsPage: React.FC = () => {
                 label="Standort"
                 value={selectedLocation}
                 onChange={(e) => setSelectedLocation(e.target.value)}
-                sx={{ minWidth: 150, bgcolor: '#ffffff' }}
+                sx={{ 
+                  minWidth: 150,
+                  '& .MuiOutlinedInput-root': {
+                    background: 'rgba(255,255,255,0.8)',
+                    backdropFilter: 'blur(10px)',
+                    borderRadius: 1,
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    boxShadow: `
+                      0 4px 12px rgba(0,0,0,0.05),
+                      inset 0 1px 0 rgba(255,255,255,0.6)
+                    `,
+                    transition: 'all 0.2s ease',
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'rgba(255,255,255,0.5)',
+                      boxShadow: `
+                        0 6px 16px rgba(0,0,0,0.08),
+                        inset 0 1px 0 rgba(255,255,255,0.8)
+                      `
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'rgba(55, 65, 81, 0.6)',
+                      borderWidth: 2,
+                      boxShadow: `
+                        0 8px 20px rgba(0,0,0,0.1),
+                        inset 0 1px 0 rgba(255,255,255,0.8)
+                      `
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: '#64748b',
+                    fontWeight: 500,
+                    '&.Mui-focused': {
+                      color: '#374151',
+                    },
+                  },
+                }}
               >
                 <MenuItem value="all">Alle Standorte</MenuItem>
                 <MenuItem value="München">München</MenuItem>
@@ -314,10 +567,27 @@ const LokaleNewsPage: React.FC = () => {
                 <IconButton
                   onClick={() => setViewMode('grid')}
                   sx={{
-                    bgcolor: viewMode === 'grid' ? '#667eea' : '#f8f9fa',
-                    color: viewMode === 'grid' ? 'white' : 'inherit',
+                    background: viewMode === 'grid' 
+                      ? 'linear-gradient(135deg, #374151 0%, #1f2937 100%)'
+                      : 'rgba(255,255,255,0.8)',
+                    backdropFilter: 'blur(10px)',
+                    color: viewMode === 'grid' ? 'white' : '#374151',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    borderRadius: 1,
+                    boxShadow: `
+                      0 4px 12px rgba(0,0,0,0.05),
+                      inset 0 1px 0 rgba(255,255,255,0.6)
+                    `,
+                    transition: 'all 0.2s ease',
                     '&:hover': {
-                      bgcolor: viewMode === 'grid' ? '#5a6fd8' : '#e9ecef'
+                      background: viewMode === 'grid' 
+                        ? 'linear-gradient(135deg, #1f2937 0%, #111827 100%)'
+                        : 'rgba(255,255,255,0.95)',
+                      transform: 'none',
+                      boxShadow: `
+                        0 6px 16px rgba(0,0,0,0.08),
+                        inset 0 1px 0 rgba(255,255,255,0.8)
+                      `
                     }
                   }}
                 >
@@ -326,10 +596,27 @@ const LokaleNewsPage: React.FC = () => {
                 <IconButton
                   onClick={() => setViewMode('list')}
                   sx={{
-                    bgcolor: viewMode === 'list' ? '#667eea' : '#f8f9fa',
-                    color: viewMode === 'list' ? 'white' : 'inherit',
+                    background: viewMode === 'list' 
+                      ? 'linear-gradient(135deg, #374151 0%, #1f2937 100%)'
+                      : 'rgba(255,255,255,0.8)',
+                    backdropFilter: 'blur(10px)',
+                    color: viewMode === 'list' ? 'white' : '#374151',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    borderRadius: 1,
+                    boxShadow: `
+                      0 4px 12px rgba(0,0,0,0.05),
+                      inset 0 1px 0 rgba(255,255,255,0.6)
+                    `,
+                    transition: 'all 0.2s ease',
                     '&:hover': {
-                      bgcolor: viewMode === 'list' ? '#5a6fd8' : '#e9ecef'
+                      background: viewMode === 'list' 
+                        ? 'linear-gradient(135deg, #1f2937 0%, #111827 100%)'
+                        : 'rgba(255,255,255,0.95)',
+                      transform: 'none',
+                      boxShadow: `
+                        0 6px 16px rgba(0,0,0,0.08),
+                        inset 0 1px 0 rgba(255,255,255,0.8)
+                      `
                     }
                   }}
                 >
@@ -340,14 +627,43 @@ const LokaleNewsPage: React.FC = () => {
           )}
         </Box>
 
-        {/* Results and Actions */}
+        {/* Results and Actions - Premium Glasmorphism */}
         <Box sx={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center',
-          mb: { xs: 2, md: 3 }
+          mb: { xs: 3, md: 4 },
+          p: 3,
+          background: 'rgba(255,255,255,0.6)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: 1,
+          border: '1px solid rgba(255,255,255,0.2)',
+          boxShadow: `
+            0 8px 32px rgba(0,0,0,0.08),
+            0 2px 8px rgba(0,0,0,0.05),
+            inset 0 1px 0 rgba(255,255,255,0.6)
+          `,
+          position: 'relative',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '1px',
+            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent)',
+            zIndex: 1
+          }
         }}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography 
+            variant="body2" 
+            color="text.secondary"
+            sx={{
+              fontWeight: 600,
+              color: '#64748b',
+              fontSize: '1rem'
+            }}
+          >
             {filteredArticles.length} Nachrichten gefunden
           </Typography>
           <Button
@@ -356,13 +672,29 @@ const LokaleNewsPage: React.FC = () => {
             startIcon={<AddIcon />}
             onClick={() => navigate('/create-listing')}
             sx={{
-              bgcolor: '#28a745',
-              borderRadius: 2,
-              px: { xs: 2, md: 3 },
-              py: { xs: 1, md: 1.5 },
-              fontWeight: 600,
+              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+              borderRadius: 1,
+              px: { xs: 4, md: 5 },
+              py: { xs: 1.5, md: 2 },
+              fontWeight: 700,
+              fontSize: { xs: '1rem', md: '1.1rem' },
               textTransform: 'none',
-              '&:hover': { bgcolor: '#218838' }
+              border: '1px solid rgba(255,255,255,0.2)',
+              boxShadow: `
+                0 8px 32px rgba(5, 150, 105, 0.3),
+                0 2px 8px rgba(5, 150, 105, 0.2),
+                inset 0 1px 0 rgba(255,255,255,0.2)
+              `,
+              transition: 'all 0.2s ease',
+              '&:hover': { 
+                background: 'linear-gradient(135deg, #047857 0%, #065f46 100%)',
+                transform: 'none',
+                boxShadow: `
+                  0 12px 40px rgba(5, 150, 105, 0.4),
+                  0 4px 12px rgba(5, 150, 105, 0.3),
+                  inset 0 1px 0 rgba(255,255,255,0.3)
+                `
+              }
             }}
           >
             Nachricht einreichen
@@ -406,13 +738,60 @@ const LokaleNewsPage: React.FC = () => {
               <Card 
                 key={article.id} 
                 sx={{ 
-                  borderRadius: 2,
-                  border: '1px solid #e1e8ed',
-                  '&:hover': {
-                    boxShadow: isMobile ? 'none' : '0 4px 12px rgba(0,0,0,0.1)',
-                    borderColor: '#667eea'
+                  borderRadius: 1,
+                  border: '1px solid transparent',
+                  background: `
+                    linear-gradient(white, white) padding-box,
+                    linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.1)) border-box
+                  `,
+                  backdropFilter: 'blur(20px)',
+                  boxShadow: `
+                    0 8px 32px rgba(0,0,0,0.12),
+                    0 4px 16px rgba(0,0,0,0.08),
+                    0 2px 8px rgba(0,0,0,0.04),
+                    inset 0 1px 0 rgba(255,255,255,0.8)
+                  `,
+                  position: 'relative',
+                  overflow: 'hidden',
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '2px',
+                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent)',
+                    zIndex: 1
                   },
-                  transition: 'all 0.2s ease'
+                  '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+                    opacity: 0,
+                    transition: 'opacity 0.3s ease',
+                    zIndex: 0
+                  },
+                  '&:hover': {
+                    transform: 'none',
+                    boxShadow: `
+                      0 24px 48px rgba(0,0,0,0.15),
+                      0 12px 24px rgba(0,0,0,0.1),
+                      0 4px 12px rgba(0,0,0,0.06),
+                      inset 0 1px 0 rgba(255,255,255,0.9)
+                    `,
+                    background: `
+                      linear-gradient(white, white) padding-box,
+                      linear-gradient(135deg, rgba(255,255,255,0.6), rgba(255,255,255,0.2)) border-box
+                    `,
+                    '&::after': {
+                      opacity: 1
+                    }
+                  }
                 }}
               >
                 <CardContent sx={{ p: { xs: 2, md: 2.5 } }}>
@@ -523,19 +902,59 @@ const LokaleNewsPage: React.FC = () => {
                     )}
                   </Box>
 
-                  {/* Action Buttons */}
-                  <Box sx={{ display: 'flex', gap: 1 }}>
+                  {/* Action Buttons - Enhanced Micro-Interactions */}
+                  <Box sx={{ display: 'flex', gap: 1.5 }}>
                     <Button
                       variant="outlined"
                       size="small"
                       startIcon={<BookmarkIcon />}
                       onClick={() => handleBookmark(article.id)}
                       sx={{
-                        borderColor: '#667eea',
-                        color: '#667eea',
+                        background: 'rgba(255,255,255,0.8)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid transparent',
+                        backgroundImage: `
+                          linear-gradient(white, white) padding-box,
+                          linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.1)) border-box
+                        `,
+                        color: '#374151',
+                        borderRadius: 0.5,
+                        fontWeight: 600,
+                        textTransform: 'none',
+                        boxShadow: `
+                          0 4px 16px rgba(0,0,0,0.08),
+                          0 2px 8px rgba(0,0,0,0.04),
+                          inset 0 1px 0 rgba(255,255,255,0.8)
+                        `,
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        '&::before': {
+                          content: '""',
+                          position: 'absolute',
+                          top: 0,
+                          left: '-100%',
+                          width: '100%',
+                          height: '100%',
+                          background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
+                          transition: 'left 0.5s ease',
+                          zIndex: 0
+                        },
                         '&:hover': {
-                          bgcolor: '#667eea',
-                          color: 'white'
+                          background: 'rgba(255,255,255,0.95)',
+                          transform: 'none',
+                          boxShadow: `
+                            0 8px 24px rgba(0,0,0,0.12),
+                            0 4px 12px rgba(0,0,0,0.08),
+                            inset 0 1px 0 rgba(255,255,255,0.9)
+                          `,
+                          '&::before': {
+                            left: '100%'
+                          }
+                        },
+                        '&:active': {
+                          transform: 'none',
+                          transition: 'all 0.1s ease'
                         }
                       }}
                     >
@@ -547,11 +966,51 @@ const LokaleNewsPage: React.FC = () => {
                       startIcon={<ShareIcon />}
                       onClick={() => handleShare(article.id)}
                       sx={{
-                        borderColor: '#667eea',
-                        color: '#667eea',
+                        background: 'rgba(255,255,255,0.8)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid transparent',
+                        backgroundImage: `
+                          linear-gradient(white, white) padding-box,
+                          linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.1)) border-box
+                        `,
+                        color: '#374151',
+                        borderRadius: 0.5,
+                        fontWeight: 600,
+                        textTransform: 'none',
+                        boxShadow: `
+                          0 4px 16px rgba(0,0,0,0.08),
+                          0 2px 8px rgba(0,0,0,0.04),
+                          inset 0 1px 0 rgba(255,255,255,0.8)
+                        `,
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        '&::before': {
+                          content: '""',
+                          position: 'absolute',
+                          top: 0,
+                          left: '-100%',
+                          width: '100%',
+                          height: '100%',
+                          background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
+                          transition: 'left 0.5s ease',
+                          zIndex: 0
+                        },
                         '&:hover': {
-                          bgcolor: '#667eea',
-                          color: 'white'
+                          background: 'rgba(255,255,255,0.95)',
+                          transform: 'none',
+                          boxShadow: `
+                            0 8px 24px rgba(0,0,0,0.12),
+                            0 4px 12px rgba(0,0,0,0.08),
+                            inset 0 1px 0 rgba(255,255,255,0.9)
+                          `,
+                          '&::before': {
+                            left: '100%'
+                          }
+                        },
+                        '&:active': {
+                          transform: 'none',
+                          transition: 'all 0.1s ease'
                         }
                       }}
                     >

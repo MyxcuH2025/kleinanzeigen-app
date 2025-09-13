@@ -139,39 +139,39 @@ export const AnalyticsPage: React.FC = () => {
 
   useEffect(() => {
     if (user) {
-      console.log('Benutzer ist eingeloggt, lade Dashboard-Daten...', user);
+
       loadDashboardData();
     } else {
-      console.log('Kein Benutzer eingeloggt');
+
     }
   }, [user]);
 
   const loadDashboardData = async () => {
     try {
-      console.log('Starte Laden der Dashboard-Daten...');
+
       setLoading(true);
       
       // Lade echte Daten vom Backend
-      console.log('Rufe API-Endpunkte auf...');
+
       const [listingsResponse, analyticsResponse] = await Promise.all([
         apiService.get('/api/listings/user'),
         apiService.get('/api/analytics/user')
       ]);
 
-      console.log('Listings-Response:', listingsResponse);
-      console.log('Analytics-Response:', analyticsResponse);
+
+
 
       // Setze echte Anzeigen-Daten
       if ((listingsResponse as Record<string, unknown>).listings && Array.isArray((listingsResponse as Record<string, unknown>).listings)) {
         const listingsData = (listingsResponse as Record<string, unknown>).listings as Listing[];
-        console.log('Setze Anzeigen-Daten:', listingsData);
+
         setListings(listingsData);
         
         // Extrahiere verfügbare Kategorien aus den echten Daten
         const categories: string[] = [...new Set(listingsData.map((listing: Listing) => listing.category))];
         setAvailableCategories(categories);
       } else {
-        console.log('Keine Anzeigen-Daten gefunden oder falsches Format:', listingsResponse);
+
       }
 
       // Setze echte Analytics-Daten
@@ -196,10 +196,10 @@ export const AnalyticsPage: React.FC = () => {
             favorites: number;
           }>) || []
         };
-        console.log('Setze Analytics-Daten:', analyticsData);
+
         setAnalytics(analyticsData);
       } else {
-        console.log('Keine Analytics-Daten gefunden:', analyticsResponse);
+
       }
 
     } catch (error) {

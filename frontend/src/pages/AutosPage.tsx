@@ -388,7 +388,7 @@ const AutosPage: React.FC = () => {
   const handleSearch = () => {
     // Die Filter werden bereits durch getFilteredAutos() angewendet
     // Hier könntest du zusätzliche Logik hinzufügen (z.B. API-Aufruf)
-    console.log('Suche mit Filtern:', filters);
+
   };
 
   // Filter zurücksetzen

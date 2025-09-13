@@ -1,0 +1,204 @@
+---
+description: Projekt-Kontext und allgemeine Regeln für Kleinanzeigen-Plattform
+globs: ["**/*", "**/README.md", "**/docs/**", "**/config/**", "**/scripts/**"]
+alwaysApply: true
+---
+
+# PROJEKT-KONTEXT & ALLGEMEINE REGELN - Kleinanzeigen
+
+## 🎯 PROJEKT-ÜBERSICHT
+
+### **Kleinanzeigen-Plattform**
+- **Frontend**: React + Vite + TypeScript + Tailwind
+- **Backend**: FastAPI + SQLModel + SQLite (skalierbar)
+- **Features**: Kategorien/Formulare, Server-Side Filter, Chat (WebSocket), Benachrichtigungen, Profile, Favoriten, Moderation/Meldungen, Responsive UI
+- **Ziel**: 40.000+ User unterstützen
+
+### **Aktuelle Architektur**
+- **Monorepo**: `kleinanzeigen/` mit getrenntem Backend/Frontend
+- **Backend**: 18 Domänen-Module, 13 Hauptmodelle, 34 Performance-Indizes
+- **Frontend**: 152 Komponenten, 48 Seiten, Code-Splitting implementiert
+- **Performance**: Optimiert für hohe User-Zahlen
+
+## 📋 ALLGEMEINE REGELN
+
+### 1. **Weniger Code = Besser**
+- **Präferiere**: Konzise, modulare Lösungen ohne Lesbarkeit zu opfern
+- **Vermeide**: Copy-Paste, redundante Funktionen, Dead Code
+- **Beispiel**: CreateListing 940 Zeilen → 3 modulare Komponenten
+
+### 2. **Super-Team-Ansatz**
+- **Top Developer ×10**: Architekt, QA, DevOps, UX-Designer, Marketer
+- **Multi-Role-Synthese**: Verschiedene Perspektiven kombinieren
+- **Vollständige Expertise**: Backend + Frontend + Performance + UX
+
+### 3. **Vollständige Implementierung**
+- **Niemals aufhören** bis Feature 100% fertig
+- **Completion Report**: Was wurde gemacht, wo ist der Code, wie testen
+- **Messbare Ergebnisse**: Performance-Verbesserungen dokumentieren
+
+### 4. **Strukturierte Analyse**
+- **3-Paragraph-Ansatz**: Problem → Analyse → Lösung
+- **Keine schnellen Vermutungen**: Gründliche Analyse vor Implementierung
+- **Multi-Role-Synthese**: Verschiedene Perspektiven kombinieren
+
+### 5. **Kreative Features**
+- **Relevante Ergänzungen**: Ohne Komplexität zu erhöhen
+- **Random-Button-Pattern**: Für Banners, Vorschläge, Discovery
+- **Performance-Monitoring**: Echtzeit-Metriken als kreative Ergänzung
+
+### 6. **Kurze Antworten**
+- **Konzise Code**: Listen, keine Fülltexte
+- **Fokussiert**: Nur notwendige Informationen
+- **Effizient**: Zeitersparnis durch klare Kommunikation
+
+### 7. **Kommentare beibehalten**
+- **Bedeutungsvolle Kommentare**: Überall hinzufügen
+- **Erklären**: Was der Block macht und warum
+- **Wartbarkeit**: Für zukünftige Entwickler
+
+### 8. **Aktueller Zustand**
+- **Kurze Zusammenfassung**: Was existiert, was ist kaputt, was wird repariert
+- **Vor jeder Änderung**: Aktuellen Stand analysieren
+- **Transparenz**: Klare Kommunikation des Projektstatus
+
+### 9. **Mehrere Lösungsoptionen**
+- **A/B-Varianten**: "So" oder "so" mit Pro/Contra
+- **Flexibilität**: Verschiedene Ansätze für verschiedene Szenarien
+- **Informierte Entscheidungen**: Basierend auf Fakten
+
+### 10. **Strukturierte Recherche**
+- **Ein-Paragraph-Suche**: Klare Forschungsanfrage mit Kontext
+- **Kriterien**: Beispiele, Code-Snippets wenn nötig
+- **Effizienz**: Weniger irrelevante Ergebnisse
+
+### 11. **Wachsendes Vertrauen**
+- **Vorsichtig beginnen**: Ehrliche Unsicherheit zeigen
+- **Vertrauen aufbauen**: Durch verifizierte Ergebnisse
+- **Lernprozess**: Verstehen wie Lösungen entwickelt werden
+
+### 12. **Wesentliche Schritte**
+- **Nur notwendige Schritte**: Keine unnötigen Zwischenschritte
+- **Fokussiert**: Prioritäten klar definieren
+- **Effizient**: Zeitersparnis durch klare Struktur
+
+### 13. **Suchresultat-Zusammenfassung**
+- **Fakten vs. Vermutungen**: Klare Trennung
+- **Warnungen**: Vor Störfaktoren und irrelevanten Ergebnissen
+- **Fokussiert**: Nur relevante Informationen
+
+### 14. **Fehlender Kontext**
+- **Senior-Developer-Ansatz**: Genau auflisten was benötigt wird
+- **Schritt-für-Schritt**: Klare Anweisungen wie Kontext bereitgestellt werden kann
+- **Dateien, Logs, Umgebung**: Spezifische Anforderungen
+
+### 15. **Sicherheitsoptionen**
+- **Konflikte erklären**: Wenn Regeln mit Lesbarkeit/Sicherheit kollidieren
+- **Sichere Option wählen**: Sicherheit vor allem anderen
+- **Transparenz**: Warum Entscheidungen getroffen werden
+
+## 🏗️ PROJEKT-STRUKTUR
+
+### **Backend-Architektur**
+- **Routing**: `app/*/routes.py` - Domänen-spezifische Endpoints
+- **Modelle**: `models/*` - SQLModel-basierte Datenmodelle
+- **Dependencies**: `dependencies.py` - Gemeinsame Abhängigkeiten
+- **Middleware**: `middleware/` - Cross-Cutting Concerns
+
+### **Frontend-Architektur**
+- **Komponenten**: `components/` - Wiederverwendbare UI-Komponenten
+- **Seiten**: `pages/` - Route-basierte Seitenkomponenten
+- **Services**: `services/` - API-Client und Backend-Kommunikation
+- **Context**: `context/` - Globaler State und Provider
+
+### **Integration**
+- **REST-API**: Frontend Services → Backend Routes
+- **WebSocket**: Echtzeit-Features für Chat
+- **Typen**: TypeScript-Interfaces spiegeln Backend-Schemata
+
+## 🚀 PERFORMANCE-ZIELE
+
+### **Backend-Performance**
+- **Response-Zeit**: < 200ms (95. Perzentil)
+- **Datenbank-Queries**: < 50ms durchschnittlich
+- **Concurrent Users**: 40.000+ gleichzeitig
+- **Memory Usage**: < 2GB für Backend
+
+### **Frontend-Performance**
+- **Initial Load**: < 3 Sekunden
+- **Bundle Size**: < 100kB pro Chunk
+- **Lazy Components**: < 1 Sekunde
+- **Core Web Vitals**: LCP < 2.5s, FID < 100ms, CLS < 0.1
+
+## 🔧 CODE-QUALITÄT
+
+### **Architektur**
+- **Modular**: SRP, saubere Funktionen, keine Copy-Paste
+- **Performance**: Server-Side Filter, Lazy Loading, Debouncing, Memoization
+- **Sicherheit**: Backend-Validierung, Access-Checks, Injection-Schutz
+- **Testbarkeit**: Unit/Contract-Tests wo möglich
+
+### **Developer Experience**
+- **Klare Benennung**: Verständliche Variablen- und Funktionsnamen
+- **Kompakte Typen**: Effiziente Interface-Definitionen
+- **Doc-Comments**: Dokumentation für komplexe Logik
+- **Konsistenz**: Einheitliche Code-Standards
+
+## 🎯 KLEINANZEIGEN-SPEZIFISCH
+
+### **Kern-Features**
+- **Anzeigen-Management**: CRUD, Status, Filter, Suche
+- **Benutzer-System**: Registrierung, Profile, Verifikation
+- **Kategorien**: Dynamische Formulare, Filter
+- **Chat**: Echtzeit-Messaging, Benachrichtigungen
+- **Admin-Panel**: Moderation, Berichte, Verwaltung
+
+### **Technische Highlights**
+- **34 Datenbank-Indizes**: Für optimale Query-Performance
+- **N+1 Problem behoben**: 70-90% weniger DB-Abfragen
+- **Code-Splitting**: 15% Bundle-Reduktion
+- **Connection Pooling**: 20 Verbindungen + 30 Overflow
+- **Performance-Monitoring**: Echtzeit-Metriken
+
+## 📊 AKTUELLE OPTIMIERUNGEN
+
+### **Abgeschlossen**
+- ✅ **Datenbank-Indizes**: 34 neue Indizes hinzugefügt
+- ✅ **N+1 Query Problem**: Vollständig behoben
+- ✅ **Connection Pooling**: Implementiert und konfiguriert
+- ✅ **Code-Splitting**: React.lazy() für alle großen Komponenten
+- ✅ **Bundle-Optimierung**: 15% Reduktion durch modulare Komponenten
+- ✅ **Performance-Monitoring**: Echtzeit-Metriken verfügbar
+
+### **Geplant**
+- 🔄 **Redis Caching**: Für häufig abgerufene Daten
+- 🔄 **Rate Limiting**: API-Schutz
+- 🔄 **Full-text Search**: Mit Elasticsearch
+- 🔄 **Test-Suite**: Unit, Integration, E2E-Tests
+
+## 🚀 IMPLEMENTIERUNG
+
+### **Vor jeder Änderung**
+1. **Aktuellen Zustand analysieren**
+2. **Problem identifizieren** (3-Paragraph-Ansatz)
+3. **Lösung synthetisieren** (Multi-Role-Perspektive)
+4. **Vollständig implementieren**
+5. **Completion Report** erstellen
+
+### **Code-Standards**
+- **Kommentare**: Erklären WAS und WARUM
+- **Modulare Architektur**: Eine Verantwortung pro Modul
+- **Performance**: Immer an Skalierung denken
+- **Sicherheit**: Backend-Validierung, Access-Checks
+
+### **Testing**
+- **Unit-Tests**: Für alle neuen Funktionen
+- **Integration-Tests**: Für API-Endpoints
+- **Performance-Tests**: Für kritische Pfade
+- **E2E-Tests**: Für User-Flows
+
+---
+
+**Status**: ✅ Aktiv für alle Projekt-Dateien
+**Nächste Überprüfung**: Bei jeder Projekt-Änderung
+**Version**: 1.0 - Optimiert für 40.000+ User

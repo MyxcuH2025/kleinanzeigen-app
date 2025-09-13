@@ -58,7 +58,7 @@ const NotificationBell: React.FC = () => {
   // WebSocket für Echtzeit-Benachrichtigungen
   const { isConnected } = useWebSocket({
     onNotification: (notification: NotificationData) => {
-      console.log('Echtzeit-Benachrichtigung erhalten:', notification);
+
       
       // Benachrichtigung zur Liste hinzufügen
       setNotifications(prev => [notification as any, ...prev]);
@@ -74,7 +74,12 @@ const NotificationBell: React.FC = () => {
   const open = Boolean(anchorEl);
 
   const loadNotifications = useCallback(async () => {
-    if (!user) return;
+    // PERFORMANCE-OPTIMIERUNG: Nur laden wenn User eingeloggt ist
+    if (!user) {
+      setNotifications([]);
+      setStats(null);
+      return;
+    }
 
     try {
       setLoading(true);
@@ -314,8 +319,6 @@ const NotificationBell: React.FC = () => {
             backdropFilter: 'blur(20px)'
           }
         }}
-        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
         {/* Header */}
         <Box sx={{ p: 3, pb: 2 }}>

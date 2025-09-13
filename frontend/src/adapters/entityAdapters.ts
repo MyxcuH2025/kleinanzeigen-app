@@ -128,7 +128,7 @@ export const adaptShopToEntity = (shop: Shop): ShopEntity => {
     type: 'shop',
     name: shop.name, // Firmenname
     subtitle: shop.category, // Spezialität/Kategorie
-    avatarUrl: shop.image ? getImageUrl(shop.image) : undefined,
+    avatarUrl: shop.image ? getImageUrl(shop.image) : '/images/noimage.jpeg',
     initials: shop.name.charAt(0).toUpperCase(),
     location: shop.location,
     description: shop.description,
@@ -162,6 +162,7 @@ export const adaptDienstleisterToEntity = (provider: Dienstleister): ProviderEnt
     type: 'provider',
     name: provider.company, // Firmenname
     subtitle: provider.serviceType, // Spezialität/Service-Type
+    avatarUrl: '/images/noimage.jpeg', // Default image since provider doesn't have image property
     initials: provider.company.charAt(0).toUpperCase(),
     location: provider.location,
     description: provider.description,
@@ -200,7 +201,7 @@ export const adaptUserToEntity = (user: User): UserEntity => {
     type: 'user',
     name: fullName,
     subtitle: user.role || 'user',
-    avatarUrl: user.avatar ? getImageUrl(user.avatar) : undefined,
+    avatarUrl: user.avatar ? getImageUrl(user.avatar) : '/images/noimage.jpeg',
     initials: fullName.charAt(0).toUpperCase() + (fullName.split(' ')[1]?.charAt(0) || ''),
     location: user.location || 'Nicht angegeben',
     description: user.bio || 'Keine Beschreibung',
@@ -251,9 +252,26 @@ export const createContactHandlers = () => {
   };
 
   const handleMessage = (entity: Entity) => {
-    if (entity.links?.message) {
-      window.location.href = entity.links.message;
+    // Navigiere zur Chat-Seite mit Entity-Kontext
+    // Mappe Entity-Typen zu bestehenden Chat-Parametern
+    let chatUrl = '/chat';
+    
+    switch (entity.type) {
+      case 'user':
+        // Für User: verwende userId Parameter
+        chatUrl = `/chat?user=${entity.id}&userName=${encodeURIComponent(entity.name)}`;
+        break;
+      case 'shop':
+      case 'provider':
+        // Für Shops/Provider: verwende sellerId Parameter
+        chatUrl = `/chat?sellerId=${entity.id}&sellerName=${encodeURIComponent(entity.name)}`;
+        break;
+      default:
+        // Fallback: allgemeine Chat-Seite
+        chatUrl = '/chat';
     }
+    
+    window.location.href = chatUrl;
   };
 
   return {

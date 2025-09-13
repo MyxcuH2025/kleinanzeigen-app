@@ -158,7 +158,7 @@ export const ChatPage: React.FC = () => {
   // WebSocket für Echtzeit-Nachrichten
   const { isConnected } = useWebSocket({
     onNewMessage: (messageData: MessageData) => {
-      console.log('Echtzeit-Nachricht erhalten:', messageData);
+
       
       // Prüfen ob die Nachricht zur aktuellen Conversation gehört
       if (selectedConversation && messageData.conversation_id === parseInt(selectedConversation.id)) {
@@ -453,7 +453,7 @@ export const ChatPage: React.FC = () => {
           listingImage: ''
         });
       } else {
-        console.log('Keine bestehende Konversation für Listing gefunden:', listingId);
+
       }
     } catch (e) {
       console.error('Fehler beim Finden der Konversation:', e);
@@ -474,10 +474,10 @@ export const ChatPage: React.FC = () => {
 
     try {
       setIsLoading(true);
-      console.log('Sende Nachricht:', newMessage.trim());
+
       
       const sent = await chatService.sendMessage(parseInt(selectedConversation.id), newMessage.trim());
-      console.log('Nachricht erfolgreich gesendet:', sent);
+
       
       const message: Message = {
         id: String(sent.id),
@@ -493,7 +493,7 @@ export const ChatPage: React.FC = () => {
         // Prüfe auf doppelte IDs
         const existingIds = prev.map(m => m.id);
         if (existingIds.includes(message.id)) {
-          console.log('Nachricht bereits vorhanden (WebSocket-Duplikat verhindert):', message.id);
+
           return prev;
         }
         return [...prev, message];
@@ -660,11 +660,11 @@ export const ChatPage: React.FC = () => {
   const scrollToBottomRobust = () => {
     const attemptScroll = (delay: number) => {
       setTimeout(() => {
-        console.log('=== SCROLL DEBUG START ===');
+
         
         // Debug: Alle möglichen Container finden
         const allContainers = document.querySelectorAll('*');
-        const scrollableContainers = [];
+        const scrollableContainers: HTMLElement[] = [];
         
         allContainers.forEach((element, index) => {
           const computedStyle = window.getComputedStyle(element);
@@ -673,19 +673,11 @@ export const ChatPage: React.FC = () => {
           const hasHeight = element.scrollHeight > element.clientHeight;
           
           if (hasOverflow && hasHeight && element.tagName !== 'TEXTAREA' && element.tagName !== 'INPUT') {
-            scrollableContainers.push({
-              element,
-              tagName: element.tagName,
-              className: element.className,
-              scrollHeight: element.scrollHeight,
-              clientHeight: element.clientHeight,
-              scrollTop: element.scrollTop,
-              canScroll: element.scrollHeight > element.clientHeight
-            });
+            scrollableContainers.push(element as HTMLElement);
           }
         });
         
-        console.log('Gefundene scrollbare Container:', scrollableContainers);
+
         
         // Methode 1: messagesContainerRef
         if (messagesContainerRef.current) {
@@ -696,18 +688,17 @@ export const ChatPage: React.FC = () => {
             scrollTop: messagesContainerRef.current.scrollTop
           });
           messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-          console.log('Scroll zu messagesContainerRef gesetzt');
+
         }
         
         // Methode 2: Alle scrollbaren Container scrollen
         scrollableContainers.forEach((container, index) => {
-          console.log(`Scrolle Container ${index}:`, container);
-          container.element.scrollTop = container.element.scrollHeight;
+          container.scrollTop = container.scrollHeight;
         });
         
         // Methode 3: scrollIntoView
         if (messagesEndRef.current) {
-          console.log('messagesEndRef scrollIntoView...');
+
           messagesEndRef.current.scrollIntoView({ 
             behavior: 'instant',
             block: 'end',
@@ -715,7 +706,7 @@ export const ChatPage: React.FC = () => {
           });
         }
         
-        console.log('=== SCROLL DEBUG END ===');
+
       }, delay);
     };
     
@@ -735,10 +726,10 @@ export const ChatPage: React.FC = () => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             // messagesEndRef ist sichtbar, das bedeutet wir sind am Ende
-            console.log('Am Ende der Nachrichten - Scroll erfolgreich');
+
           } else {
             // messagesEndRef ist nicht sichtbar, das bedeutet wir müssen scrollen
-            console.log('Nicht am Ende - versuche zu scrollen');
+
             scrollToBottomRobust();
           }
         });
@@ -760,7 +751,7 @@ export const ChatPage: React.FC = () => {
   const debugScrollContainers = () => {
     // Debug nur in der Console, nicht im UI
     if (process.env.NODE_ENV === 'development') {
-      console.log('=== SCROLL DEBUG ===');
+
       
       const allContainers = [
         ...document.querySelectorAll('[style*="overflow"]'),
@@ -782,8 +773,8 @@ export const ChatPage: React.FC = () => {
         }
       });
       
-      console.log('messagesEndRef:', messagesEndRef.current);
-      console.log('=== END DEBUG ===');
+
+
     }
   };
 

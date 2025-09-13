@@ -238,20 +238,72 @@ const AdCard: React.FC<AdCardProps> = ({ id, title, price, location, images, cat
     <Box
       sx={{
         position: 'relative',
-        bgcolor: '#ffffff',
-        borderRadius: { xs: '8px', sm: '12px' },
+        bgcolor: 'rgba(255, 255, 255, 0.95)',
+        borderRadius: { xs: '16px', sm: '20px' },
         overflow: 'visible',
         cursor: 'pointer',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        border: '1px solid #e5e7eb',
-        height: 'auto',
-        minHeight: '400px',
-        maxHeight: 'none',
+        transition: 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+        border: '1px solid rgba(220, 248, 198, 0.3)',
+        height: '440px',
         width: '100%',
         display: 'flex',
         flexDirection: 'column',
         flexShrink: 0,
-        '&:hover': { boxShadow: 4 }
+        backdropFilter: 'blur(10px)',
+        boxShadow: `
+          0 4px 20px rgba(0, 0, 0, 0.08),
+          0 2px 8px rgba(220, 248, 198, 0.2),
+          inset 0 1px 0 rgba(255, 255, 255, 0.9)
+        `,
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          borderRadius: { xs: '16px', sm: '20px' },
+          padding: '1px',
+          background: 'linear-gradient(135deg, rgba(220, 248, 198, 0.5), rgba(34, 197, 94, 0.3), rgba(220, 248, 198, 0.5))',
+          mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+          maskComposite: 'xor',
+          WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+          WebkitMaskComposite: 'xor',
+          opacity: 0,
+          transition: 'opacity 0.4s ease'
+        },
+        '&:hover': { 
+          transform: 'rotateX(2deg)',
+          boxShadow: `
+            0 25px 50px rgba(0, 0, 0, 0.15),
+            0 12px 24px rgba(220, 248, 198, 0.4),
+            0 0 0 1px rgba(220, 248, 198, 0.6),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9)
+          `,
+          borderColor: 'rgba(220, 248, 198, 0.8)',
+          '&::before': {
+            opacity: 1
+          },
+          '& .ad-card-image': {
+            transform: 'rotateY(-2deg)',
+            '&::before': {
+              opacity: 0.4,
+              background: 'linear-gradient(135deg, rgba(220, 248, 198, 0.4), rgba(34, 197, 94, 0.2))'
+            }
+          },
+          '& .ad-card-price': {
+            transform: 'none'
+          },
+          '& .ad-card-title': {
+            transform: 'none'
+          },
+          '& .ad-card-icons': {
+            transform: 'none',
+            '& .icon-bg': {
+              transform: 'none'
+            }
+          }
+        }
       }}
       onClick={handleCardClick}
     >
@@ -301,7 +353,7 @@ const AdCard: React.FC<AdCardProps> = ({ id, title, price, location, images, cat
                 color: '#6c757d'
               }}
             >
-              {seller.rating || '4.5'} ({seller.ratingCount || '12'})
+              {seller.rating || '4.5'} ({seller.reviewCount || '12'})
             </Typography>
           </Box>
           {(seller as any).userType && (
@@ -318,19 +370,47 @@ const AdCard: React.FC<AdCardProps> = ({ id, title, price, location, images, cat
 
       {/* Image */}
       <Box 
+        className="ad-card-image"
         sx={{ 
           position: 'relative', 
           overflow: 'hidden',
           height: '240px',
           minHeight: '240px',
           maxHeight: '240px',
-          backgroundColor: '#ffffff',
+          backgroundColor: '#f8fafc',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           flexShrink: 0,
           cursor: 'pointer',
-          borderRadius: { xs: '8px 8px 0 0', sm: '12px 12px 0 0' }
+          borderRadius: { xs: '12px 12px 0 0', sm: '16px 16px 0 0' },
+          transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'linear-gradient(135deg, rgba(220, 248, 198, 0.3), rgba(34, 197, 94, 0.1))',
+            zIndex: 1,
+            opacity: 0,
+            transition: 'all 0.4s ease'
+          },
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent)',
+            opacity: 0.8,
+            zIndex: 2
+          },
+          '&:hover::before': {
+            opacity: 0.4
+          }
         }}
         ref={imageAreaRef}
         onMouseMove={handleImageMouseMove}
@@ -339,7 +419,16 @@ const AdCard: React.FC<AdCardProps> = ({ id, title, price, location, images, cat
         <img
           src={imageUrl}
           alt={title}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
+          style={{ 
+            width: '100%', 
+            height: '100%', 
+            objectFit: 'cover', 
+            objectPosition: 'center top',
+            transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            zIndex: 2,
+            position: 'relative',
+            filter: 'brightness(1.02) contrast(1.05)'
+          }}
           loading="lazy"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
@@ -354,27 +443,30 @@ const AdCard: React.FC<AdCardProps> = ({ id, title, price, location, images, cat
           <Box
             sx={{
               position: 'absolute',
-              bottom: 8,
-              right: 8,
+              bottom: 12,
+              right: 12,
               display: 'flex',
               alignItems: 'center',
-              gap: 0.4,
-              zIndex: 3,
-              backgroundColor: 'rgba(0,0,0,0.15)',
-              borderRadius: '6px',
-              px: 0.6,
-              py: 0.4
+              gap: 0.5,
+              zIndex: 4,
+              backgroundColor: 'rgba(0, 0, 0, 0.75)',
+              backdropFilter: 'blur(8px)',
+              borderRadius: '8px',
+              px: 0.8,
+              py: 0.6,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
             }}
           >
             {displayImages.map((_, i) => (
               <Box
                 key={i}
                 sx={{
-                  width: i === currentImageIndex ? 12 : 4,
-                  height: 4,
-                  borderRadius: i === currentImageIndex ? 2 : '50%',
-                  backgroundColor: 'rgba(255,255,255,0.7)',
-                  transition: 'width 150ms ease'
+                  width: i === currentImageIndex ? 16 : 6,
+                  height: 6,
+                  borderRadius: i === currentImageIndex ? 3 : '50%',
+                  backgroundColor: i === currentImageIndex ? '#dcf8c6' : 'rgba(255,255,255,0.6)',
+                  transition: 'all 200ms cubic-bezier(0.25, 0.8, 0.25, 1)',
+                  boxShadow: i === currentImageIndex ? '0 2px 4px rgba(220, 248, 198, 0.3)' : 'none'
                 }}
               />
             ))}
@@ -383,35 +475,127 @@ const AdCard: React.FC<AdCardProps> = ({ id, title, price, location, images, cat
       </Box>
 
       {/* Text */}
-      <Box sx={{ padding: { xs: '6px', sm: '8px' }, backgroundColor: '#ffffff', flex: 1, display: 'flex', flexDirection: 'column', borderRadius: { xs: '0 0 8px 8px', sm: '0 0 12px 12px' } }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mb: 0.25, height: '32px' }}>
-          <Box sx={{ display: 'flex', gap: 0.25 }}>
-            <IconButton onClick={handleFavoriteToggle} disabled={isLoading} size="small" sx={{ width: 24, height: 24, minWidth: 24 }}>
-              <Box sx={{ fontSize: 12, color: favoriteState ? '#ff4757' : '#666' }}>
+      <Box sx={{ 
+        padding: { xs: '12px', sm: '14px' }, 
+        backgroundColor: '#ffffff', 
+        flex: 1, 
+        display: 'flex', 
+        flexDirection: 'column', 
+        borderRadius: { xs: '0 0 12px 12px', sm: '0 0 16px 16px' },
+        position: 'relative',
+        minHeight: '170px', // Ausgewogene Mindesthöhe für Text-Bereich
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 16,
+          right: 16,
+          height: '1px',
+          background: 'linear-gradient(90deg, transparent 0%, rgba(220, 248, 198, 0.3) 50%, transparent 100%)'
+        }
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mb: 0.125, height: '24px' }}>
+          <Box className="ad-card-icons" sx={{ display: 'flex', gap: 1.5 }}>
+            <Box 
+              onClick={handleFavoriteToggle}
+              className="icon-bg"
+              sx={{ 
+                width: 16, 
+                height: 16, 
+                borderRadius: '50%',
+                backgroundColor: favoriteState ? 'rgba(255, 71, 87, 0.06)' : 'rgba(0, 0, 0, 0.01)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: isLoading ? 'default' : 'pointer',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: favoriteState ? 'rgba(255, 71, 87, 0.08)' : 'rgba(0, 0, 0, 0.02)',
+                  transform: 'scale(1.05)'
+                }
+              }}
+            >
+              <Box sx={{ fontSize: 14, color: favoriteState ? '#ff4757' : '#666' }}>
                 <FavoriteIcon />
               </Box>
-            </IconButton>
-            <IconButton onClick={handleShare} size="small" sx={{ width: 24, height: 24, minWidth: 24 }}>
-              <Box sx={{ fontSize: 12, color: '#666' }}>
+            </Box>
+            <Box 
+              onClick={handleShare}
+              className="icon-bg"
+              sx={{ 
+                width: 16, 
+                height: 16, 
+                borderRadius: '50%',
+                backgroundColor: 'rgba(0, 0, 0, 0.01)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                  transform: 'scale(1.05)'
+                }
+              }}
+            >
+              <Box sx={{ fontSize: 14, color: '#666' }}>
                 <ShareIcon />
               </Box>
-            </IconButton>
-            <IconButton className="ad-card-menu-button" onClick={handleMenuOpen} size="small" sx={{ width: 24, height: 24, minWidth: 24 }}>
-              <Box sx={{ fontSize: 12, color: '#666' }}>
+            </Box>
+            <Box 
+              className="ad-card-menu-button icon-bg" 
+              onClick={handleMenuOpen}
+              sx={{ 
+                width: 16, 
+                height: 16, 
+                borderRadius: '50%',
+                backgroundColor: 'rgba(0, 0, 0, 0.01)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                  transform: 'scale(1.05)'
+                }
+              }}
+            >
+              <Box sx={{ fontSize: 14, color: '#666' }}>
                 <MehrIcon />
               </Box>
-            </IconButton>
+            </Box>
           </Box>
         </Box>
 
-        <Typography variant="h6" sx={{ fontWeight: 400, fontSize: { xs: '1rem', sm: '1.1rem' }, color: '#1a1a1a', mb: 0.25 }}>
-          {truncateTitle(title)}
+        <Typography 
+          className="ad-card-title"
+          variant="h6" 
+          sx={{ 
+            fontWeight: 600, 
+            fontSize: { xs: '1.05rem', sm: '1.15rem' }, 
+            color: '#1a1a1a', 
+            mb: 0.25,
+            mt: -0.375, // Ausgewogener Versatz
+            lineHeight: 1.38, // Ausgewogene Lesbarkeit
+            letterSpacing: '-0.01em',
+            minHeight: '3.0rem', // Ausgewogene Höhe für 2 Zeilen
+            maxHeight: '3.0rem', // Ausgewogene Höhe für 2 Zeilen
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
+          }}
+        >
+          {title}
         </Typography>
 
         {/* Beschreibung hinzufügen - immer 2 Zeilen */}
         <Box sx={{ 
-          minHeight: '2.2rem', // Reduzierte Höhe für 2 Zeilen
-          mb: 0.25,
+          minHeight: '2.0rem', // Ausgewogene Höhe für Beschreibung
+          maxHeight: '2.0rem', // Ausgewogene Höhe für Beschreibung
+          mb: 0.375,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'flex-start'
@@ -445,22 +629,75 @@ const AdCard: React.FC<AdCardProps> = ({ id, title, price, location, images, cat
         </Box>
 
         {/* Preis nach unten verschieben */}
-        <Typography variant="h6" sx={{ fontWeight: 400, fontSize: { xs: '1rem', sm: '1.1rem' }, color: '#1a1a1a', mb: 0.25 }}>
+        <Typography 
+          className="ad-card-price"
+          variant="h6" 
+          sx={{ 
+            fontWeight: 700, 
+            fontSize: { xs: '1.15rem', sm: '1.25rem' }, 
+            color: '#1a1a1a', 
+            mb: 0.375,
+            transition: 'all 0.3s ease',
+            background: 'linear-gradient(135deg, #1a1a1a 0%, #2d3748 100%)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}
+        >
           {formatPrice(price)}
         </Typography>
 
 
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 'auto' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between', 
+          mt: 'auto',
+          pt: 1,
+          borderTop: '1px solid rgba(0, 0, 0, 0.06)'
+        }}>
           <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-            <Box sx={{ fontSize: { xs: 10, sm: 12 }, color: '#666', mr: 0.25 }}>
+            <Box sx={{ 
+              fontSize: { xs: 11, sm: 13 }, 
+              color: '#666', 
+              mr: 0.5,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 16,
+              height: 16
+            }}>
               <LocationIcon />
             </Box>
-            <Typography variant="caption" sx={{ fontSize: { xs: '0.6rem', sm: '0.675rem' }, color: '#666', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                fontSize: { xs: '0.7rem', sm: '0.75rem' }, 
+                color: '#666', 
+                fontWeight: 500, 
+                overflow: 'hidden', 
+                textOverflow: 'ellipsis', 
+                whiteSpace: 'nowrap',
+                letterSpacing: '0.01em'
+              }}
+            >
               {location}
             </Typography>
           </Box>
           {created_at && (
-            <Typography variant="caption" sx={{ fontSize: { xs: '0.575rem', sm: '0.625rem' }, color: '#999', fontWeight: 500 }}>
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                fontSize: { xs: '0.65rem', sm: '0.7rem' }, 
+                color: '#999', 
+                fontWeight: 500,
+                backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                px: 1,
+                py: 0.25,
+                borderRadius: '4px',
+                letterSpacing: '0.01em'
+              }}
+            >
               {new Date(created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}
             </Typography>
           )}

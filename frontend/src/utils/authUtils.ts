@@ -5,7 +5,7 @@ export interface User {
   id: string;
   email: string;
   username: string;
-  role: 'user' | 'admin' | 'moderator';
+  role: 'USER' | 'ADMIN' | 'SELLER';
   isActive: boolean;
   createdAt: string;
   avatar?: string;
@@ -123,11 +123,11 @@ export const authUtils = {
 
   isAdmin(): boolean {
     const user = this.getCurrentUser();
-    return user?.role === 'admin';
+    return user?.role === 'ADMIN';
   },
 
   isModerator(): boolean {
     const user = this.getCurrentUser();
-    return user?.role === 'moderator' || user?.role === 'admin';
+    return user?.role === 'SELLER' || user?.role === 'ADMIN';
   }
 }; 

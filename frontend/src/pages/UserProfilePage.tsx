@@ -153,12 +153,12 @@ const UserProfilePage: React.FC = () => {
 
   const handleContactUser = () => {
     // TODO: Implement contact functionality
-    console.log('Contact user:', profile?.id);
+
   };
 
   const handleShowPhone = () => {
     // TODO: Implement phone reveal functionality
-    console.log('Show phone for user:', profile?.id);
+
   };
 
 
@@ -378,7 +378,7 @@ const UserProfilePage: React.FC = () => {
                       ? (prev.followers_count || 0) + 1 
                       : Math.max((prev.followers_count || 0) - 1, 0)
                   } : null);
-                  console.log('Follow status changed:', isFollowing);
+
                 }}
               />
             </Stack>

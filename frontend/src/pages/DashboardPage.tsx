@@ -21,31 +21,144 @@ import {
   Description as TextTemplateIcon,
   Help as HelpIcon
 } from '@mui/icons-material';
-import { DashboardLayout } from '@/components/DashboardLayout';
+import { DashboardLayout } from '../components/DashboardLayout';
 import { useNavigate } from 'react-router-dom';
-import { hapticService } from '@/services/hapticService';
-import { usePullToRefresh } from '@/hooks/usePullToRefresh';
-import { useSwipeGestures } from '@/hooks/useSwipeGestures';
+import { hapticService } from '../services/hapticService';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import { useSwipeGestures } from '../hooks/useSwipeGestures';
+import { useUser } from '../context/UserContext';
+import { useFavorites } from '../context/FavoritesContext';
+import OnlineStatus from '../components/OnlineStatus';
+import { notificationService } from '../services/notificationService';
+import { apiService } from '../services/api';
+
+interface DashboardStats {
+  activeListings: number;
+  totalFavorites: number;
+  unreadMessages: number;
+}
 
 export const DashboardPage: React.FC = () => {
   const theme = useTheme();
   const navigate = useNavigate();
+  const { user } = useUser();
+  const { favorites } = useFavorites();
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<DashboardStats>({
+    activeListings: 0,
+    totalFavorites: 0,
+    unreadMessages: 0
+  });
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  // Sofort laden - keine künstliche Verzögerung
+  // Dashboard-Daten laden
   useEffect(() => {
-    setLoading(false);
+    loadDashboardStats();
+  }, [user, favorites]);
+
+  // Real-time Updates für Dashboard-Statistiken
+  useEffect(() => {
+    const handleListingUpdate = (event: CustomEvent) => {
+
+      loadDashboardStats();
+    };
+
+    const handleFavoriteUpdate = (event: CustomEvent) => {
+
+      loadDashboardStats();
+    };
+
+    const handleNotificationUpdate = (event: CustomEvent) => {
+
+      loadDashboardStats();
+    };
+
+    // Event-Listener hinzufügen
+    window.addEventListener('websocket-listing-update', handleListingUpdate as EventListener);
+    window.addEventListener('websocket-favorite-update', handleFavoriteUpdate as EventListener);
+    window.addEventListener('websocket-notification', handleNotificationUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('websocket-listing-update', handleListingUpdate as EventListener);
+      window.removeEventListener('websocket-favorite-update', handleFavoriteUpdate as EventListener);
+      window.removeEventListener('websocket-notification', handleNotificationUpdate as EventListener);
+    };
   }, []);
+
+  const loadDashboardStats = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // Lade aktive Anzeigen
+      const listingsResponse = await apiService.get('/api/listings/user');
+
+      
+      let activeListings = 0;
+      if (Array.isArray(listingsResponse)) {
+
+        
+        activeListings = listingsResponse.filter((listing: any) => {
+          const status = listing.status?.toLowerCase();
+          return status === 'active' || status === 'ACTIVE';
+        }).length;
+        
+
+      } else if (listingsResponse && typeof listingsResponse === 'object' && 'listings' in listingsResponse) {
+        // Falls die Antwort in einem Objekt mit 'listings' Property kommt
+        const listings = (listingsResponse as any).listings;
+        if (Array.isArray(listings)) {
+          console.log('Dashboard: Alle Listings-Status:', listings.map((l: any) => ({ 
+            id: l.id, 
+            title: l.title, 
+            status: l.status,
+            rawStatus: l.status
+          })));
+          
+          // Filtere nach verschiedenen möglichen Status-Werten
+          activeListings = listings.filter((listing: any) => {
+            const status = listing.status;
+
+            return status === 'active' || status === 'ACTIVE';
+          }).length;
+          
+
+        }
+      }
+
+      // Favoriten aus Context
+      const totalFavorites = favorites.size;
+
+      // Lade unread Messages
+      let unreadMessages = 0;
+      try {
+        const notificationsResponse = await notificationService.getNotificationStats();
+        unreadMessages = notificationsResponse?.unread_notifications || 0;
+      } catch (error) {
+        console.error('Fehler beim Laden der Nachrichten-Statistiken:', error);
+      }
+
+      setStats({
+        activeListings,
+        totalFavorites,
+        unreadMessages
+      });
+    } catch (error) {
+      console.error('Fehler beim Laden der Dashboard-Statistiken:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Pull-to-Refresh Hook
   const pullToRefresh = usePullToRefresh({
     onRefresh: async () => {
       hapticService.success();
-      setLoading(true);
-      // Simuliere Refresh
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setLoading(false);
+      await loadDashboardStats();
     },
     enabled: isMobile
   });
@@ -163,6 +276,33 @@ export const DashboardPage: React.FC = () => {
             letterSpacing: '0'
           }}>
             Verwalten Sie Ihre Anzeigen und Aktivitäten
+          </Typography>
+        </Box>
+
+        {/* Online-Status Statistik */}
+        <Box sx={{ 
+          mb: 4,
+          p: 2,
+          background: '#f8fafc',
+          borderRadius: 2,
+          border: '1px solid #e2e8f0',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ 
+              width: 8, 
+              height: 8, 
+              borderRadius: '50%', 
+              bgcolor: '#10b981' 
+            }} />
+            <Box>
+              <OnlineStatus compact={true} showCount={true} />
+            </Box>
+          </Box>
+          <Typography variant="caption" color="text.secondary">
+            Aktualisiert alle 30s
           </Typography>
         </Box>
 
@@ -524,7 +664,7 @@ export const DashboardPage: React.FC = () => {
                       fontSize: '1.5rem',
                       letterSpacing: '0'
                     }}>
-                      3
+                      {loading ? <Skeleton width={30} height={40} /> : stats.activeListings}
                     </Typography>
                     <Typography variant="body2" sx={{ 
                       color: '#64748b',
@@ -597,7 +737,7 @@ export const DashboardPage: React.FC = () => {
                       fontSize: '1.5rem',
                       letterSpacing: '0'
                     }}>
-                      12
+                      {loading ? <Skeleton width={30} height={40} /> : stats.totalFavorites}
                     </Typography>
                     <Typography variant="body2" sx={{ 
                       color: '#64748b',
@@ -673,7 +813,7 @@ export const DashboardPage: React.FC = () => {
                       fontSize: '1.5rem',
                       letterSpacing: '0'
                     }}>
-                      2
+                      {loading ? <Skeleton width={30} height={40} /> : stats.unreadMessages}
                     </Typography>
                     <Typography variant="body2" sx={{ 
                       color: '#64748b',

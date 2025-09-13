@@ -72,7 +72,7 @@ export const searchService = {
     const data = await response.json();
     
     // Debug: Log the response structure
-    console.log('SearchService response:', data);
+
     
     // Ensure the response has the expected structure
     if (!data || typeof data !== 'object') {

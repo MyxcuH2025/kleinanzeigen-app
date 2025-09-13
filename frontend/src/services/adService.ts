@@ -30,7 +30,7 @@ const getCachedData = <T>(key: string): T | null => {
 
 const clearCache = (): void => {
   cache.clear();
-  console.log('Cache cleared - loading fresh data');
+
 };
 
 export interface Ad {
@@ -87,7 +87,7 @@ export interface Ad {
 export const adService = {
   async getAllAds(): Promise<Ad[]> {
     // Cache komplett deaktiviert für frische Daten
-    console.log('Loading fresh ads from API...');
+
 
     try {
       const response = await fetch(getFullApiUrl('api/listings'));
@@ -212,7 +212,7 @@ export const adService = {
       });
 
       // Cache deaktiviert - keine Zwischenspeicherung
-      console.log('Loaded ads:', processedAds.length, 'items');
+
       return processedAds;
     } catch (error) {
       logger.error('Failed to fetch ads', error);
@@ -505,12 +505,6 @@ export const adService = {
 
   async uploadImage(file: File): Promise<string> {
     try {
-      console.log('Lade Bild hoch:', {
-        name: file.name,
-        size: file.size,
-        type: file.type
-      });
-
       const formData = new FormData();
       formData.append('file', file);
       
@@ -530,12 +524,6 @@ export const adService = {
         body: formData,
       });
       
-      console.log('Upload-Antwort erhalten:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok
-      });
-
       if (!response.ok) {
         let errorMessage = `HTTP error! status: ${response.status}`;
         try {
@@ -555,7 +543,7 @@ export const adService = {
       
       const data = await response.json();
       const imageUrl = data.url || data.filename;
-      console.log('Bild erfolgreich hochgeladen:', imageUrl);
+
       return imageUrl;
     } catch (error) {
       console.error('Fehler beim Hochladen des Bildes:', error);
@@ -611,25 +599,16 @@ export const adService = {
       // Die Attribute sind bereits im richtigen Format (key, value)
       const backendAttributes = listingData.dynamicAttributes;
 
-      console.log('Sende Anfrage an Backend:', {
-        url: getFullApiUrl('api/listings'),
-        method: 'POST',
-        data: {
-          title: listingData.title,
-          description: listingData.description,
-          price: listingData.price,
-          location: listingData.location,
-          category: listingData.category,
-          condition: listingData.condition,
-          images: listingData.images,
-          attributes: backendAttributes
-        }
-      });
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Kein Authentifizierungstoken gefunden');
+      }
 
       const response = await fetch(getFullApiUrl('api/listings'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           title: listingData.title,
@@ -641,12 +620,6 @@ export const adService = {
           images: listingData.images,
           attributes: backendAttributes
         }),
-      });
-      
-      console.log('Backend-Antwort erhalten:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok
       });
 
       if (!response.ok) {
@@ -667,7 +640,7 @@ export const adService = {
       }
       
       const newAd = await response.json();
-      console.log('Listing erfolgreich erstellt:', newAd);
+
       
       // Cache nach Erstellung löschen
       clearCache();

@@ -6,9 +6,14 @@ import { logger } from '@/utils/logger';
 interface User {
   id: number;
   email: string;
-  role?: 'user' | 'moderator' | 'admin';
+  role?: 'USER' | 'SELLER' | 'ADMIN';
   first_name?: string;
   last_name?: string;
+  name?: string;
+  bio?: string;
+  location?: string;
+  phone?: string;
+  website?: string;
   is_verified?: boolean;
   is_active?: boolean;
   avatar?: string;
@@ -34,7 +39,7 @@ export const UserContext = createContext<UserContextType>({
 
 export const useUser = () => useContext(UserContext);
 
-export const UserProvider = ({ children }: { children: React.ReactNode }) => {
+const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -42,13 +47,23 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setIsLoading(true);
       
-      // Hole den gespeicherten Token
+      // PERFORMANCE-OPTIMIERUNG: Prüfe zuerst localStorage Cache
+      const cachedUser = localStorage.getItem('user');
       const token = localStorage.getItem('token');
       
       if (!token || token === 'null' || token === 'undefined') {
         setUser(null);
         setIsLoading(false);
         return;
+      }
+      
+      // Verwende gecachten User für sofortige Anzeige
+      if (cachedUser && cachedUser !== 'null') {
+        try {
+          setUser(JSON.parse(cachedUser));
+        } catch (e) {
+          // Cache ist korrupt, ignoriere
+        }
       }
 
       // Validiere den Token immer mit dem Backend
@@ -109,4 +124,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
     </UserContext.Provider>
   );
-}; 
+};
+
+export { UserProvider };

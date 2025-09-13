@@ -1,7 +1,7 @@
 """
 WebSocket routes für Echtzeit-Benachrichtigungen
 """
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlmodel import Session, select
 from models import User
@@ -46,7 +46,7 @@ async def get_current_user_from_token(token: str, session: Session) -> User:
         raise HTTPException(status_code=401, detail="Invalid token")
 
 @router.websocket("/notifications")
-async def websocket_endpoint(websocket: WebSocket, token: str = None):
+async def websocket_endpoint(websocket: WebSocket, token: str = Query(None)):
     """WebSocket-Endpoint für Echtzeit-Benachrichtigungen"""
     
     if not token:
@@ -107,7 +107,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = None):
         session.close()
 
 @router.websocket("/notifications/{user_id}")
-async def websocket_endpoint_with_user(websocket: WebSocket, user_id: int, token: str = None):
+async def websocket_endpoint_with_user(websocket: WebSocket, user_id: int, token: str = Query(None)):
     """Alternative WebSocket-Endpoint mit User-ID im Pfad"""
     
     if not token:

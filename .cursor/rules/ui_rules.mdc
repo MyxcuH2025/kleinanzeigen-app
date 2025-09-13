@@ -1,0 +1,183 @@
+---
+description: UI/Frontend-spezifische Regeln für Kleinanzeigen-Projekt
+globs: ["**/frontend/**", "**/*.tsx", "**/*.ts", "**/*.css", "**/components/**", "**/pages/**"]
+alwaysApply: true
+---
+
+# UI/FRONTEND REGELN - Kleinanzeigen
+
+## 🎯 HAUPTZIELE
+- **Performance**: Schnelle Ladezeiten, optimierte Bundles
+- **UX**: Intuitive, responsive Benutzeroberfläche
+- **Code-Qualität**: Modulare, wiederverwendbare Komponenten
+- **Accessibility**: Barrierefreie Bedienung
+
+## 📋 CORE REGELN
+
+### 1. **Weniger Code = Besser**
+- **Präferiere**: Konzise, modulare Komponenten
+- **Vermeide**: Große Monolithen, Copy-Paste
+- **Beispiel**: CreateListing → 3 modulare Komponenten
+
+### 2. **Super-Team-Ansatz**
+- **UX-Designer**: Intuitive Navigation, User-Flow
+- **Frontend-Architekt**: Code-Splitting, State-Management
+- **Performance-Engineer**: Bundle-Optimierung, Lazy Loading
+- **Accessibility-Expert**: WCAG-Konformität, Screen-Reader
+
+### 3. **Vollständige Implementierung**
+- **Niemals aufhören** bis Feature 100% fertig
+- **Completion Report** nach jedem Feature
+- **Messbare Ergebnisse** dokumentieren
+
+### 4. **Strukturierte Analyse**
+- **3-Paragraph-Ansatz**: Problem → Analyse → Lösung
+- **Multi-Role-Synthese**: UX + Performance + Code-Qualität
+- **Bewiesene Lösungen**: Verifikation vor Implementierung
+
+### 5. **Kreative Features**
+- **Random-Button-Pattern**: Für Banners, Vorschläge, Discovery
+- **Lazy Loading**: Komponenten nur bei Bedarf laden
+- **Progressive Enhancement**: Grundfunktionalität + erweiterte Features
+
+## 🎨 UI/UX STANDARDS
+
+### **Design-Prinzipien**
+- **Minimalistisch**: Weniger ist mehr, klare Hierarchie
+- **Konsistent**: Einheitliche Farben, Typografie, Spacing
+- **Responsive**: Mobile-first, alle Bildschirmgrößen
+- **Accessible**: WCAG 2.1 AA Konformität
+
+### **Farbschema**
+- **Primär**: #dcf8c6 (WhatsApp Green)
+- **Sekundär**: Neutrale Grautöne
+- **Akzente**: Dezent, nicht aufdringlich
+- **Status**: Grün (Erfolg), Rot (Fehler), Gelb (Warnung)
+
+### **Komponenten-Design**
+- **Cards**: Quadratisch mit abgerundeten Ecken
+- **Buttons**: Minimalistisch, klare Linien
+- **Forms**: Strukturiert, klare Labels
+- **Navigation**: Intuitiv, konsistent
+
+## 🚀 PERFORMANCE STANDARDS
+
+### **Code-Splitting**
+- **React.lazy()**: Für alle großen Komponenten
+- **Suspense-Wrapper**: Mit Loading-States
+- **Rollup manualChunks**: Optimale Bundle-Aufteilung
+
+### **Bundle-Optimierung**
+- **Vendor-Chunks**: React, MUI separat
+- **Feature-Chunks**: Admin, Chat, Listings, Forms
+- **Lazy-Loading**: Komponenten nur bei Bedarf
+- **Tree-Shaking**: Unbenutzten Code entfernen
+
+### **Ladezeiten**
+- **Initial Load**: < 3 Sekunden
+- **Bundle Size**: < 100kB pro Chunk
+- **Lazy Components**: < 1 Sekunde
+- **Images**: WebP/AVIF, Lazy Loading
+
+## 🔧 TECHNISCHE STANDARDS
+
+### **React/TypeScript**
+- **Hooks**: Funktionale Komponenten bevorzugen
+- **TypeScript**: Vollständige Typisierung
+- **Props**: Interface-Definitionen
+- **State**: useState, useContext, useReducer
+
+### **Styling**
+- **Tailwind CSS**: Utility-first
+- **Material-UI**: Konsistente Komponenten
+- **Custom CSS**: Nur wenn nötig
+- **Responsive**: Mobile-first Ansatz
+
+### **State-Management**
+- **Context API**: Für globalen State
+- **Local State**: useState für Komponenten
+- **Server State**: React Query/SWR
+- **Form State**: React Hook Form
+
+## 📱 RESPONSIVE DESIGN
+
+### **Breakpoints**
+- **Mobile**: < 768px
+- **Tablet**: 768px - 1024px
+- **Desktop**: > 1024px
+- **Large**: > 1440px
+
+### **Mobile-First**
+- **Touch-Targets**: Mindestens 44px
+- **Navigation**: Hamburger-Menü
+- **Forms**: Große Input-Felder
+- **Buttons**: Finger-freundlich
+
+## 🎯 KLEINANZEIGEN-SPEZIFISCH
+
+### **Hauptkomponenten**
+- **ListingCard**: Anzeigen-Karten
+- **SearchBar**: Suche mit Filtern
+- **CategoryFilter**: Kategorie-Auswahl
+- **UserProfile**: Benutzer-Profil
+- **ChatInterface**: Echtzeit-Chat
+
+### **Seiten**
+- **HomePage**: Feed, Kategorien
+- **ListingDetail**: Anzeigen-Details
+- **CreateListing**: Anzeige erstellen
+- **SearchResults**: Suchergebnisse
+- **UserDashboard**: Benutzer-Dashboard
+
+### **Features**
+- **Dynamische Formulare**: Kategorie-spezifisch
+- **Bild-Upload**: Drag & Drop
+- **Favoriten**: Herz-Icon
+- **Chat**: Echtzeit-Messaging
+- **Notifications**: Toast-Benachrichtigungen
+
+## 🧪 TESTING & QUALITÄT
+
+### **Unit-Tests**
+- **Jest**: Für Komponenten-Tests
+- **React Testing Library**: Für User-Interaktionen
+- **Coverage**: Mindestens 80%
+- **Snapshots**: Für UI-Konsistenz
+
+### **E2E-Tests**
+- **Cypress**: Für kritische User-Flows
+- **Login/Logout**: Authentifizierung
+- **Create Listing**: Anzeige erstellen
+- **Search/Filter**: Suche testen
+
+### **Performance-Tests**
+- **Lighthouse**: Performance-Score
+- **Bundle Analyzer**: Bundle-Größe
+- **Core Web Vitals**: LCP, FID, CLS
+- **Mobile Performance**: Touch-Interaktionen
+
+## 🚀 IMPLEMENTIERUNG
+
+### **Vor jeder Änderung**
+1. **Aktuellen Zustand analysieren**
+2. **Problem identifizieren** (3-Paragraph-Ansatz)
+3. **Lösung synthetisieren** (Multi-Role-Perspektive)
+4. **Vollständig implementieren**
+5. **Completion Report** erstellen
+
+### **Code-Standards**
+- **Komponenten**: Eine Verantwortung pro Komponente
+- **Props**: Interface-Definitionen
+- **Hooks**: Custom Hooks für Logik
+- **Styling**: Tailwind-Klassen bevorzugen
+
+### **Accessibility**
+- **Semantic HTML**: Korrekte HTML-Tags
+- **ARIA-Labels**: Für Screen-Reader
+- **Keyboard Navigation**: Tab-Reihenfolge
+- **Color Contrast**: Mindestens 4.5:1
+
+---
+
+**Status**: ✅ Aktiv für alle Frontend-Dateien
+**Nächste Überprüfung**: Bei jeder UI-Änderung

@@ -276,3 +276,101 @@ async def get_admin_statistics(
                 "rejected": rejected_verifications
             }
         }
+
+@router.get("/seller/verification/status")
+async def get_seller_verification_status(
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    """Status der Seller-Verifizierung abrufen"""
+    
+    verification = session.exec(
+        select(SellerVerification)
+        .where(SellerVerification.user_id == current_user.id)
+        .order_by(SellerVerification.submitted_at.desc())
+    ).first()
+    
+    if not verification:
+        return {
+            "verification_state": current_user.verification_state,
+            "verification": None
+        }
+    
+    return {
+        "verification_state": current_user.verification_state,
+        "verification": {
+            "id": verification.id,
+            "verification_type": verification.verification_type,
+            "company_name": verification.company_name,
+            "status": verification.status,
+            "submitted_at": verification.submitted_at,
+            "reviewed_at": verification.reviewed_at,
+            "rejection_reason": verification.rejection_reason
+        }
+    }
+
+
+@router.get("/admin/stats")
+async def get_admin_stats(
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    """Hole Admin-Dashboard Statistiken"""
+    
+    # Prüfe Admin-Berechtigung
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Nur Administratoren können Statistiken abrufen"
+        )
+    
+    try:
+        # Gesamt User
+        total_users = session.exec(select(func.count(User.id))).first() or 0
+        
+        # Gesamt Anzeigen
+        total_listings = session.exec(select(func.count(Listing.id))).first() or 0
+        
+        # Offene Reports
+        open_reports = session.exec(
+            select(func.count(Report.id))
+            .where(Report.status == "open")
+        ).first() or 0
+        
+        # Aktive Chats (vereinfacht - alle User mit letzter Aktivität in den letzten 5 Minuten)
+        from datetime import datetime, timedelta
+        online_threshold = datetime.utcnow() - timedelta(minutes=5)
+        active_chats = session.exec(
+            select(func.count(User.id))
+            .where(User.last_activity >= online_threshold)
+        ).first() or 0
+        
+        # Heute registrierte User
+        today = datetime.utcnow().date()
+        users_today = session.exec(
+            select(func.count(User.id))
+            .where(func.date(User.created_at) == today)
+        ).first() or 0
+        
+        # Heute erstellte Anzeigen
+        listings_today = session.exec(
+            select(func.count(Listing.id))
+            .where(func.date(Listing.created_at) == today)
+        ).first() or 0
+        
+        return {
+            "total_users": total_users,
+            "total_listings": total_listings,
+            "open_reports": open_reports,
+            "active_chats": active_chats,
+            "users_today": users_today,
+            "listings_today": listings_today,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logging.error(f"Fehler beim Laden der Admin-Statistiken: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Fehler beim Laden der Statistiken"
+        )

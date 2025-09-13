@@ -46,14 +46,14 @@ export const FavoritesPage: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      console.log('FavoritesPage: Starting to load favorites...');
+
       
       // Verwende den globalen FavoritesContext
       await refreshFavorites();
       
       // Lade die detaillierten Favoriten-Daten
       const favoritesData = await favoriteService.getFavorites();
-      console.log('FavoritesPage: Loaded favorites data:', favoritesData);
+
       
       setFavorites(favoritesData);
     } catch (error) {
@@ -68,16 +68,16 @@ export const FavoritesPage: React.FC = () => {
     try {
       setRemovingId(favoriteId);
       
-      console.log('FavoritesPage: Removing favorite with ID:', favoriteId);
+
       
       const favorite = favorites.find(fav => fav.favorite_id === favoriteId);
       if (!favorite || !favorite.listing) {
-        console.log('FavoritesPage: Favorite not found:', favoriteId);
+
         setError('Favorit nicht gefunden.');
         return;
       }
 
-      console.log('FavoritesPage: Found favorite to remove:', favorite);
+
 
       // Verwende den globalen removeFavorite aus dem Context
       await removeFavorite(String(favorite.listing.id));

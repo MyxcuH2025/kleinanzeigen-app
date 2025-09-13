@@ -36,9 +36,34 @@ export const FavoritesProvider = ({ children }: { children: React.ReactNode }) =
     }
   }, [user]);
 
+  // WebSocket-Listener für Real-time Favorite-Updates
+  useEffect(() => {
+    const handleFavoriteUpdate = (event: CustomEvent) => {
+      const data = event.detail;
+
+      
+      if (data.action === 'added') {
+        setFavorites(prev => new Set([...prev, data.listing_id.toString()]));
+      } else if (data.action === 'removed') {
+        setFavorites(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(data.listing_id.toString());
+          return newSet;
+        });
+      }
+    };
+
+    // Event-Listener hinzufügen
+    window.addEventListener('websocket-favorite-update', handleFavoriteUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('websocket-favorite-update', handleFavoriteUpdate as EventListener);
+    };
+  }, []);
+
   const refreshFavorites = async () => {
     if (!user) {
-      console.log('No user logged in, skipping favorites refresh');
+
       setFavorites(new Set());
       return;
     }
@@ -46,7 +71,7 @@ export const FavoritesProvider = ({ children }: { children: React.ReactNode }) =
     // Prüfe ob der Token noch gültig ist
     const token = localStorage.getItem('token');
     if (!token) {
-      console.log('No token found, clearing favorites');
+
       setFavorites(new Set());
       return;
     }
@@ -55,10 +80,10 @@ export const FavoritesProvider = ({ children }: { children: React.ReactNode }) =
     try {
       const favoritesData = await favoriteService.getFavorites();
       
-      console.log('Favorites data received:', favoritesData); // Debug log
+ // Debug log
       
       if (!favoritesData || favoritesData.length === 0) {
-        console.log('No favorites found, setting empty set'); // Debug log
+ // Debug log
         setFavorites(new Set());
         return;
       }
@@ -66,25 +91,25 @@ export const FavoritesProvider = ({ children }: { children: React.ReactNode }) =
       // Neue Backend-Struktur: { favorites: [{ favorite_id, listing: { id, ... } }] }
       const favoritesArray = Array.isArray(favoritesData) ? favoritesData : (favoritesData as Record<string, unknown>)?.favorites || [];
       
-      console.log('Processing favorites array:', favoritesArray); // Debug log
+ // Debug log
       
       const favoriteIds = new Set<string>((favoritesArray as unknown[]).map((fav: unknown) => {
         const favRecord = fav as Record<string, unknown>;
         // Neue Struktur: fav.listing.id
         if (favRecord.listing && typeof favRecord.listing === 'object' && (favRecord.listing as Record<string, unknown>).id) {
-          console.log(`Found favorite with listing.id: ${(favRecord.listing as Record<string, unknown>).id}`); // Debug log
+ // Debug log
           return String((favRecord.listing as Record<string, unknown>).id);
         }
         // Fallback für alte Struktur: fav.listing_id
         if (favRecord.listing_id) {
-          console.log(`Found favorite with listing_id: ${favRecord.listing_id}`); // Debug log
+ // Debug log
           return String(favRecord.listing_id);
         }
-        console.log('Invalid favorite structure:', favRecord); // Debug log
+ // Debug log
         return null;
       }).filter((id: unknown) => id !== null) as string[]);
       
-      console.log('Final favorite IDs:', Array.from(favoriteIds)); // Debug log
+ // Debug log
       setFavorites(favoriteIds);
     } catch (error) {
       console.error('Error loading favorites:', error);
@@ -128,8 +153,8 @@ export const FavoritesProvider = ({ children }: { children: React.ReactNode }) =
   const isFavorite = (listingId: string): boolean => {
     const normalizedId = listingId.toString();
     const result = favorites.has(normalizedId);
-    console.log(`isFavorite check for ${listingId} (normalized: ${normalizedId}): ${result}`); // Debug log
-    console.log('Current favorites set:', Array.from(favorites)); // Debug log
+ // Debug log
+ // Debug log
     return result;
   };
 

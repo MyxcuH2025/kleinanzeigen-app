@@ -11,7 +11,7 @@ export const IconHome: React.FC<IconProps> = ({
   color = 'currentColor', 
   className = '' 
 }) => {
-  console.log('IconHome rendered with size:', size, 'color:', color);
+
   
   return (
     <svg

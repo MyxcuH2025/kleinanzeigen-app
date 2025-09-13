@@ -10,8 +10,16 @@ from jose import jwt, JWTError
 from typing import Optional
 import logging
 
-# Engine und OAuth2
-engine = create_engine(config.DATABASE_URL)
+# Engine und OAuth2 - PRODUKTIONS-READY CONFIG
+engine = create_engine(
+    config.DATABASE_URL,
+    pool_size=config.POOL_SIZE,  # 20 Verbindungen
+    max_overflow=config.MAX_OVERFLOW,  # 30 zusätzliche Verbindungen
+    pool_timeout=config.POOL_TIMEOUT,  # 30 Sekunden Timeout
+    pool_recycle=config.POOL_RECYCLE,  # 1 Stunde
+    pool_pre_ping=config.POOL_PRE_PING,  # Verbindungen testen
+    echo=True  # Setze auf True für SQL-Debugging
+)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 

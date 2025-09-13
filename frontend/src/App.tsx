@@ -1,67 +1,79 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useParams, useNavigate, useLocation } from 'react-router-dom';
-import { CssBaseline, Box, Skeleton, Button } from '@mui/material';
+import { CssBaseline, Box, Skeleton, Button, CircularProgress } from '@mui/material';
 import { CategoryCards } from './components/CategoryCards';
 
-import ListingDetail from './components/ListingDetail';
+// OPTIMIERT: Lazy Loading für alle großen Komponenten
+const ListingDetailMinimal = lazy(() => import('./components/ListingDetailMinimal'));
+const ListingDetailStrong = lazy(() => import('./components/ListingDetailStrong'));
+const ListingDetailNextLevel = lazy(() => import('./components/ListingDetailNextLevel'));
+const ListingDetailPage = lazy(() => import('./features/listingDetail/ListingDetailPage'));
+const CategoryPage = lazy(() => import('./pages/CategoryPage').then(m => ({ default: m.CategoryPage })));
+const ChatPage = lazy(() => import('./pages/ChatPage').then(m => ({ default: m.ChatPage })));
+const Layout = lazy(() => import('./components/Layout').then(m => ({ default: m.Layout })));
+const Login = lazy(() => import('./components/Login').then(m => ({ default: m.Login })));
 
-import { CategoryPage } from './pages/CategoryPage';
-import { ChatPage } from './pages/ChatPage';
-import { Layout } from './components/Layout';
-import { Login } from './components/Login';
+const CreateListing = lazy(() => import('./components/CreateListing_Optimized'));
+const EditListing = lazy(() => import('./components/EditListing'));
 
-import CreateListing from './components/CreateListing';
-import CreateKleinanzeigenListing from './components/CreateKleinanzeigenListing';
-
-import CreateListingUnifiedButtons from './components/CreateListingUnifiedButtons';
-import EditListing from './components/EditListing';
-// removed dynamic forms
+// Context Provider (bleiben synchron geladen)
 import { SnackbarProvider } from './context/SnackbarContext';
 import { ThemeProvider } from './context/ThemeContext';
-import { SearchPage } from './pages/SearchPage';
-import { PasswordResetRequest } from './components/PasswordResetRequest';
-import VerifyEmailPage from './pages/VerifyEmailPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
-import AutosPage from './pages/AutosPage';
-import { UniversalListingPage } from './pages/UniversalListingPage';
-import AdCard from './components/AdCard';
-import TipsGuide from './components/TipsGuide';
-import { Section } from './components/Section';
-import { LoginForm } from "./components/LoginForm";
-import RegisterForm from "./components/RegisterForm";
-import { ProtectedRoute } from "./components/ProtectedRoute";
 import { UserProvider } from "./context/UserContext";
 import { FavoritesProvider } from "./context/FavoritesContext";
+import { AdminProvider } from "./context/AdminContext";
+import { FollowProvider } from "./context/FollowContext";
+import { StoriesProvider } from "./features/stories/store/stories.store";
 import SessionManager from "./components/SessionManager";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { AdminDashboard } from "./components/AdminDashboard";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
-import { DashboardPage } from "./pages/DashboardPage";
-import { FavoritesPage } from "./pages/FavoritesPage";
-import { ListingsPage } from "./pages/ListingsPage";
-import { CalendarPage } from "./pages/CalendarPage";
-import { TemplatesPage } from './pages/TemplatesPage';
-import { TextTemplatesPage } from './pages/TextTemplatesPage';
-import { AnalyticsPage } from './pages/AnalyticsPage';
-import NotificationsPage from './pages/NotificationsPage';
-import SettingsPage from './pages/SettingsPage';
-import ShopRegistrationPage from './pages/ShopRegistrationPage';
-import EntitySearchPage from './pages/EntitySearchPage';
-import UserProfilePage from './pages/UserProfilePage';
-import ShopProfilePage from './pages/ShopProfilePage';
-import ProviderProfilePage from './pages/ProviderProfilePage';
-import NotificationSettingsPage from './pages/NotificationSettingsPage';
-import FeedPage from './pages/FeedPage';
-import EventsPage from './pages/EventsPage';
-import HilfePage from './pages/HilfePage';
-import LokaleNewsPage from './pages/LokaleNewsPage';
-import PartnerWerdenPage from './pages/PartnerWerdenPage';
-import KarrierePage from './pages/KarrierePage';
-import SellerVerificationPage from './pages/SellerVerificationPage';
-import VerificationStatusPage from './pages/VerificationStatusPage';
-import AdminVerificationPage from './pages/AdminVerificationPage';
-import CategorySelection from './pages/CategorySelection';
-// logger removed (unused)
+
+// Lazy Loading für alle Seiten
+const SearchPage = lazy(() => import('./pages/SearchPage').then(m => ({ default: m.SearchPage })));
+const PasswordResetRequest = lazy(() => import('./components/PasswordResetRequest').then(m => ({ default: m.PasswordResetRequest })));
+const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
+const AutosPage = lazy(() => import('./pages/AutosPage'));
+const UniversalListingPage = lazy(() => import('./pages/UniversalListingPage').then(m => ({ default: m.UniversalListingPage })));
+const AdCard = lazy(() => import('./components/AdCard'));
+const TipsGuide = lazy(() => import('./components/TipsGuide'));
+const Section = lazy(() => import('./components/Section').then(m => ({ default: m.Section })));
+const LoginForm = lazy(() => import("./components/LoginForm").then(m => ({ default: m.LoginForm })));
+const RegisterForm = lazy(() => import("./components/RegisterForm"));
+
+// Admin und Dashboard (schwere Komponenten)
+const AdminDashboard_Optimized = lazy(() => import("./components/AdminDashboard_Optimized").then(m => ({ default: m.AdminDashboard_Optimized })));
+const DashboardPage = lazy(() => import("./pages/DashboardPage").then(m => ({ default: m.DashboardPage })));
+const DashboardPage_Optimized = lazy(() => import("./pages/DashboardPage_Optimized").then(m => ({ default: m.DashboardPage_Optimized })));
+const FavoritesPage = lazy(() => import("./pages/FavoritesPage").then(m => ({ default: m.FavoritesPage })));
+const ListingsPage = lazy(() => import("./pages/ListingsPage").then(m => ({ default: m.ListingsPage })));
+const ListingsPage_Optimized = lazy(() => import("./pages/ListingsPage_Optimized").then(m => ({ default: m.ListingsPage_Optimized })));
+const StoriesPage = lazy(() => import("./features/stories/StoriesPage").then(m => ({ default: m.StoriesPage })));
+
+// Weitere Seiten
+const CalendarPage = lazy(() => import("./pages/CalendarPage").then(m => ({ default: m.CalendarPage })));
+const TemplatesPage = lazy(() => import('./pages/TemplatesPage').then(m => ({ default: m.TemplatesPage })));
+const TextTemplatesPage = lazy(() => import('./pages/TextTemplatesPage').then(m => ({ default: m.TextTemplatesPage })));
+const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const FAQContactPage = lazy(() => import('./pages/FAQContactPage'));
+const ShopRegistrationPage = lazy(() => import('./pages/ShopRegistrationPage'));
+const EntitySearchPage = lazy(() => import('./pages/EntitySearchPage'));
+const UserProfilePage = lazy(() => import('./pages/UserProfilePage'));
+const ShopProfilePage = lazy(() => import('./pages/ShopProfilePage'));
+const ProviderProfilePage = lazy(() => import('./pages/ProviderProfilePage'));
+const NotificationSettingsPage = lazy(() => import('./pages/NotificationSettingsPage'));
+const FeedPage = lazy(() => import('./pages/FeedPage'));
+const EventsPage = lazy(() => import('./pages/EventsPage'));
+const LokaleNewsPage = lazy(() => import('./pages/LokaleNewsPage'));
+const PartnerWerdenPage = lazy(() => import('./pages/PartnerWerdenPage'));
+const KarrierePage = lazy(() => import('./pages/KarrierePage'));
+const SellerVerificationPage = lazy(() => import('./pages/SellerVerificationPage'));
+const VerificationStatusPage = lazy(() => import('./pages/VerificationStatusPage'));
+const AdminVerificationPage = lazy(() => import('./pages/AdminVerificationPage'));
+const CategorySelection = lazy(() => import('./pages/CategorySelection'));
 
 interface SearchData {
   query?: string;
@@ -85,7 +97,7 @@ const CategorySubRedirect: React.FC = () => {
   return <Navigate to={`/category/${slug}/${sub}`} replace />;
 };
 
-// Simple skeleton component for loading state
+// OPTIMIERT: Verbesserte Loading-Komponenten für Code-Splitting
 const AdCardSkeleton: React.FC = () => (
   <Box sx={{ height: 400, bgcolor: '#ffffff', borderRadius: 2, border: '1px solid #e1e8ed' }}>
     <Skeleton variant="rectangular" height={200} />
@@ -95,7 +107,31 @@ const AdCardSkeleton: React.FC = () => (
       <Skeleton variant="text" height={20} width="60%" />
     </Box>
   </Box>
- );
+);
+
+// Loading-Komponente für Suspense
+const PageLoader: React.FC = () => (
+  <Box sx={{ 
+    display: 'flex', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    minHeight: '200px',
+    flexDirection: 'column',
+    gap: 2
+  }}>
+    <CircularProgress size={40} />
+    <Box sx={{ color: 'text.secondary', fontSize: '14px' }}>
+      Seite wird geladen...
+    </Box>
+  </Box>
+);
+
+// Suspense-Wrapper für bessere UX
+const SuspenseWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <Suspense fallback={<PageLoader />}>
+    {children}
+  </Suspense>
+);
 
 interface HomePageProps {
   searchQuery: string;
@@ -113,6 +149,10 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
     const loadAds = async () => {
       try {
         setLoadingAds(true);
+        
+        // PERFORMANCE-OPTIMIERUNG: Verzögertes Laden um andere API-Calls nicht zu blockieren
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         // Verwende die gleiche API wie die User-Profil-Seite
         const response = await fetch('http://localhost:8000/api/listings');
         if (!response.ok) {
@@ -139,6 +179,10 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
             
             if (imageList.length > 0) {
               parsedImages = imageList.map((imagePath: string) => {
+                // Wenn bereits /api/images/ enthalten ist, verwende es direkt
+                if (imagePath.startsWith('/api/images/')) {
+                  return `http://localhost:8000${imagePath}`;
+                }
                 // Entferne /uploads/ Präfix falls vorhanden
                 const cleanPath = imagePath.replace('/uploads/', '');
                 // Verwende den /api/images/ Endpunkt
@@ -154,12 +198,12 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
             parsedImages = ['/images/noimage.jpeg'];
           }
 
-          console.log('Processed listing:', {
-            id: listing.id,
-            title: listing.title,
-            originalImages: listing.images,
-            processedImages: parsedImages
-          });
+          // console.log('Processed listing:', { // Removed for performance
+          //   id: listing.id,
+          //   title: listing.title,
+          //   originalImages: listing.images,
+          //   processedImages: parsedImages
+          // });
 
           return {
             ...listing,
@@ -280,7 +324,10 @@ function App() {
         <CssBaseline />
         <UserProvider>
           <FavoritesProvider>
-            <SnackbarProvider>
+            <AdminProvider>
+              <FollowProvider>
+                <StoriesProvider>
+                  <SnackbarProvider>
               <SessionManager timeoutMinutes={30} warningMinutes={5} />
               <Router>
                 <Box sx={{ bgcolor: '#ffffff', minHeight: '100vh' }}>
@@ -290,20 +337,25 @@ function App() {
                   >
                     <Routes>
                     <Route path="/" element={<HomePage searchQuery={searchQuery} />} />
-                    <Route path="/category/autos" element={<AutosPage />} />
-                    <Route path="/category/:slug" element={<CategoryPage />} />
-                    <Route path="/category/:slug/:sub" element={<CategoryPage />} />
-                    <Route path="/listing/:id" element={<ListingDetail />} />
+                    <Route path="/category/autos" element={<SuspenseWrapper><AutosPage /></SuspenseWrapper>} />
+                    <Route path="/category/:slug" element={<SuspenseWrapper><CategoryPage /></SuspenseWrapper>} />
+                    <Route path="/category/:slug/:sub" element={<SuspenseWrapper><CategoryPage /></SuspenseWrapper>} />
+                    <Route path="/listing/:id" element={<SuspenseWrapper><ListingDetailPage /></SuspenseWrapper>} />
                     <Route path="/merkliste" element={<Navigate to="/favorites" replace />} />
 
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<RegisterForm />} />
+                    <Route path="/login" element={<SuspenseWrapper><Login /></SuspenseWrapper>} />
+                    <Route path="/register" element={<SuspenseWrapper><RegisterForm /></SuspenseWrapper>} />
 
-                    <Route path="/password-reset" element={<PasswordResetRequest />} />
-                    <Route path="/reset-password" element={<ResetPasswordPage />} />
-                    <Route path="/verify-email" element={<VerifyEmailPage />} />
+                    <Route path="/password-reset" element={<SuspenseWrapper><PasswordResetRequest /></SuspenseWrapper>} />
+                    <Route path="/reset-password" element={<SuspenseWrapper><ResetPasswordPage /></SuspenseWrapper>} />
+                    <Route path="/verify-email" element={<SuspenseWrapper><VerifyEmailPage /></SuspenseWrapper>} />
             
                     <Route path="/dashboard" element={
+                      <ProtectedRoute>
+                        <DashboardPage_Optimized />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/dashboard-old" element={
                       <ProtectedRoute>
                         <DashboardPage />
                       </ProtectedRoute>
@@ -330,6 +382,11 @@ function App() {
                     } />
 
                     <Route path="/listings" element={
+                      <ProtectedRoute>
+                        <ListingsPage_Optimized />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/listings-old" element={
                       <ProtectedRoute>
                         <ListingsPage />
                       </ProtectedRoute>
@@ -361,20 +418,31 @@ function App() {
             <SettingsPage />
           </ProtectedRoute>
         } />
+        <Route path="/faq" element={<FAQContactPage />} />
+        <Route path="/faq-contact" element={<FAQContactPage />} />
+        <Route path="/hilfe" element={<FAQContactPage />} />
                     <Route path="/feed" element={
                       <ProtectedRoute>
                         <FeedPage />
                       </ProtectedRoute>
                     } />
+                    <Route path="/stories" element={
+                      <ProtectedRoute>
+                        <SuspenseWrapper><StoriesPage /></SuspenseWrapper>
+                      </ProtectedRoute>
+                    } />
                     <Route path="/shops" element={<Navigate to="/entities?type=shops" replace />} />
+                    <Route path="/shops/" element={<Navigate to="/entities?type=shops" replace />} />
                     <Route path="/dienstleister" element={<Navigate to="/entities?type=providers" replace />} />
+                    <Route path="/dienstleister/" element={<Navigate to="/entities?type=providers" replace />} />
                     <Route path="/user" element={<Navigate to="/entities?type=users" replace />} />
+                    <Route path="/user/" element={<Navigate to="/entities?type=users" replace />} />
         <Route path="/shop-registration" element={<ShopRegistrationPage />} />
                     <Route path="/events" element={<EventsPage />} />
                     <Route path="/lokale-news" element={<LokaleNewsPage />} />
                     <Route path="/partner-werden" element={<PartnerWerdenPage />} />
                     <Route path="/karriere" element={<KarrierePage />} />
-                    <Route path="/hilfe" element={<HilfePage />} />
+                    {/* <Route path="/hilfe" element={<HilfePage />} /> - Backup: HilfePage_backup_20250109.tsx */}
                     <Route path="/universal/:category" element={<UniversalListingPage />} />
                     <Route path="/create-listing" element={
                       <ProtectedRoute>
@@ -382,16 +450,7 @@ function App() {
                       </ProtectedRoute>
                     } />
                     <Route path="/category-selection" element={<CategorySelection />} />
-                    <Route path="/create-kleinanzeigen" element={
-                      <ProtectedRoute>
-                        <CreateKleinanzeigenListing />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/create-buttons" element={
-                      <ProtectedRoute>
-                        <CreateListingUnifiedButtons />
-                      </ProtectedRoute>
-                    } />
+                    {/* /create-kleinanzeigen und /create-buttons Routen entfernt - nicht benötigt */}
                     {/* removed: /create-dynamic */}
                     <Route path="/edit-listing/:id" element={
                       <ProtectedRoute>
@@ -406,7 +465,7 @@ function App() {
                     <Route path="/search" element={<SearchPage />} />
                     <Route path="/admin" element={
                       <AdminRoute>
-                        <AdminDashboard />
+                        <AdminDashboard_Optimized />
                       </AdminRoute>
                     } />
                     {/* dynamic forms admin removed */}
@@ -439,7 +498,10 @@ function App() {
                   </Layout>
                 </Box>
               </Router>
-            </SnackbarProvider>
+                  </SnackbarProvider>
+                </StoriesProvider>
+              </FollowProvider>
+            </AdminProvider>
           </FavoritesProvider>
         </UserProvider>
       </ThemeProvider>

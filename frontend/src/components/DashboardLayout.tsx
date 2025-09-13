@@ -36,7 +36,6 @@ import { useUser } from '@/context/UserContext';
 import { userService } from '@/services/userService';
 import { getImageUrl } from '@/utils/imageUtils';
 import { DesktopNavigation } from './DesktopNavigation';
-// import { MobileCategoryTabs } from './MobileCategoryTabs';
 
 const drawerWidth = 280;
 
@@ -142,6 +141,19 @@ const navigationItems = [
       </svg>
     ), 
     path: '/settings' 
+  },
+  { 
+    text: 'Admin Dashboard', 
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <line x1="9" y1="9" x2="15" y2="9"/>
+        <line x1="9" y1="13" x2="15" y2="13"/>
+        <line x1="9" y1="17" x2="15" y2="17"/>
+      </svg>
+    ), 
+    path: '/admin',
+    adminOnly: true
   },
   { 
     text: 'Abmelden', 
@@ -357,7 +369,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           overflow: 'auto' // Scrollbar für viele Items
         }}>
           <List sx={{ px: 1 }}> {/* Reduziertes Padding */}
-            {navigationItems.map((item, index) => (
+            {navigationItems
+              .filter(item => !item.adminOnly || user?.role === 'ADMIN')
+              .map((item, index) => (
               <ListItem key={item.text} disablePadding sx={{ mb: 0.25 }}>
                <ListItemButton
                  onClick={() => handleNavigation(item.path)}
@@ -378,29 +392,29 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                       left: 0,
                       width: '4px',
                       height: '100%',
-                      bgcolor: 'primary.main',
+                      bgcolor: '#b8e6b8',
                       transform: location.pathname === item.path ? 'scaleY(1)' : 'scaleY(0)',
                       transition: 'transform 0.3s ease-in-out'
                     },
                    '&.Mui-selected': {
-                     backgroundColor: 'primary.main',
-                     color: 'primary.contrastText',
+                     backgroundColor: '#dcf8c6',
+                     color: '#2c3e50',
                      '&:hover': {
-                       backgroundColor: 'primary.dark',
+                       backgroundColor: '#b8e6b8',
                         transform: 'translateX(4px)', // Subtile Bewegung
                      },
                      '& .MuiListItemIcon-root': {
-                       color: 'primary.contrastText',
+                       color: '#2c3e50',
                      },
                    },
                    '&:hover': {
-                     backgroundColor: 'action.hover',
+                     backgroundColor: 'rgba(220, 248, 198, 0.3)',
                       transform: 'translateX(4px)', // Subtile Bewegung
                       '&::before': {
                         transform: 'scaleY(1)',
-                        bgcolor: 'primary.light'
+                        bgcolor: '#dcf8c6'
                       }
-                   },
+                    },
                  }}
                >
                   <ListItemIcon sx={{ 
@@ -424,121 +438,169 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
          </List>
        </Box>
 
-        {/* Help Center Tipp-Schnipsel - Hochformat wie im Referenzbild */}
+        {/* Help Center - Modernes Design zentriert */}
         <Box sx={{ 
-          px: 2, 
-          pb: 2,
-          position: 'relative',
-          mt: 1.5
+          px: 3, 
+          pb: 3,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          mt: 2
         }}>
           <Box sx={{
-            bgcolor: '#f0fdf4', // Hellgrüner Hintergrund wie im Referenzbild
-            borderRadius: 3,
+            background: 'linear-gradient(135deg, #dcf8c6 0%, #f0fdf4 30%, #dcfce7 70%, #bbf7d0 100%)',
+            borderRadius: 3, // Weniger abgerundet
             p: 2.5,
             position: 'relative',
             overflow: 'hidden',
-            border: '1px solid #dcfce7',
-            boxShadow: '0 4px 12px rgba(34, 197, 94, 0.1)',
-            width: '100%', // Volle Breite
-            aspectRatio: '45/55', // 45% horizontal, 55% vertikal (45:55 Verhältnis)
-            maxWidth: '200px', // Maximale Breite begrenzen
+            border: '3px solid transparent',
+            backgroundClip: 'padding-box',
+            boxShadow: '0 12px 40px rgba(34, 197, 94, 0.2), 0 0 0 1px rgba(220, 248, 198, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4)',
+            width: '100%',
+            maxWidth: '180px',
+            aspectRatio: '3/4',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'space-between',
+            alignItems: 'center',
+            textAlign: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            '&:hover': {
+              transform: 'translateY(-2px)',
+              boxShadow: '0 16px 48px rgba(34, 197, 94, 0.2), 0 0 0 1px rgba(220, 248, 198, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
+            },
             '&::before': {
               content: '""',
               position: 'absolute',
-              top: -20,
-              right: -20,
-              width: 60,
-              height: 60,
-              bgcolor: '#dcfce7',
+              top: -50,
+              right: -50,
+              width: 100,
+              height: 100,
+              background: 'radial-gradient(circle, rgba(220, 248, 198, 0.6) 0%, rgba(187, 247, 208, 0.3) 50%, transparent 80%)',
               borderRadius: '50%',
-              opacity: 0.3
+              opacity: 0.8,
+              animation: 'float 6s ease-in-out infinite'
             },
             '&::after': {
               content: '""',
               position: 'absolute',
-              bottom: -30,
-              left: -30,
-              width: 80,
-              height: 80,
-              bgcolor: '#bbf7d0',
+              bottom: -60,
+              left: -60,
+              width: 120,
+              height: 120,
+              background: 'radial-gradient(circle, rgba(187, 247, 208, 0.5) 0%, rgba(134, 239, 172, 0.2) 50%, transparent 80%)',
               borderRadius: '50%',
-              opacity: 0.2
+              opacity: 0.6,
+              animation: 'float 8s ease-in-out infinite reverse'
+            },
+            '@keyframes float': {
+              '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+              '50%': { transform: 'translateY(-10px) rotate(180deg)' }
             }
           }}>
-            {/* Weiße Kugel mit Fragezeichen - zentriert oben */}
+            {/* Premium Icon mit Glow-Effekt */}
             <Box sx={{
               position: 'absolute',
-              top: -12,
+              top: -18,
               left: '50%',
               transform: 'translateX(-50%)',
-              width: 36, // Etwas kleiner für schmaleres Format
-              height: 36,
-              bgcolor: 'white',
+              width: 52,
+              height: 52,
+              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)',
               borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-              border: '3px solid #22c55e',
-              zIndex: 2
+              boxShadow: '0 12px 32px rgba(0, 0, 0, 0.15), 0 0 0 4px rgba(220, 248, 198, 0.4), 0 0 20px rgba(34, 197, 94, 0.3)',
+              border: '3px solid #dcf8c6',
+              zIndex: 2,
+              transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+              '&:hover': {
+                transform: 'translateX(-50%)',
+                boxShadow: '0 12px 32px rgba(0, 0, 0, 0.15), 0 0 0 4px rgba(220, 248, 198, 0.5), 0 0 20px rgba(34, 197, 94, 0.3)',
+              }
             }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10"/>
                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
                 <path d="M12 17h.01"/>
               </svg>
             </Box>
 
-            {/* Inhalt - vertikal zentriert für schmales Hochformat */}
+            {/* Moderner Inhalt - zentriert */}
             <Box sx={{ 
               textAlign: 'center',
               flex: 1,
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
-              pt: 0.5,
-              px: 1 // Etwas horizontaler Padding für schmaleres Format
+              pt: 2,
+              px: 2,
+              zIndex: 1
             }}>
               <Typography sx={{
-                fontSize: '1rem', // Etwas kleiner für schmaleres Format
-                fontWeight: 700,
-                color: '#15803d',
-                mb: 0.75
+                fontSize: '1.15rem',
+                fontWeight: 900,
+                background: 'linear-gradient(135deg, #15803d 0%, #16a34a 50%, #22c55e 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                mb: 0.75,
+                letterSpacing: '-0.03em',
+                textShadow: '0 2px 4px rgba(21, 128, 61, 0.2)',
+                filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))'
               }}>
                 Help Center
               </Typography>
               
               <Typography sx={{
-                fontSize: '0.8rem', // Kleiner für schmaleres Format
+                fontSize: '0.85rem',
                 color: '#16a34a',
-                lineHeight: 1.3,
-                mb: 1.25
+                lineHeight: 1.4,
+                mb: 1.5,
+                fontWeight: 600,
+                textShadow: '0 1px 2px rgba(22, 163, 74, 0.2)',
+                filter: 'drop-shadow(0 1px 1px rgba(0, 0, 0, 0.05))'
               }}>
-                Having trouble in tüka. Please contact us for more questions.
+                Having trouble in tüka?<br />
+                Contact us for support!
               </Typography>
 
               <Button
                 variant="contained"
                 sx={{
-                  bgcolor: 'white',
+                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)',
                   color: '#15803d',
-                  fontWeight: 600,
-                  borderRadius: 1.5, // Weniger abgerundet für schmaleres Format
-                  px: 2, // Weniger horizontaler Abstand
-                  py: 0.75, // Weniger vertikaler Abstand
+                  fontWeight: 800,
+                  borderRadius: 2, // Weniger abgerundet
+                  px: 2,
+                  py: 1,
                   textTransform: 'none',
-                  fontSize: '0.8rem', // Kleiner für schmaleres Format
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                  border: '1px solid #dcfce7',
-                  '&:hover': {
-                    bgcolor: '#f9fafb',
-                    transform: 'translateY(-1px)',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                  fontSize: '0.8rem',
+                  boxShadow: '0 6px 20px rgba(0, 0, 0, 0.12), 0 0 0 2px rgba(220, 248, 198, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+                  border: '2px solid #dcf8c6',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: '-100%',
+                    width: '100%',
+                    height: '100%',
+                    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)',
+                    transition: 'left 0.5s'
                   },
-                  transition: 'all 0.2s ease-in-out'
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(220, 248, 198, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+                    border: '2px solid #bbf7d0',
+                    '&::before': {
+                      left: '100%'
+                    }
+                  },
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
                 }}
               >
                 Go To Help Center
@@ -569,167 +631,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
         />
       </Box>
 
-      {/* Mobile Navigation - nur auf Mobile - Dashboard-optimiert */}
-      <Box sx={{ 
-        display: { xs: 'block', md: 'none' }
-      }}>
-        <AppBar 
-          position="fixed" 
-          sx={{ 
-            bgcolor: 'white', 
-            color: 'text.primary',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            zIndex: 1200,
-            borderBottom: '1px solid #e2e8f0'
-          }}
-        >
-          <Toolbar sx={{ 
-            px: 2, 
-            py: 1,
-            minHeight: '64px !important',
-            justifyContent: 'space-between',
-            gap: 1
-          }}>
-            {/* Links: Dashboard Icon */}
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              {/* Dashboard Icon */}
-              <Box
-                sx={{
-                  width: 32,
-                  height: 32,
-                  bgcolor: 'primary.main',
-                  borderRadius: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontWeight: 'bold',
-                  fontSize: '1rem'
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 10v8a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-8l-7-6a2 2 0 0 0-2 0l-7 6z"/>
-                </svg>
-              </Box>
-            </Box>
-
-            {/* Mitte: Erweiterte Suchleiste */}
-            <TextField
-              placeholder="Dashboard durchsuchen..."
-              size="small"
-              sx={{
-                flex: 1,
-                mx: 1,
-                maxWidth: '320px', // Mehr Platz ohne Hamburger-Button
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 3,
-                  bgcolor: 'grey.50',
-                  fontSize: '0.9rem',
-                  '&:hover': {
-                    bgcolor: 'grey.100'
-                  },
-                  '&.Mui-focused': {
-                    bgcolor: 'white',
-                    boxShadow: '0 0 0 2px rgba(5, 150, 105, 0.2)'
-                  }
-                }
-              }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon sx={{ color: 'text.secondary', fontSize: 18 }} />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      size="small"
-                      sx={{
-                        color: 'text.secondary',
-                        minWidth: '32px',
-                        minHeight: '32px',
-                        '&:hover': {
-                          bgcolor: 'grey.200'
-                        }
-                      }}
-                    >
-                      <FilterIcon sx={{ fontSize: 16 }} />
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }}
-            />
-
-            {/* Rechts: Benachrichtigungen + Profil */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              {/* Benachrichtigungen */}
-              <IconButton
-                sx={{
-                  color: 'text.primary',
-                  minWidth: '48px',
-                  minHeight: '48px',
-                  position: 'relative',
-                  borderRadius: 2, // Design-System: 8px
-                  '&:hover': {
-                    bgcolor: 'grey.100',
-                    transform: 'scale(1.05)' // Design-System: Hover-Effekt
-                  },
-                  '&:active': {
-                    transform: 'scale(0.95)' // Design-System: Active-Effekt
-                  }
-                }}
-              >
-                <NotificationIcon />
-                {/* Notification Badge */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 8,
-                    right: 8,
-                    width: 8,
-                    height: 8,
-                    bgcolor: 'error.main',
-                    borderRadius: '50%'
-                  }}
-                />
-              </IconButton>
-
-              {/* Profil Avatar */}
-              <IconButton
-                sx={{
-                  minWidth: '48px',
-                  minHeight: '48px',
-                  borderRadius: 2, // Design-System: 8px
-                  '&:hover': {
-                    bgcolor: 'grey.100',
-                    transform: 'scale(1.05)' // Design-System: Hover-Effekt
-                  },
-                  '&:active': {
-                    transform: 'scale(0.95)' // Design-System: Active-Effekt
-                  }
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
-                    bgcolor: 'primary.main',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    fontWeight: 'bold',
-                    fontSize: '0.9rem'
-                  }}
-                >
-                  {userData?.username?.charAt(0)?.toUpperCase() || 'U'}
-                </Box>
-              </IconButton>
-            </Box>
-          </Toolbar>
-        </AppBar>
-      </Box>
 
       {/* Schmaler vertikaler Hamburger Button - an Sidebar dranhängend - nur Desktop */}
       <Box sx={{
@@ -909,8 +810,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             height: location.pathname === '/chat' ? '100vh' : 'auto',
             overflow: 'visible',
             position: location.pathname === '/chat' ? 'relative' : 'static',
-            // Top-Navigation-Bereich berücksichtigen - Mobile und Desktop
-            mt: location.pathname !== '/chat' ? { xs: '120px', md: '120px' } : 0
+            // Top-Navigation-Bereich berücksichtigen - nur Desktop
+            mt: location.pathname !== '/chat' && location.pathname !== '/listings' && location.pathname !== '/dashboard' && location.pathname !== '/settings' && location.pathname !== '/faq' ? { xs: 0, md: '120px' } : 0
         }}
       >
         {children}

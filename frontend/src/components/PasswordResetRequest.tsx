@@ -25,18 +25,8 @@ export const PasswordResetRequest: React.FC = () => {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:8000/api/password-reset/request', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Fehler beim Senden der Reset-E-Mail');
-      }
+      // Password-Reset Endpoint ist noch nicht implementiert
+      throw new Error('Password-Reset Funktion ist noch nicht implementiert. Bitte kontaktieren Sie den Administrator.');
 
       setSuccess(true);
     } catch (err) {

@@ -46,7 +46,7 @@ const mockUser = {
   id: 1,
   email: 'test@example.com',
   name: 'Test User',
-  role: 'user' as const,
+  role: 'USER' as const,
   isAdmin: false,
 };
 

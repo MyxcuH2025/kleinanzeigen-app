@@ -262,9 +262,6 @@ const EntitySearchPage: React.FC = () => {
                 entity={adaptedEntity}
                 onView={contactHandlers.handleView}
                 onMessage={contactHandlers.handleMessage}
-                onCall={contactHandlers.handleCall}
-                onEmail={contactHandlers.handleEmail}
-                onWebsite={contactHandlers.handleWebsite}
               />
             </Box>
           );
@@ -277,46 +274,70 @@ const EntitySearchPage: React.FC = () => {
   const totalPages = Math.ceil(totalCount / (searchParams.limit || 20));
 
   return (
-    <Container maxWidth="xl" sx={{ py: { xs: 2, sm: 4 } }}>
-      {/* Header */}
-      <Box mb={{ xs: 3, sm: 4 }}>
-        <Typography 
-          variant="h3" 
-          component="h1" 
-          gutterBottom
-          sx={{
-            fontWeight: 600,
-            fontSize: { xs: '1.75rem', sm: '2.25rem', md: '2.5rem' },
-            color: '#1f2937',
-            textAlign: { xs: 'center', sm: 'left' }
-          }}
-        >
-          Entitäten durchsuchen
-        </Typography>
-        <Typography 
-          variant="h6" 
-          color="text.secondary" 
-          paragraph
-          sx={{
-            fontSize: { xs: '1rem', sm: '1.1rem' },
-            textAlign: { xs: 'center', sm: 'left' },
-            maxWidth: '600px'
-          }}
-        >
-          Entdecken Sie Shops, Dienstleister und Benutzer in Ihrer Nähe
-        </Typography>
+    <Box sx={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+      position: 'relative',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '200px',
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(248,250,252,0.6) 100%)',
+        backdropFilter: 'blur(20px)',
+        zIndex: 0
+      }
+    }}>
+      <Container maxWidth="xl" sx={{ py: { xs: 3, sm: 5 }, position: 'relative', zIndex: 1 }}>
+        {/* Header */}
+        <Box mb={{ xs: 4, sm: 5 }}>
+          <Typography 
+            variant="h3" 
+            component="h1" 
+            gutterBottom
+            sx={{
+              fontWeight: 800,
+              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+              background: 'linear-gradient(135deg, #0f172a 0%, #334155 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              textAlign: { xs: 'center', sm: 'left' },
+              letterSpacing: '-0.02em',
+              textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
+          >
+            Entitäten durchsuchen
+          </Typography>
+          <Typography 
+            variant="h6" 
+            color="text.secondary" 
+            paragraph
+            sx={{
+              fontSize: { xs: '1.1rem', sm: '1.25rem' },
+              textAlign: { xs: 'center', sm: 'left' },
+              maxWidth: '700px',
+              fontWeight: 400,
+              lineHeight: 1.6,
+              color: '#64748b'
+            }}
+          >
+            Entdecken Sie Shops, Dienstleister und Benutzer in Ihrer Nähe
+          </Typography>
         
-        {/* Statistiken */}
+        {/* Statistiken - Premium Glasmorphism */}
         <Box 
           display="flex" 
-          gap={{ xs: 1, sm: 1.5, md: 2 }} 
-          mb={3} 
+          gap={{ xs: 1.5, sm: 2, md: 2.5 }} 
+          mb={4} 
           flexWrap="wrap"
           justifyContent={{ xs: 'center', sm: 'flex-start' }}
           sx={{
             '& > *': {
-              flex: { xs: '1 1 calc(50% - 4px)', sm: '0 1 auto' },
-              minWidth: { xs: 'calc(50% - 4px)', sm: 'auto' }
+              flex: { xs: '1 1 calc(50% - 6px)', sm: '0 1 auto' },
+              minWidth: { xs: 'calc(50% - 6px)', sm: 'auto' }
             }
           }}
         >
@@ -324,14 +345,32 @@ const EntitySearchPage: React.FC = () => {
             icon={<Store />}
             label={`${stats.shops} Shops`}
             sx={{
-              backgroundColor: '#f3f4f6',
+              background: 'rgba(255,255,255,0.8)',
+              backdropFilter: 'blur(10px)',
               color: '#374151',
-              border: '1px solid #d1d5db',
-              fontWeight: 500,
-              fontSize: '0.875rem',
-              height: 36,
+              border: '1px solid rgba(255,255,255,0.3)',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              height: 42,
+              borderRadius: 0.5,
+              boxShadow: `
+                0 4px 12px rgba(0,0,0,0.08),
+                0 1px 3px rgba(0,0,0,0.05),
+                inset 0 1px 0 rgba(255,255,255,0.6)
+              `,
+              transition: 'all 0.2s ease',
               '& .MuiChip-icon': {
-                color: '#6b7280'
+                color: '#6b7280',
+                fontSize: '1.1rem'
+              },
+              '&:hover': {
+                background: 'rgba(255,255,255,0.95)',
+                transform: 'translateY(-1px)',
+                boxShadow: `
+                  0 6px 16px rgba(0,0,0,0.12),
+                  0 2px 4px rgba(0,0,0,0.08),
+                  inset 0 1px 0 rgba(255,255,255,0.8)
+                `
               }
             }}
           />
@@ -339,14 +378,32 @@ const EntitySearchPage: React.FC = () => {
             icon={<Business />}
             label={`${stats.providers} Dienstleister`}
             sx={{
-              backgroundColor: '#f3f4f6',
+              background: 'rgba(255,255,255,0.8)',
+              backdropFilter: 'blur(10px)',
               color: '#374151',
-              border: '1px solid #d1d5db',
-              fontWeight: 500,
-              fontSize: '0.875rem',
-              height: 36,
+              border: '1px solid rgba(255,255,255,0.3)',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              height: 42,
+              borderRadius: 0.5,
+              boxShadow: `
+                0 4px 12px rgba(0,0,0,0.08),
+                0 1px 3px rgba(0,0,0,0.05),
+                inset 0 1px 0 rgba(255,255,255,0.6)
+              `,
+              transition: 'all 0.2s ease',
               '& .MuiChip-icon': {
-                color: '#6b7280'
+                color: '#6b7280',
+                fontSize: '1.1rem'
+              },
+              '&:hover': {
+                background: 'rgba(255,255,255,0.95)',
+                transform: 'translateY(-1px)',
+                boxShadow: `
+                  0 6px 16px rgba(0,0,0,0.12),
+                  0 2px 4px rgba(0,0,0,0.08),
+                  inset 0 1px 0 rgba(255,255,255,0.8)
+                `
               }
             }}
           />
@@ -354,40 +411,91 @@ const EntitySearchPage: React.FC = () => {
             icon={<Person />}
             label={`${stats.users} Benutzer`}
             sx={{
-              backgroundColor: '#f3f4f6',
+              background: 'rgba(255,255,255,0.8)',
+              backdropFilter: 'blur(10px)',
               color: '#374151',
-              border: '1px solid #d1d5db',
-              fontWeight: 500,
-              fontSize: '0.875rem',
-              height: 36,
+              border: '1px solid rgba(255,255,255,0.3)',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              height: 42,
+              borderRadius: 0.5,
+              boxShadow: `
+                0 4px 12px rgba(0,0,0,0.08),
+                0 1px 3px rgba(0,0,0,0.05),
+                inset 0 1px 0 rgba(255,255,255,0.6)
+              `,
+              transition: 'all 0.2s ease',
               '& .MuiChip-icon': {
-                color: '#6b7280'
+                color: '#6b7280',
+                fontSize: '1.1rem'
+              },
+              '&:hover': {
+                background: 'rgba(255,255,255,0.95)',
+                transform: 'translateY(-1px)',
+                boxShadow: `
+                  0 6px 16px rgba(0,0,0,0.12),
+                  0 2px 4px rgba(0,0,0,0.08),
+                  inset 0 1px 0 rgba(255,255,255,0.8)
+                `
               }
             }}
           />
           <Chip
             label={`${stats.total} Gesamt`}
             sx={{
-              backgroundColor: '#374151',
+              background: 'linear-gradient(135deg, #374151 0%, #1f2937 100%)',
               color: 'white',
-              fontWeight: 500,
-              fontSize: '0.875rem',
-              height: 36
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              height: 42,
+              borderRadius: 0.5,
+              border: '1px solid rgba(255,255,255,0.2)',
+              boxShadow: `
+                0 4px 12px rgba(55, 65, 81, 0.3),
+                0 1px 3px rgba(55, 65, 81, 0.2),
+                inset 0 1px 0 rgba(255,255,255,0.2)
+              `,
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #1f2937 0%, #111827 100%)',
+                transform: 'translateY(-1px)',
+                boxShadow: `
+                  0 6px 16px rgba(55, 65, 81, 0.4),
+                  0 2px 4px rgba(55, 65, 81, 0.3),
+                  inset 0 1px 0 rgba(255,255,255,0.3)
+                `
+              }
             }}
           />
         </Box>
       </Box>
 
-      {/* Filter und Suche */}
+      {/* Filter und Suche - Premium Glasmorphism */}
       <Paper 
         elevation={0}
         sx={{ 
-          p: { xs: 2, sm: 3 }, 
-          mb: 4,
-          borderRadius: 2,
-          border: '1px solid #e5e7eb',
-          backgroundColor: '#f9fafb',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+          p: { xs: 3, sm: 4 }, 
+          mb: 5,
+          borderRadius: 1,
+          border: '1px solid rgba(255,255,255,0.2)',
+          background: 'rgba(255,255,255,0.7)',
+          backdropFilter: 'blur(20px)',
+          boxShadow: `
+            0 8px 32px rgba(0,0,0,0.08),
+            0 2px 8px rgba(0,0,0,0.05),
+            inset 0 1px 0 rgba(255,255,255,0.6)
+          `,
+          position: 'relative',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '1px',
+            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent)',
+            zIndex: 1
+          }
         }}
       >
         <Box sx={{
@@ -418,18 +526,34 @@ const EntitySearchPage: React.FC = () => {
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  backgroundColor: 'white',
-                  borderRadius: 2,
+                  background: 'rgba(255,255,255,0.8)',
+                  backdropFilter: 'blur(10px)',
+                  borderRadius: 0.5,
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  boxShadow: `
+                    0 4px 12px rgba(0,0,0,0.05),
+                    inset 0 1px 0 rgba(255,255,255,0.6)
+                  `,
+                  transition: 'all 0.2s ease',
                   '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#d1d5db',
+                    borderColor: 'rgba(255,255,255,0.5)',
+                    boxShadow: `
+                      0 6px 16px rgba(0,0,0,0.08),
+                      inset 0 1px 0 rgba(255,255,255,0.8)
+                    `
                   },
                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#374151',
+                    borderColor: 'rgba(55, 65, 81, 0.6)',
                     borderWidth: 2,
+                    boxShadow: `
+                      0 8px 20px rgba(0,0,0,0.1),
+                      inset 0 1px 0 rgba(255,255,255,0.8)
+                    `
                   },
                 },
                 '& .MuiInputLabel-root': {
-                  color: '#6b7280',
+                  color: '#64748b',
+                  fontWeight: 500,
                   '&.Mui-focused': {
                     color: '#374151',
                   },
@@ -455,18 +579,34 @@ const EntitySearchPage: React.FC = () => {
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  backgroundColor: 'white',
-                  borderRadius: 2,
+                  background: 'rgba(255,255,255,0.8)',
+                  backdropFilter: 'blur(10px)',
+                  borderRadius: 0.5,
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  boxShadow: `
+                    0 4px 12px rgba(0,0,0,0.05),
+                    inset 0 1px 0 rgba(255,255,255,0.6)
+                  `,
+                  transition: 'all 0.2s ease',
                   '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#d1d5db',
+                    borderColor: 'rgba(255,255,255,0.5)',
+                    boxShadow: `
+                      0 6px 16px rgba(0,0,0,0.08),
+                      inset 0 1px 0 rgba(255,255,255,0.8)
+                    `
                   },
                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#374151',
+                    borderColor: 'rgba(55, 65, 81, 0.6)',
                     borderWidth: 2,
+                    boxShadow: `
+                      0 8px 20px rgba(0,0,0,0.1),
+                      inset 0 1px 0 rgba(255,255,255,0.8)
+                    `
                   },
                 },
                 '& .MuiInputLabel-root': {
-                  color: '#6b7280',
+                  color: '#64748b',
+                  fontWeight: 500,
                   '&.Mui-focused': {
                     color: '#374151',
                   },
@@ -488,14 +628,29 @@ const EntitySearchPage: React.FC = () => {
                   </InputAdornment>
                 }
                 sx={{
-                  backgroundColor: 'white',
-                  borderRadius: 2,
+                  background: 'rgba(255,255,255,0.8)',
+                  backdropFilter: 'blur(10px)',
+                  borderRadius: 0.5,
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  boxShadow: `
+                    0 4px 12px rgba(0,0,0,0.05),
+                    inset 0 1px 0 rgba(255,255,255,0.6)
+                  `,
+                  transition: 'all 0.2s ease',
                   '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#d1d5db',
+                    borderColor: 'rgba(255,255,255,0.5)',
+                    boxShadow: `
+                      0 6px 16px rgba(0,0,0,0.08),
+                      inset 0 1px 0 rgba(255,255,255,0.8)
+                    `
                   },
                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#374151',
+                    borderColor: 'rgba(55, 65, 81, 0.6)',
                     borderWidth: 2,
+                    boxShadow: `
+                      0 8px 20px rgba(0,0,0,0.1),
+                      inset 0 1px 0 rgba(255,255,255,0.8)
+                    `
                   },
                 }}
               >
@@ -536,15 +691,31 @@ const EntitySearchPage: React.FC = () => {
         </Box>
       </Paper>
 
-      {/* Tabs für Entity-Typen */}
+      {/* Tabs für Entity-Typen - Premium Glasmorphism */}
       <Box sx={{ 
         borderBottom: 1, 
-        borderColor: '#e5e7eb', 
-        mb: 4,
-        backgroundColor: 'white',
-        borderRadius: 2,
-        px: 2,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+        borderColor: 'rgba(255,255,255,0.3)', 
+        mb: 5,
+        background: 'rgba(255,255,255,0.6)',
+        backdropFilter: 'blur(20px)',
+        borderRadius: 4,
+        px: 3,
+        boxShadow: `
+          0 8px 32px rgba(0,0,0,0.08),
+          0 2px 8px rgba(0,0,0,0.05),
+          inset 0 1px 0 rgba(255,255,255,0.6)
+        `,
+        position: 'relative',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '1px',
+          background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent)',
+          zIndex: 1
+        }
       }}>
         <Tabs 
           value={tabValue} 
@@ -555,23 +726,36 @@ const EntitySearchPage: React.FC = () => {
             '& .MuiTab-root': {
               textTransform: 'none',
               fontWeight: 600,
-              fontSize: '0.95rem',
-              minHeight: 56,
-              color: '#6b7280',
+              fontSize: '1rem',
+              minHeight: 64,
+              color: '#64748b',
+              borderRadius: 0.5,
+              margin: '8px 4px',
+              transition: 'all 0.2s ease',
               '&.Mui-selected': {
                 color: '#374151',
+                background: 'rgba(255,255,255,0.8)',
+                backdropFilter: 'blur(10px)',
+                boxShadow: `
+                  0 4px 12px rgba(0,0,0,0.08),
+                  inset 0 1px 0 rgba(255,255,255,0.6)
+                `,
+                transform: 'translateY(-1px)'
+              },
+              '&:hover': {
+                background: 'rgba(255,255,255,0.4)',
+                color: '#374151',
+                transform: 'translateY(-1px)'
               },
               '& .MuiTab-iconWrapper': {
-                marginBottom: '4px',
+                marginBottom: '6px',
                 '& svg': {
-                  fontSize: '1.25rem'
+                  fontSize: '1.3rem'
                 }
               }
             },
             '& .MuiTabs-indicator': {
-              backgroundColor: '#374151',
-              height: 3,
-              borderRadius: '2px 2px 0 0'
+              display: 'none'
             }
           }}
         >
@@ -607,22 +791,38 @@ const EntitySearchPage: React.FC = () => {
 
       {renderEntityCards()}
 
-      {/* Pagination */}
+      {/* Pagination - Premium Glasmorphism */}
       {totalPages > 1 && (
         <Box 
           display="flex" 
           justifyContent="center" 
-          mt={6}
-          mb={4}
+          mt={8}
+          mb={6}
         >
           <Paper
             elevation={0}
             sx={{
-              p: 2,
-              borderRadius: 3,
-              border: '1px solid #e5e7eb',
-              backgroundColor: '#fafafa',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+              p: 3,
+              borderRadius: 1,
+              border: '1px solid rgba(255,255,255,0.2)',
+              background: 'rgba(255,255,255,0.7)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: `
+                0 8px 32px rgba(0,0,0,0.08),
+                0 2px 8px rgba(0,0,0,0.05),
+                inset 0 1px 0 rgba(255,255,255,0.6)
+              `,
+              position: 'relative',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '1px',
+                background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent)',
+                zIndex: 1
+              }
             }}
           >
             <Pagination
@@ -635,17 +835,37 @@ const EntitySearchPage: React.FC = () => {
               showLastButton
               sx={{
                 '& .MuiPaginationItem-root': {
-                  borderRadius: 2,
-                  fontWeight: 500,
+                  borderRadius: 0.5,
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  minWidth: 40,
+                  height: 40,
+                  margin: '0 2px',
+                  transition: 'all 0.2s ease',
                   '&.Mui-selected': {
-                    backgroundColor: '#374151',
+                    background: 'linear-gradient(135deg, #374151 0%, #1f2937 100%)',
                     color: 'white',
+                    boxShadow: `
+                      0 4px 12px rgba(55, 65, 81, 0.3),
+                      inset 0 1px 0 rgba(255,255,255,0.2)
+                    `,
                     '&:hover': {
-                      backgroundColor: '#1f2937',
+                      background: 'linear-gradient(135deg, #1f2937 0%, #111827 100%)',
+                      transform: 'translateY(-1px)',
+                      boxShadow: `
+                        0 6px 16px rgba(55, 65, 81, 0.4),
+                        inset 0 1px 0 rgba(255,255,255,0.3)
+                      `
                     }
                   },
                   '&:hover': {
-                    backgroundColor: 'rgba(55, 65, 81, 0.08)',
+                    background: 'rgba(255,255,255,0.8)',
+                    backdropFilter: 'blur(10px)',
+                    transform: 'translateY(-1px)',
+                    boxShadow: `
+                      0 4px 12px rgba(0,0,0,0.08),
+                      inset 0 1px 0 rgba(255,255,255,0.6)
+                    `
                   }
                 }
               }}
@@ -654,29 +874,47 @@ const EntitySearchPage: React.FC = () => {
         </Box>
       )}
 
-      {/* Ergebnisse-Info */}
+      {/* Ergebnisse-Info - Premium Glasmorphism */}
       {!loading && entities.length > 0 && (
         <Box 
           textAlign="center" 
-          mt={4}
-          mb={2}
+          mt={6}
+          mb={4}
         >
           <Paper
             elevation={0}
             sx={{
-              p: 2,
-              borderRadius: 2,
-              border: '1px solid #e5e7eb',
-              backgroundColor: '#f8fafc',
-              display: 'inline-block'
+              p: 3,
+              borderRadius: 1,
+              border: '1px solid rgba(255,255,255,0.2)',
+              background: 'rgba(255,255,255,0.6)',
+              backdropFilter: 'blur(20px)',
+              display: 'inline-block',
+              boxShadow: `
+                0 8px 32px rgba(0,0,0,0.08),
+                0 2px 8px rgba(0,0,0,0.05),
+                inset 0 1px 0 rgba(255,255,255,0.6)
+              `,
+              position: 'relative',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '1px',
+                background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent)',
+                zIndex: 1
+              }
             }}
           >
             <Typography 
               variant="body2" 
               color="text.secondary"
               sx={{ 
-                fontWeight: 500,
-                fontSize: '0.875rem'
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                color: '#64748b'
               }}
             >
               Zeige {entities.length} von {totalCount} Ergebnissen
@@ -684,7 +922,8 @@ const EntitySearchPage: React.FC = () => {
           </Paper>
         </Box>
       )}
-    </Container>
+      </Container>
+    </Box>
   );
 };
 

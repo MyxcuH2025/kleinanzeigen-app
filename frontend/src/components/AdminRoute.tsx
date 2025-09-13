@@ -26,7 +26,7 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
   }
   
   // Prüfe Admin-Berechtigung
-  if (user.role !== 'admin') {
+  if (user.role !== 'ADMIN') {
     return (
       <Box sx={{ 
         display: 'flex', 

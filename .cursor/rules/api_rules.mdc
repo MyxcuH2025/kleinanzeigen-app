@@ -1,0 +1,121 @@
+---
+description: API/Backend-spezifische Regeln für Kleinanzeigen-Projekt
+globs: ["**/backend/**", "**/*.py", "**/routes.py", "**/models.py", "**/main.py"]
+alwaysApply: true
+---
+
+# API/BACKEND REGELN - Kleinanzeigen
+
+## 🎯 HAUPTZIELE
+- **Performance**: 40.000+ User unterstützen
+- **Code-Qualität**: Modulare, wartbare Architektur
+- **Sicherheit**: Backend-Validierung, Access-Checks
+- **Skalierung**: Connection Pooling, Caching, Monitoring
+
+## 📋 CORE REGELN
+
+### 1. **Weniger Code = Besser**
+- **Präferiere**: Konzise, modulare Lösungen
+- **Vermeide**: Copy-Paste, redundante Funktionen
+- **Beispiel**: `joinedload(Listing.seller)` statt N+1 Queries
+
+### 2. **Super-Team-Ansatz**
+- **Architekt**: Performance-Monitoring, Skalierung
+- **DevOps**: Connection Pooling, Indizes, Health Checks
+- **Security**: Backend-Validierung, Injection-Schutz
+- **QA**: Automatische Tests, Error-Handling
+
+### 3. **Vollständige Implementierung**
+- **Niemals aufhören** bis Feature 100% fertig
+- **Completion Report** nach jedem Feature
+- **Messbare Ergebnisse** dokumentieren
+
+### 4. **Strukturierte Analyse**
+- **3-Paragraph-Ansatz**: Problem → Analyse → Lösung
+- **Multi-Role-Synthese**: Verschiedene Perspektiven kombinieren
+- **Bewiesene Lösungen**: Verifikation vor Implementierung
+
+### 5. **Kreative Features**
+- **Performance-Monitoring**: Echtzeit-Metriken
+- **Health Checks**: Für Load Balancer
+- **Automatische Empfehlungen**: Basierend auf Performance-Daten
+
+## 🔧 TECHNISCHE STANDARDS
+
+### **Performance**
+- **Connection Pooling**: 20 Verbindungen + 30 Overflow
+- **Datenbank-Indizes**: Für alle kritischen Queries
+- **N+1 Problem**: Immer `joinedload()` verwenden
+- **Caching**: Redis für häufige Daten
+
+### **Code-Qualität**
+- **Modulare Architektur**: SRP, saubere Funktionen
+- **Typisierung**: Pydantic-Models für alle APIs
+- **Error-Handling**: Strukturierte Fehlerbehandlung
+- **Logging**: Detaillierte Logs für Debugging
+
+### **Sicherheit**
+- **Backend-Validierung**: Alle Inputs validieren
+- **Access-Checks**: Owner-Verification
+- **Rate-Limiting**: API-Schutz
+- **Injection-Schutz**: SQL-Injection verhindern
+
+## 📊 MONITORING & METRIKEN
+
+### **Performance-Metriken**
+- Response-Zeiten (< 200ms)
+- Datenbank-Query-Zeiten (< 50ms)
+- System-Ressourcen (CPU, Memory, Disk)
+- Connection Pool Status
+
+### **Health Checks**
+- `/performance/health` - Load Balancer
+- `/performance/metrics` - Detaillierte Metriken
+- `/performance/recommendations` - Automatische Empfehlungen
+
+## 🚀 IMPLEMENTIERUNG
+
+### **Vor jeder Änderung**
+1. **Aktuellen Zustand analysieren**
+2. **Problem identifizieren** (3-Paragraph-Ansatz)
+3. **Lösung synthetisieren** (Multi-Role-Perspektive)
+4. **Vollständig implementieren**
+5. **Completion Report** erstellen
+
+### **Code-Standards**
+- **Kommentare**: Erklären WAS und WARUM
+- **Modulare Funktionen**: Eine Verantwortung pro Funktion
+- **Typisierung**: Vollständige Type-Hints
+- **Error-Handling**: Graceful Degradation
+
+### **Testing**
+- **Unit-Tests**: Für alle neuen Funktionen
+- **Integration-Tests**: Für API-Endpoints
+- **Performance-Tests**: Für kritische Pfade
+- **Error-Tests**: Für Edge Cases
+
+## 🎯 KLEINANZEIGEN-SPEZIFISCH
+
+### **Backend-Module**
+- `listings/` - Anzeigen CRUD, Status, Filter
+- `search/` - Suche, Filter, Sortierung
+- `feed/` - Personalisierte Feeds
+- `performance/` - Monitoring, Metriken
+- `websocket/` - Echtzeit-Features
+
+### **Kritische Endpoints**
+- `GET /api/listings` - Mit joinedload()
+- `GET /api/search` - Server-Side Filter
+- `GET /api/feed` - Personalisierte Feeds
+- `GET /performance/metrics` - Monitoring
+
+### **Datenbank-Optimierung**
+- **34 Indizes** für kritische Tabellen
+- **Connection Pooling** für Skalierung
+- **Query-Optimierung** mit joinedload()
+- **Performance-Monitoring** in Echtzeit
+
+---
+
+**Status**: ✅ Aktiv für alle Backend-Dateien
+**Nächste Überprüfung**: Bei jeder API-Änderung

@@ -98,7 +98,7 @@ export const notificationService = {
     }
 
     const response = await fetch(`${API_BASE_URL}/api/notifications/read-all`, {
-      method: 'PUT',
+      method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',

@@ -37,6 +37,7 @@ import {
   Breadcrumbs,
   Link
 } from '@mui/material';
+import { DashboardLayout } from '../components/DashboardLayout';
 import {
   Email as EmailIcon,
   Lock as LockIcon,
@@ -183,7 +184,7 @@ const SettingsPage: React.FC = () => {
     
     try {
       const updatedUser = await userService.updateProfile(formData);
-      setUser(updatedUser);
+      setUser(updatedUser as any);
       setSuccess('Profil erfolgreich aktualisiert!');
     } catch (error) {
       setError('Fehler beim Aktualisieren des Profils');
@@ -205,7 +206,7 @@ const SettingsPage: React.FC = () => {
       formData.append('avatar', file);
       
       const updatedUser = await userService.uploadAvatarForCurrentUser(formData);
-      setUser(updatedUser);
+      setUser(updatedUser as any);
       setSuccess('Avatar erfolgreich aktualisiert!');
     } catch (error) {
       setError('Fehler beim Hochladen des Avatars');
@@ -695,23 +696,25 @@ const SettingsPage: React.FC = () => {
   };
   
   return (
-    <Container maxWidth="xl" sx={{ py: 3 }}>
-      {/* Breadcrumbs */}
-      <Breadcrumbs sx={{ mb: 3 }}>
-        <Link color="inherit" href="/" sx={{ display: 'flex', alignItems: 'center' }}>
-          <CustomIcon iconName="home" sx={{ mr: 0.5 }} fontSize="inherit" />
-          Startseite
-        </Link>
-        <Typography color="text.primary" sx={{ display: 'flex', alignItems: 'center' }}>
-          <CustomIcon iconName="settings" sx={{ mr: 0.5 }} fontSize="inherit" />
-          Einstellungen
-        </Typography>
-      </Breadcrumbs>
-      
-      <Grid container spacing={3}>
-        {/* Sidebar Navigation */}
-        <Grid size={{ xs: 12, md: 3 }}>
-          <Box sx={{ position: 'sticky', top: 20 }}>
+    <DashboardLayout>
+      <Box sx={{ 
+        color: '#333',
+        width: '100%',
+        height: '100%',
+        display: 'flex'
+      }}>
+        {/* Einstellungen Sidebar - klebt an Dashboard Sidebar */}
+        <Box sx={{
+          width: '280px',
+          minWidth: '280px',
+          bgcolor: '#f8f9fa',
+          borderRight: '1px solid #e5e7eb',
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
+          overflowY: 'auto'
+        }}>
+          <Box sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom sx={{ fontWeight: 400, mb: 3, color: '#1a1a1a' }}>
               Einstellungen
             </Typography>
@@ -760,13 +763,18 @@ const SettingsPage: React.FC = () => {
               ))}
             </List>
           </Box>
-        </Grid>
+        </Box>
         
-        {/* Hauptinhalt */}
-        <Grid size={{ xs: 12, md: 9 }}>
+        {/* Main Content */}
+        <Box sx={{ 
+          flex: 1,
+          p: 3,
+          overflowY: 'auto',
+          height: '100vh'
+        }}>
           {renderMainContent()}
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
       
       {/* Avatar Upload Menu */}
       <Menu
@@ -820,7 +828,7 @@ const SettingsPage: React.FC = () => {
           {success}
         </Alert>
       </Snackbar>
-    </Container>
+    </DashboardLayout>
   );
 };
 

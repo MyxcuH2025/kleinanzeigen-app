@@ -1,8 +1,7 @@
 import React from 'react';
-import { Box, Typography, useTheme, useMediaQuery, Container, IconButton, TextField, Avatar, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Divider } from '@mui/material';
+import { Box, Typography, useTheme, useMediaQuery, Container, IconButton, TextField, Avatar, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Divider, Button } from '@mui/material';
 import { Menu as MenuIcon } from '@mui/icons-material';
 import { DesktopNavigation } from './DesktopNavigation';
-import { MobileCategoryTabs } from './MobileCategoryTabs';
 import { BottomNav } from './BottomNav';
 import NotificationBell from './NotificationBell';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -39,8 +38,7 @@ export const Layout = ({ children, onSearchChange, searchValue, onSidebarToggle,
   const isChatOpen = location.pathname === '/chat';
   
   const handleCategoryChange = (category: string) => {
-    // This will be handled by the navigation in MobileCategoryTabs
-    console.log('Layout: Category changed to:', category);
+
   };
 
   // Mobile Sidebar Handlers
@@ -74,11 +72,71 @@ export const Layout = ({ children, onSearchChange, searchValue, onSidebarToggle,
         />
       </Box>
 
-      {/* Mobile Navigation - nur auf Mobile */}
+      {/* Mobile Entities Bar - nur auf Mobile */}
       {isMobile && (
         <Box sx={{ 
           position: 'fixed',
           top: 0,
+          left: 0,
+          right: 0,
+          zIndex: theme.zIndex.appBar + 1,
+          bgcolor: 'grey.50',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          display: { xs: 'block', md: 'none' },
+          height: '40px'
+        }}>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 1,
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+            '&::-webkit-scrollbar': { display: 'none' },
+            width: '100%',
+            px: 1,
+            py: 0.5
+          }}>
+            {[
+              { label: 'Entitäten', path: '/entities' },
+              { label: 'Events', path: '/events' },
+              { label: 'Lokale News', path: '/lokale-news' },
+              { label: 'Partner werden', path: '/partner-werden' },
+              { label: 'Karriere', path: '/karriere' },
+              { label: 'Hilfe', path: '/hilfe' }
+            ].map((item) => (
+              <Button
+                key={item.label}
+                onClick={() => navigate(item.path)}
+                size="small"
+                sx={{ 
+                  textTransform: 'none',
+                  fontSize: '0.75rem',
+                  fontWeight: 500,
+                  color: location.pathname === item.path ? 'primary.main' : 'text.secondary',
+                  minWidth: 'auto',
+                  px: 1,
+                  py: 0.5,
+                  borderRadius: 1,
+                  '&:hover': { 
+                    bgcolor: 'rgba(25, 118, 210, 0.08)',
+                  },
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0
+                }}
+              >
+                {item.label}
+              </Button>
+            ))}
+          </Box>
+        </Box>
+      )}
+
+      {/* Mobile Navigation - nur auf Mobile */}
+      {isMobile && (
+        <Box sx={{ 
+          position: 'fixed',
+          top: '40px',
           left: 0,
           right: 0,
           zIndex: theme.zIndex.appBar,
@@ -86,7 +144,8 @@ export const Layout = ({ children, onSearchChange, searchValue, onSidebarToggle,
           borderBottom: '1px solid',
           borderColor: 'divider',
           display: { xs: 'block', md: 'none' },
-          height: '64px'
+          minHeight: '36px',
+          maxHeight: '150px'
         }}>
           <Box sx={{ 
             display: 'flex', 
@@ -94,7 +153,7 @@ export const Layout = ({ children, onSearchChange, searchValue, onSidebarToggle,
             justifyContent: 'space-between',
             height: '100%',
             px: 2,
-            py: 1
+            py: 0
           }}>
             {/* Hamburger Menu */}
             <IconButton
@@ -159,16 +218,20 @@ export const Layout = ({ children, onSearchChange, searchValue, onSidebarToggle,
                 placeholder="Was suchst du?"
                 variant="outlined"
                 size="small"
+                multiline
+                maxRows={5}
                 value={searchValue || ''}
                 onChange={(e) => onSearchChange?.(e.target.value)}
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    height: '40px',
+                    minHeight: '36px',
+                    maxHeight: '150px', // 5 Zeilen * 30px
                     borderRadius: 1.5,
                     bgcolor: '#ffffff',
                     border: '1px solid #e5e7eb',
                     boxShadow: '0 0.5px 2px rgba(0, 0, 0, 0.04), 0 0.25px 0.5px rgba(0, 0, 0, 0.02)',
                     transform: 'translateY(-0.25px)',
+                    overflowY: 'auto',
                     transition: 'all 0.2s ease-in-out',
                     '&:hover': {
                       borderColor: '#d1d5db',
@@ -395,10 +458,10 @@ export const Layout = ({ children, onSearchChange, searchValue, onSidebarToggle,
             md: 0 
           },
           pt: { 
-            xs: isMobile ? '80px' : 0, // Abstand für Mobile Navigation (64px + 16px padding)
-            sm: isMobile ? '80px' : 0,
+            xs: isMobile ? (isChatOpen ? '80px' : '104px') : 0, // Chat: Entities + etwas Abstand (80px), andere: Entities + Navigation (104px)
+            sm: isMobile ? (isChatOpen ? '80px' : '104px') : 0,
             md: 0 
-          }, // Abstand für Mobile Navigation
+          }, // Abstand für Mobile Entities + Navigation (außer Chat)
           px: { xs: 1, sm: 2, md: 0 }, // Reduziertes Padding auf Mobile
           // Sicherstellen, dass der Content nicht die Navigation verdeckt
           zIndex: 1,

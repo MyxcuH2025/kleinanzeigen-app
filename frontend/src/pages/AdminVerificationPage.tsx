@@ -28,8 +28,8 @@ const AdminVerificationPage: React.FC = () => {
 
         if (response.ok) {
           const userData = await response.json();
-          console.log('User data:', userData); // Debug
-          setIsAdmin(userData.role === 'ADMIN' || userData.role === 'UserRole.ADMIN' || userData.role === 'admin');
+ // Debug
+          setIsAdmin(userData.role === 'ADMIN');
         } else {
           setIsAdmin(false);
         }

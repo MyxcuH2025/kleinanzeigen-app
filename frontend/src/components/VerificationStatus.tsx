@@ -54,7 +54,8 @@ const VerificationStatus: React.FC<VerificationStatusProps> = ({ userId }) => {
       const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:8000/api/seller/verification/status`, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
 

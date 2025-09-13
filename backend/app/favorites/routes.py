@@ -67,13 +67,24 @@ async def add_to_favorites(
                     "related_listing_id": listing_id
                 }
             )
+            
+            # Favorite-Update an den User senden
+            await websocket_manager.send_favorite_update(
+                user_id=current_user.id,
+                favorite_data={
+                    "action": "added",
+                    "listing_id": listing_id,
+                    "user_id": current_user.id,
+                    "listing_title": listing.title
+                }
+            )
     except Exception as e:
         logger.error(f"Fehler bei automatischer Benachrichtigung: {e}")
     
     return {"message": "Listing zu Favoriten hinzugefügt"}
 
 @router.delete("/favorites/{listing_id}")
-def remove_from_favorites(
+async def remove_from_favorites(
     listing_id: int,
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
@@ -94,6 +105,20 @@ def remove_from_favorites(
     # Aus Favoriten entfernen
     session.delete(favorite)
     session.commit()
+    
+    # WebSocket-Update senden
+    try:
+        from app.websocket.manager import manager as websocket_manager
+        await websocket_manager.send_favorite_update(
+            user_id=current_user.id,
+            favorite_data={
+                "action": "removed",
+                "listing_id": listing_id,
+                "user_id": current_user.id
+            }
+        )
+    except Exception as e:
+        logger.error(f"Fehler beim Senden des Favorite-Updates: {e}")
     
     return {"message": "Listing aus Favoriten entfernt"}
 

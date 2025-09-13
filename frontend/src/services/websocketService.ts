@@ -3,7 +3,7 @@
  */
 
 export interface WebSocketMessage {
-  type: 'notification' | 'new_message' | 'new_follower' | 'connected' | 'pong';
+  type: 'notification' | 'new_message' | 'new_follower' | 'connected' | 'pong' | 'listing_update' | 'favorite_update' | 'admin_update' | 'user_status_update' | 'listing_status_changed';
   data?: any;
   message?: string;
   user_id?: number;
@@ -75,7 +75,7 @@ class WebSocketService {
       const token = localStorage.getItem('token');
       if (!token) {
         // Kein Token vorhanden - das ist normal wenn User nicht eingeloggt ist
-        console.log('WebSocket: Kein Token gefunden - Verbindung übersprungen');
+
         resolve();
         return;
       }
@@ -89,7 +89,7 @@ class WebSocketService {
         this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {
-          console.log('WebSocket verbunden');
+
           this.isConnecting = false;
           this.reconnectAttempts = 0;
           this.startPingInterval();
@@ -106,7 +106,7 @@ class WebSocketService {
         };
 
         this.ws.onclose = (event) => {
-          console.log('WebSocket getrennt:', event.code, event.reason);
+
           this.isConnecting = false;
           this.stopPingInterval();
           
@@ -133,7 +133,7 @@ class WebSocketService {
     this.reconnectAttempts++;
     const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1); // Exponential backoff
     
-    console.log(`WebSocket Reconnect in ${delay}ms (Versuch ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+
     
     setTimeout(() => {
       if (!this.isConnected()) {
@@ -168,7 +168,7 @@ class WebSocketService {
   }
 
   private handleMessage(message: WebSocketMessage) {
-    console.log('WebSocket Nachricht erhalten:', message);
+
 
     // Spezifische Handler aufrufen
     const handlers = this.messageHandlers.get(message.type) || [];
@@ -183,7 +183,7 @@ class WebSocketService {
     // Globale Handler
     switch (message.type) {
       case 'connected':
-        console.log('WebSocket erfolgreich verbunden für User:', message.user_id);
+
         break;
       case 'pong':
         // Ping-Pong erfolgreich
@@ -197,11 +197,26 @@ class WebSocketService {
       case 'new_follower':
         this.handleNewFollower(message.data as FollowData);
         break;
+      case 'listing_update':
+        this.handleListingUpdate(message.data);
+        break;
+      case 'favorite_update':
+        this.handleFavoriteUpdate(message.data);
+        break;
+      case 'admin_update':
+        this.handleAdminUpdate(message.data);
+        break;
+      case 'user_status_update':
+        this.handleUserStatusUpdate(message.data);
+        break;
+      case 'listing_status_changed':
+        this.handleListingStatusChanged(message.data);
+        break;
     }
   }
 
   private handleNotification(notification: NotificationData) {
-    console.log('Neue Benachrichtigung erhalten:', notification);
+
     
     // Browser-Benachrichtigung anzeigen (falls erlaubt)
     if (Notification.permission === 'granted') {
@@ -219,7 +234,7 @@ class WebSocketService {
   }
 
   private handleNewMessage(message: MessageData) {
-    console.log('Neue Nachricht erhalten:', message);
+
     
     // Event für React-Komponenten (neuer standardisierter Event-Name für Hooks)
     window.dispatchEvent(new CustomEvent('websocket-new-message', {
@@ -236,11 +251,56 @@ class WebSocketService {
   }
 
   private handleNewFollower(follow: FollowData) {
-    console.log('Neuer Follower:', follow);
+
     
     // Event für React-Komponenten
     window.dispatchEvent(new CustomEvent('websocket-new-follower', {
       detail: follow
+    }));
+  }
+
+  private handleListingUpdate(data: any) {
+
+    
+    // Event für React-Komponenten
+    window.dispatchEvent(new CustomEvent('websocket-listing-update', {
+      detail: data
+    }));
+  }
+
+  private handleFavoriteUpdate(data: any) {
+
+    
+    // Event für React-Komponenten
+    window.dispatchEvent(new CustomEvent('websocket-favorite-update', {
+      detail: data
+    }));
+  }
+
+  private handleAdminUpdate(data: any) {
+
+    
+    // Event für React-Komponenten
+    window.dispatchEvent(new CustomEvent('websocket-admin-update', {
+      detail: data
+    }));
+  }
+
+  private handleUserStatusUpdate(data: any) {
+
+    
+    // Event für React-Komponenten
+    window.dispatchEvent(new CustomEvent('websocket-user-status-update', {
+      detail: data
+    }));
+  }
+
+  private handleListingStatusChanged(data: any) {
+
+    
+    // Event für React-Komponenten
+    window.dispatchEvent(new CustomEvent('websocket-listing-status-changed', {
+      detail: data
     }));
   }
 
@@ -280,7 +340,7 @@ class WebSocketService {
   // Browser-Benachrichtigungen aktivieren
   async requestNotificationPermission(): Promise<boolean> {
     if (!('Notification' in window)) {
-      console.log('Browser unterstützt keine Benachrichtigungen');
+
       return false;
     }
 
@@ -289,7 +349,7 @@ class WebSocketService {
     }
 
     if (Notification.permission === 'denied') {
-      console.log('Benachrichtigungen wurden verweigert');
+
       return false;
     }
 
@@ -303,7 +363,10 @@ export const websocketService = new WebSocketService();
 
 // Automatisches Verbinden beim Import (falls User eingeloggt ist)
 if (typeof window !== 'undefined' && localStorage.getItem('token')) {
-  websocketService.connect().catch((error) => {
-    console.log('WebSocket automatische Verbindung fehlgeschlagen:', error.message);
-  });
+  // Verzögerte Verbindung um sicherzustellen, dass das Backend läuft
+  setTimeout(() => {
+    websocketService.connect().catch((error) => {
+
+    });
+  }, 2000); // 2 Sekunden Verzögerung
 }

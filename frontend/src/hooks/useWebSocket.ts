@@ -40,9 +40,9 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     const connectWebSocket = async () => {
       try {
         await websocketService.connect();
-        console.log('WebSocket Hook: Verbindung hergestellt');
+
       } catch (error) {
-        console.log('WebSocket Hook: Verbindungsfehler:', error);
+
       }
     };
 

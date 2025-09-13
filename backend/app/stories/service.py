@@ -1,7 +1,8 @@
 """
 Stories-Service für Business-Logic
 """
-from sqlmodel import Session, select, and_, or_, func, desc, joinedload
+from sqlmodel import Session, select, and_, or_, func, desc
+from sqlalchemy.orm import joinedload
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 import logging

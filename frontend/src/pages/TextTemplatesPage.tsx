@@ -96,7 +96,7 @@ export const TextTemplatesPage: React.FC = () => {
   const handleCopyTemplate = (template: TextTemplate) => {
     navigator.clipboard.writeText(template.content);
     // Mock: Show success message
-    console.log('Template copied:', template.title);
+
   };
 
   const handleEditTemplate = (template: TextTemplate) => {
@@ -106,12 +106,12 @@ export const TextTemplatesPage: React.FC = () => {
 
   const handleDeleteTemplate = (templateId: string) => {
     // Mock: Delete template
-    console.log('Deleting template:', templateId);
+
   };
 
   const handleToggleFavorite = (templateId: string) => {
     // Mock: Toggle favorite status
-    console.log('Toggle favorite for template:', templateId);
+
   };
 
   return (

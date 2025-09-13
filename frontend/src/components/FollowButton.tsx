@@ -40,7 +40,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({
         const token = localStorage.getItem('token');
         if (!token) return;
         
-        console.log('FollowButton - Loading follow status for user:', userId);
+
         
         const response = await fetch(`http://localhost:8000/api/users/${userId}/profile`, {
           headers: {
@@ -54,7 +54,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({
           const isFollowing = userData.user?.is_following;
           if (isFollowing !== undefined && isFollowing !== null) {
             setIsFollowing(Boolean(isFollowing));
-            console.log('FollowButton - Loaded follow status from backend:', isFollowing);
+
           }
         } else {
           console.error('FollowButton - Failed to load follow status:', response.status);
@@ -94,7 +94,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({
         return;
       }
 
-      console.log('Using token:', token.substring(0, 20) + '...');
+
       
       const headers = {
         'Authorization': `Bearer ${token}`,
@@ -103,13 +103,13 @@ const FollowButton: React.FC<FollowButtonProps> = ({
 
       if (isFollowing) {
         // Unfollow
-        console.log('Unfollowing user:', userId);
+
         const response = await fetch(`http://localhost:8000/api/users/${userId}/follow`, {
           method: 'DELETE',
           headers
         });
 
-        console.log('Unfollow response status:', response.status);
+
 
         if (response.ok) {
           setIsFollowing(false);
@@ -124,13 +124,13 @@ const FollowButton: React.FC<FollowButtonProps> = ({
         }
       } else {
         // Follow
-        console.log('Following user:', userId);
+
         const response = await fetch(`http://localhost:8000/api/users/${userId}/follow`, {
           method: 'POST',
           headers
         });
 
-        console.log('Follow response status:', response.status);
+
 
         if (response.ok) {
           setIsFollowing(true);
@@ -164,16 +164,16 @@ const FollowButton: React.FC<FollowButtonProps> = ({
 
   // Debug: Log user and token info
   useEffect(() => {
-    console.log('FollowButton - User:', user);
-    console.log('FollowButton - Token in localStorage:', localStorage.getItem('token') ? 'Present' : 'Missing');
-    console.log('FollowButton - UserId to follow:', userId);
-    console.log('FollowButton - initialIsFollowing:', initialIsFollowing);
-    console.log('FollowButton - isFollowing state:', isFollowing);
+
+
+
+
+
   }, [user, userId, initialIsFollowing, isFollowing]);
 
   // Don't show button if user is not logged in or trying to follow themselves
   if (!user || userId === user.id) {
-    console.log('FollowButton - Not showing button. User:', user, 'UserId:', userId);
+
     return null;
   }
 

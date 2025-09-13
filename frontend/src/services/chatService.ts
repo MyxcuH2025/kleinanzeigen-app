@@ -82,7 +82,7 @@ class ChatService {
       });
 
       if (!response.ok) {
-        console.log('Backend nicht verfügbar, keine Konversationen geladen');
+
         return [];
       }
 
@@ -101,7 +101,7 @@ class ChatService {
       });
 
       if (!response.ok) {
-        console.log('Backend nicht verfügbar, keine Nachrichten geladen');
+
         return [];
       }
 
@@ -114,11 +114,11 @@ class ChatService {
   }
 
   async sendMessage(conversationId: number, content: string): Promise<Message> {
-    // Backend erwartet einen rohen JSON-String als Body (kein Objekt)
+    // Backend erwartet ein Dictionary mit 'content' Feld
     const response = await fetch(getFullApiUrl(`api/conversations/${conversationId}/messages`), {
       method: 'POST',
       headers: this.getAuthHeaders(),
-      body: JSON.stringify(String(content)),
+      body: JSON.stringify({ content: content }),
     });
 
     if (!response.ok) {
@@ -127,6 +127,18 @@ class ChatService {
     }
 
     return response.json();
+  }
+
+  async markConversationAsRead(conversationId: number): Promise<void> {
+    const response = await fetch(getFullApiUrl(`api/conversations/${conversationId}/mark-read`), {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error || 'Failed to mark conversation as read');
+    }
   }
 
   // Legacy method for compatibility

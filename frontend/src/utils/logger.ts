@@ -2,7 +2,7 @@
 export const logger = {
   info: (message: string, ...args: unknown[]) => {
     // Always log in development, can be controlled by environment variable
-    console.log(`[INFO] ${message}`, ...args);
+
   },
   
   error: (message: string, ...args: unknown[]) => {

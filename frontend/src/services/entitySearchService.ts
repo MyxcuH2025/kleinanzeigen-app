@@ -16,7 +16,8 @@ const mockDienstleister = [
     reviewCount: 127,
     experience: 10,
     verified: true,
-    available: true
+    available: true,
+    image: "/images/noimage.jpeg"
   },
   {
     id: 2,
@@ -31,7 +32,8 @@ const mockDienstleister = [
     reviewCount: 89,
     experience: 7,
     verified: true,
-    available: true
+    available: true,
+    image: "/images/noimage.jpeg"
   },
   {
     id: 3,
@@ -46,7 +48,8 @@ const mockDienstleister = [
     reviewCount: 203,
     experience: 12,
     verified: true,
-    available: false
+    available: false,
+    image: "/images/noimage.jpeg"
   },
   {
     id: 4,
@@ -61,7 +64,8 @@ const mockDienstleister = [
     reviewCount: 156,
     experience: 8,
     verified: true,
-    available: true
+    available: true,
+    image: "/images/noimage.jpeg"
   },
   {
     id: 5,
@@ -76,7 +80,8 @@ const mockDienstleister = [
     reviewCount: 94,
     experience: 15,
     verified: true,
-    available: true
+    available: true,
+    image: "/images/noimage.jpeg"
   }
 ];
 

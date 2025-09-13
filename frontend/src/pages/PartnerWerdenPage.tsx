@@ -167,7 +167,7 @@ const PartnerWerdenPage: React.FC = () => {
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     // Hier würde die Formular-Verarbeitung implementiert
-    console.log('Formular gesendet:', formData);
+
   }, [formData]);
 
   const handleInputChange = useCallback((field: string, value: string | boolean) => {
@@ -180,17 +180,38 @@ const PartnerWerdenPage: React.FC = () => {
 
 
   return (
-    <Box sx={{ bgcolor: '#ffffff', minHeight: '100vh', py: { xs: 2, md: 3 } }}>
-      <Container maxWidth="xl">
+    <Box sx={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+      position: 'relative',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '200px',
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(248,250,252,0.6) 100%)',
+        backdropFilter: 'blur(20px)',
+        zIndex: 0
+      }
+    }}>
+      <Container maxWidth="xl" sx={{ py: { xs: 3, sm: 5 }, position: 'relative', zIndex: 1 }}>
         {/* Header */}
-        <Box sx={{ textAlign: 'center', mb: { xs: 3, md: 4 } }}>
+        <Box sx={{ textAlign: 'center', mb: { xs: 4, sm: 5 } }}>
           <Typography 
             variant={isMobile ? 'h4' : 'h3'} 
             component="h1" 
             sx={{ 
-              mb: { xs: 1, md: 2 },
-              fontWeight: 600,
-              color: '#2c3e50'
+              mb: { xs: 2, md: 3 },
+              fontWeight: 800,
+              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+              background: 'linear-gradient(135deg, #0f172a 0%, #334155 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              letterSpacing: '-0.02em',
+              textShadow: '0 2px 4px rgba(0,0,0,0.1)'
             }}
           >
             Partner werden
@@ -198,21 +219,33 @@ const PartnerWerdenPage: React.FC = () => {
           <Typography 
             variant={isMobile ? 'body1' : 'h6'} 
             color="text.secondary"
-            sx={{ maxWidth: 600, mx: 'auto' }}
+            sx={{ 
+              maxWidth: 700, 
+              mx: 'auto',
+              fontSize: { xs: '1.1rem', sm: '1.25rem' },
+              fontWeight: 400,
+              lineHeight: 1.6,
+              color: '#64748b'
+            }}
           >
             Werden Sie Teil unseres Erfolgs und profitieren Sie von einer starken Partnerschaft
           </Typography>
         </Box>
 
-        {/* Benefits Section */}
-        <Box sx={{ mb: { xs: 4, md: 6 } }}>
+        {/* Benefits Section - Premium Glasmorphism */}
+        <Box sx={{ mb: { xs: 5, md: 6 } }}>
           <Typography 
             variant={isMobile ? 'h5' : 'h4'} 
             sx={{ 
               textAlign: 'center', 
-              mb: { xs: 3, md: 4 },
-              fontWeight: 600,
-              color: '#2c3e50'
+              mb: { xs: 4, md: 5 },
+              fontWeight: 700,
+              fontSize: { xs: '1.5rem', md: '2rem' },
+              background: 'linear-gradient(135deg, #0f172a 0%, #334155 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              letterSpacing: '-0.01em'
             }}
           >
             Warum Partner werden?
@@ -220,41 +253,111 @@ const PartnerWerdenPage: React.FC = () => {
           <Box sx={{ 
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
-            gap: { xs: 2, md: 3 }
+            gap: { xs: 3, md: 4 }
           }}>
             {[
               {
-                icon: <TrendingIcon sx={{ fontSize: '2rem', color: '#667eea' }} />,
+                icon: <TrendingIcon sx={{ fontSize: '2.5rem', color: '#059669' }} />,
                 title: 'Umsatzsteigerung',
                 description: 'Erreichen Sie neue Kunden und steigern Sie Ihren Umsatz durch unsere Plattform.'
               },
               {
-                icon: <BusinessIcon sx={{ fontSize: '2rem', color: '#667eea' }} />,
+                icon: <BusinessIcon sx={{ fontSize: '2.5rem', color: '#059669' }} />,
                 title: 'Reichweite erweitern',
                 description: 'Präsentieren Sie Ihre Produkte einem breiten Publikum in ganz Deutschland.'
               },
               {
-                icon: <HandshakeIcon sx={{ fontSize: '2rem', color: '#667eea' }} />,
+                icon: <HandshakeIcon sx={{ fontSize: '2.5rem', color: '#059669' }} />,
                 title: 'Professioneller Support',
                 description: 'Profitieren Sie von unserem erfahrenen Team und umfassenden Support.'
               }
             ].map((benefit, index) => (
-              <Card key={index} sx={{ borderRadius: 2, textAlign: 'center' }}>
-                <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-                  <Box sx={{ mb: 2 }}>
+              <Card 
+                key={index} 
+                sx={{ 
+                  borderRadius: 1,
+                  textAlign: 'center',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  background: 'rgba(255,255,255,0.7)',
+                  backdropFilter: 'blur(20px)',
+                  boxShadow: `
+                    0 4px 20px rgba(0,0,0,0.08),
+                    0 1px 3px rgba(0,0,0,0.1),
+                    inset 0 1px 0 rgba(255,255,255,0.6)
+                  `,
+                  position: 'relative',
+                  overflow: 'hidden',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '1px',
+                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent)',
+                    zIndex: 1
+                  },
+                  '&:hover': {
+                    transform: 'none',
+                    boxShadow: `
+                      0 20px 40px rgba(0,0,0,0.12),
+                      0 8px 16px rgba(0,0,0,0.08),
+                      inset 0 1px 0 rgba(255,255,255,0.8)
+                    `,
+                    borderColor: 'rgba(255,255,255,0.4)',
+                    background: 'rgba(255,255,255,0.85)'
+                  }
+                }}
+              >
+                <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+                  <Box sx={{ 
+                    mb: 3,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: 80,
+                    height: 80,
+                    mx: 'auto',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, rgba(5, 150, 105, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%)',
+                    border: '1px solid rgba(5, 150, 105, 0.2)',
+                    boxShadow: `
+                      0 4px 12px rgba(5, 150, 105, 0.1),
+                      inset 0 1px 0 rgba(255,255,255,0.6)
+                    `,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'none',
+                      boxShadow: `
+                        0 8px 20px rgba(5, 150, 105, 0.2),
+                        inset 0 1px 0 rgba(255,255,255,0.8)
+                      `
+                    }
+                  }}>
                     {benefit.icon}
                   </Box>
                   <Typography 
                     variant="h6" 
                     sx={{ 
-                      mb: 1, 
-                      fontWeight: 600,
-                      color: '#2c3e50'
+                      mb: 2, 
+                      fontWeight: 700,
+                      fontSize: { xs: '1.1rem', md: '1.25rem' },
+                      color: '#0f172a',
+                      letterSpacing: '-0.01em'
                     }}
                   >
                     {benefit.title}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{
+                      lineHeight: 1.6,
+                      color: '#64748b',
+                      fontSize: { xs: '0.9rem', md: '1rem' }
+                    }}
+                  >
                     {benefit.description}
                   </Typography>
                 </CardContent>
@@ -263,15 +366,20 @@ const PartnerWerdenPage: React.FC = () => {
           </Box>
         </Box>
 
-        {/* Partnership Options */}
-        <Box sx={{ mb: { xs: 4, md: 6 } }}>
+        {/* Partnership Options - Premium Glasmorphism */}
+        <Box sx={{ mb: { xs: 5, md: 6 } }}>
           <Typography 
             variant={isMobile ? 'h5' : 'h4'} 
             sx={{ 
               textAlign: 'center', 
-              mb: { xs: 3, md: 4 },
-              fontWeight: 600,
-              color: '#2c3e50'
+              mb: { xs: 4, md: 5 },
+              fontWeight: 700,
+              fontSize: { xs: '1.5rem', md: '2rem' },
+              background: 'linear-gradient(135deg, #0f172a 0%, #334155 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              letterSpacing: '-0.01em'
             }}
           >
             Partnerschaftsoptionen
@@ -279,15 +387,60 @@ const PartnerWerdenPage: React.FC = () => {
           <Box sx={{ 
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
-            gap: { xs: 2, md: 3 }
+            gap: { xs: 3, md: 4 }
           }}>
             {partnershipOptions.map((option) => (
               <Card 
                 key={option.id} 
                 sx={{ 
-                  borderRadius: 2,
-                  border: option.popular ? '2px solid #667eea' : '1px solid #e1e8ed',
-                  position: 'relative'
+                  borderRadius: 1,
+                  border: option.popular 
+                    ? '2px solid rgba(5, 150, 105, 0.3)' 
+                    : '1px solid rgba(255,255,255,0.2)',
+                  background: 'rgba(255,255,255,0.7)',
+                  backdropFilter: 'blur(20px)',
+                  boxShadow: option.popular
+                    ? `
+                        0 8px 32px rgba(5, 150, 105, 0.15),
+                        0 4px 16px rgba(5, 150, 105, 0.1),
+                        inset 0 1px 0 rgba(255,255,255,0.6)
+                      `
+                    : `
+                        0 4px 20px rgba(0,0,0,0.08),
+                        0 1px 3px rgba(0,0,0,0.1),
+                        inset 0 1px 0 rgba(255,255,255,0.6)
+                      `,
+                  position: 'relative',
+                  overflow: 'hidden',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '1px',
+                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent)',
+                    zIndex: 1
+                  },
+                  '&:hover': {
+                    transform: 'none',
+                    boxShadow: option.popular
+                      ? `
+                          0 20px 40px rgba(5, 150, 105, 0.2),
+                          0 8px 16px rgba(5, 150, 105, 0.15),
+                          inset 0 1px 0 rgba(255,255,255,0.8)
+                        `
+                      : `
+                          0 20px 40px rgba(0,0,0,0.12),
+                          0 8px 16px rgba(0,0,0,0.08),
+                          inset 0 1px 0 rgba(255,255,255,0.8)
+                        `,
+                    borderColor: option.popular 
+                      ? 'rgba(5, 150, 105, 0.5)' 
+                      : 'rgba(255,255,255,0.4)',
+                    background: 'rgba(255,255,255,0.85)'
+                  }
                 }}
               >
                 {option.popular && (
@@ -297,9 +450,17 @@ const PartnerWerdenPage: React.FC = () => {
                       position: 'absolute',
                       top: 16,
                       right: 16,
-                      bgcolor: '#667eea',
+                      background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
                       color: 'white',
-                      fontSize: '0.75rem'
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      borderRadius: 0.5,
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      boxShadow: `
+                        0 4px 12px rgba(5, 150, 105, 0.3),
+                        inset 0 1px 0 rgba(255,255,255,0.2)
+                      `,
+                      zIndex: 2
                     }}
                   />
                 )}
@@ -397,15 +558,20 @@ const PartnerWerdenPage: React.FC = () => {
           </Stepper>
         </Box>
 
-        {/* Success Stories */}
-        <Box sx={{ mb: { xs: 4, md: 6 } }}>
+        {/* Success Stories - Premium Glasmorphism */}
+        <Box sx={{ mb: { xs: 5, md: 6 } }}>
           <Typography 
             variant={isMobile ? 'h5' : 'h4'} 
             sx={{ 
               textAlign: 'center', 
-              mb: { xs: 3, md: 4 },
-              fontWeight: 600,
-              color: '#2c3e50'
+              mb: { xs: 4, md: 5 },
+              fontWeight: 700,
+              fontSize: { xs: '1.5rem', md: '2rem' },
+              background: 'linear-gradient(135deg, #0f172a 0%, #334155 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              letterSpacing: '-0.01em'
             }}
           >
             Erfolgsgeschichten
@@ -413,32 +579,79 @@ const PartnerWerdenPage: React.FC = () => {
           <Box sx={{ 
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
-            gap: { xs: 2, md: 3 }
+            gap: { xs: 3, md: 4 }
           }}>
             {successStories.map((story) => (
-              <Card key={story.id} sx={{ borderRadius: 2 }}>
-                <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+              <Card 
+                key={story.id} 
+                sx={{ 
+                  borderRadius: 1,
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  background: 'rgba(255,255,255,0.7)',
+                  backdropFilter: 'blur(20px)',
+                  boxShadow: `
+                    0 4px 20px rgba(0,0,0,0.08),
+                    0 1px 3px rgba(0,0,0,0.1),
+                    inset 0 1px 0 rgba(255,255,255,0.6)
+                  `,
+                  position: 'relative',
+                  overflow: 'hidden',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '1px',
+                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent)',
+                    zIndex: 1
+                  },
+                  '&:hover': {
+                    transform: 'none',
+                    boxShadow: `
+                      0 20px 40px rgba(0,0,0,0.12),
+                      0 8px 16px rgba(0,0,0,0.08),
+                      inset 0 1px 0 rgba(255,255,255,0.8)
+                    `,
+                    borderColor: 'rgba(255,255,255,0.4)',
+                    background: 'rgba(255,255,255,0.85)'
+                  }
+                }}
+              >
+                <CardContent sx={{ p: { xs: 3, md: 4 } }}>
                   <Typography 
                     variant="h6" 
                     sx={{ 
                       mb: 1, 
-                      fontWeight: 600,
-                      color: '#2c3e50'
+                      fontWeight: 700,
+                      fontSize: { xs: '1.1rem', md: '1.25rem' },
+                      color: '#0f172a',
+                      letterSpacing: '-0.01em'
                     }}
                   >
                     {story.company}
                   </Typography>
                   <Typography 
                     variant="body2" 
-                    color="primary" 
-                    sx={{ mb: 1, fontWeight: 600 }}
+                    sx={{ 
+                      mb: 2, 
+                      fontWeight: 600,
+                      color: '#059669',
+                      fontSize: { xs: '0.9rem', md: '1rem' }
+                    }}
                   >
                     {story.industry}
                   </Typography>
                   <Typography 
                     variant="body2" 
                     color="text.secondary" 
-                    sx={{ mb: 2 }}
+                    sx={{ 
+                      mb: 2,
+                      lineHeight: 1.6,
+                      color: '#64748b',
+                      fontSize: { xs: '0.9rem', md: '1rem' }
+                    }}
                   >
                     {story.description}
                   </Typography>
@@ -446,8 +659,9 @@ const PartnerWerdenPage: React.FC = () => {
                     variant="body2" 
                     sx={{ 
                       mb: 2, 
-                      fontWeight: 600,
-                      color: '#28a745'
+                      fontWeight: 700,
+                      color: '#059669',
+                      fontSize: { xs: '0.9rem', md: '1rem' }
                     }}
                   >
                     {story.results}
@@ -455,7 +669,12 @@ const PartnerWerdenPage: React.FC = () => {
                   <Typography 
                     variant="body2" 
                     color="text.secondary" 
-                    sx={{ fontStyle: 'italic' }}
+                    sx={{ 
+                      fontStyle: 'italic',
+                      lineHeight: 1.6,
+                      color: '#64748b',
+                      fontSize: { xs: '0.9rem', md: '1rem' }
+                    }}
                   >
                     "{story.testimonial}"
                   </Typography>
@@ -465,27 +684,56 @@ const PartnerWerdenPage: React.FC = () => {
           </Box>
         </Box>
 
-        {/* Contact Form */}
-        <Box sx={{ mb: { xs: 4, md: 6 } }}>
+        {/* Contact Form - Premium Glasmorphism */}
+        <Box sx={{ mb: { xs: 5, md: 6 } }}>
           <Typography 
             variant={isMobile ? 'h5' : 'h4'} 
             sx={{ 
               textAlign: 'center', 
-              mb: { xs: 3, md: 4 },
-              fontWeight: 600,
-              color: '#2c3e50'
+              mb: { xs: 4, md: 5 },
+              fontWeight: 700,
+              fontSize: { xs: '1.5rem', md: '2rem' },
+              background: 'linear-gradient(135deg, #0f172a 0%, #334155 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              letterSpacing: '-0.01em'
             }}
           >
             Kontaktieren Sie uns
           </Typography>
-          <Card sx={{ maxWidth: 600, mx: 'auto', borderRadius: 2 }}>
-            <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+          <Card sx={{ 
+            maxWidth: 600, 
+            mx: 'auto', 
+            borderRadius: 1,
+            border: '1px solid rgba(255,255,255,0.2)',
+            background: 'rgba(255,255,255,0.7)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: `
+              0 8px 32px rgba(0,0,0,0.08),
+              0 2px 8px rgba(0,0,0,0.05),
+              inset 0 1px 0 rgba(255,255,255,0.6)
+            `,
+            position: 'relative',
+            overflow: 'hidden',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '1px',
+              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent)',
+              zIndex: 1
+            }
+          }}>
+            <CardContent sx={{ p: { xs: 3, md: 4 } }}>
               <form onSubmit={handleSubmit}>
                 <Box sx={{ 
                   display: 'grid',
                   gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
-                  gap: 2,
-                  mb: 2
+                  gap: 3,
+                  mb: 3
                 }}>
                   <TextField
                     fullWidth
@@ -494,6 +742,41 @@ const PartnerWerdenPage: React.FC = () => {
                     onChange={(e) => handleInputChange('companyName', e.target.value)}
                     required
                     size="small"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        background: 'rgba(255,255,255,0.8)',
+                        backdropFilter: 'blur(10px)',
+                        borderRadius: 1,
+                        border: '1px solid rgba(255,255,255,0.3)',
+                        boxShadow: `
+                          0 4px 12px rgba(0,0,0,0.05),
+                          inset 0 1px 0 rgba(255,255,255,0.6)
+                        `,
+                        transition: 'all 0.2s ease',
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(255,255,255,0.5)',
+                          boxShadow: `
+                            0 6px 16px rgba(0,0,0,0.08),
+                            inset 0 1px 0 rgba(255,255,255,0.8)
+                          `
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(55, 65, 81, 0.6)',
+                          borderWidth: 2,
+                          boxShadow: `
+                            0 8px 20px rgba(0,0,0,0.1),
+                            inset 0 1px 0 rgba(255,255,255,0.8)
+                          `
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: '#64748b',
+                        fontWeight: 500,
+                        '&.Mui-focused': {
+                          color: '#374151',
+                        },
+                      },
+                    }}
                   />
                   <TextField
                     fullWidth
@@ -502,14 +785,49 @@ const PartnerWerdenPage: React.FC = () => {
                     onChange={(e) => handleInputChange('contactPerson', e.target.value)}
                     required
                     size="small"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        background: 'rgba(255,255,255,0.8)',
+                        backdropFilter: 'blur(10px)',
+                        borderRadius: 1,
+                        border: '1px solid rgba(255,255,255,0.3)',
+                        boxShadow: `
+                          0 4px 12px rgba(0,0,0,0.05),
+                          inset 0 1px 0 rgba(255,255,255,0.6)
+                        `,
+                        transition: 'all 0.2s ease',
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(255,255,255,0.5)',
+                          boxShadow: `
+                            0 6px 16px rgba(0,0,0,0.08),
+                            inset 0 1px 0 rgba(255,255,255,0.8)
+                          `
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(55, 65, 81, 0.6)',
+                          borderWidth: 2,
+                          boxShadow: `
+                            0 8px 20px rgba(0,0,0,0.1),
+                            inset 0 1px 0 rgba(255,255,255,0.8)
+                          `
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: '#64748b',
+                        fontWeight: 500,
+                        '&.Mui-focused': {
+                          color: '#374151',
+                        },
+                      },
+                    }}
                   />
                 </Box>
                 
                 <Box sx={{ 
                   display: 'grid',
                   gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
-                  gap: 2,
-                  mb: 2
+                  gap: 3,
+                  mb: 3
                 }}>
                   <TextField
                     fullWidth
@@ -519,6 +837,41 @@ const PartnerWerdenPage: React.FC = () => {
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     required
                     size="small"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        background: 'rgba(255,255,255,0.8)',
+                        backdropFilter: 'blur(10px)',
+                        borderRadius: 1,
+                        border: '1px solid rgba(255,255,255,0.3)',
+                        boxShadow: `
+                          0 4px 12px rgba(0,0,0,0.05),
+                          inset 0 1px 0 rgba(255,255,255,0.6)
+                        `,
+                        transition: 'all 0.2s ease',
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(255,255,255,0.5)',
+                          boxShadow: `
+                            0 6px 16px rgba(0,0,0,0.08),
+                            inset 0 1px 0 rgba(255,255,255,0.8)
+                          `
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(55, 65, 81, 0.6)',
+                          borderWidth: 2,
+                          boxShadow: `
+                            0 8px 20px rgba(0,0,0,0.1),
+                            inset 0 1px 0 rgba(255,255,255,0.8)
+                          `
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: '#64748b',
+                        fontWeight: 500,
+                        '&.Mui-focused': {
+                          color: '#374151',
+                        },
+                      },
+                    }}
                   />
                   <TextField
                     fullWidth
@@ -526,6 +879,41 @@ const PartnerWerdenPage: React.FC = () => {
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
                     size="small"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        background: 'rgba(255,255,255,0.8)',
+                        backdropFilter: 'blur(10px)',
+                        borderRadius: 1,
+                        border: '1px solid rgba(255,255,255,0.3)',
+                        boxShadow: `
+                          0 4px 12px rgba(0,0,0,0.05),
+                          inset 0 1px 0 rgba(255,255,255,0.6)
+                        `,
+                        transition: 'all 0.2s ease',
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(255,255,255,0.5)',
+                          boxShadow: `
+                            0 6px 16px rgba(0,0,0,0.08),
+                            inset 0 1px 0 rgba(255,255,255,0.8)
+                          `
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(55, 65, 81, 0.6)',
+                          borderWidth: 2,
+                          boxShadow: `
+                            0 8px 20px rgba(0,0,0,0.1),
+                            inset 0 1px 0 rgba(255,255,255,0.8)
+                          `
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: '#64748b',
+                        fontWeight: 500,
+                        '&.Mui-focused': {
+                          color: '#374151',
+                        },
+                      },
+                    }}
                   />
                 </Box>
 
@@ -536,7 +924,42 @@ const PartnerWerdenPage: React.FC = () => {
                   onChange={(e) => handleInputChange('industry', e.target.value)}
                   required
                   size="small"
-                  sx={{ mb: 2 }}
+                  sx={{ 
+                    mb: 3,
+                    '& .MuiOutlinedInput-root': {
+                      background: 'rgba(255,255,255,0.8)',
+                      backdropFilter: 'blur(10px)',
+                      borderRadius: 1,
+                      border: '1px solid rgba(255,255,255,0.3)',
+                      boxShadow: `
+                        0 4px 12px rgba(0,0,0,0.05),
+                        inset 0 1px 0 rgba(255,255,255,0.6)
+                      `,
+                      transition: 'all 0.2s ease',
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(255,255,255,0.5)',
+                        boxShadow: `
+                          0 6px 16px rgba(0,0,0,0.08),
+                          inset 0 1px 0 rgba(255,255,255,0.8)
+                        `
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(55, 65, 81, 0.6)',
+                        borderWidth: 2,
+                        boxShadow: `
+                          0 8px 20px rgba(0,0,0,0.1),
+                          inset 0 1px 0 rgba(255,255,255,0.8)
+                        `
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: '#64748b',
+                      fontWeight: 500,
+                      '&.Mui-focused': {
+                        color: '#374151',
+                      },
+                    },
+                  }}
                 />
 
                 <TextField
@@ -548,7 +971,42 @@ const PartnerWerdenPage: React.FC = () => {
                   onChange={(e) => handleInputChange('message', e.target.value)}
                   placeholder="Erzählen Sie uns von Ihrem Unternehmen und Ihren Zielen..."
                   size="small"
-                  sx={{ mb: 2 }}
+                  sx={{ 
+                    mb: 3,
+                    '& .MuiOutlinedInput-root': {
+                      background: 'rgba(255,255,255,0.8)',
+                      backdropFilter: 'blur(10px)',
+                      borderRadius: 1,
+                      border: '1px solid rgba(255,255,255,0.3)',
+                      boxShadow: `
+                        0 4px 12px rgba(0,0,0,0.05),
+                        inset 0 1px 0 rgba(255,255,255,0.6)
+                      `,
+                      transition: 'all 0.2s ease',
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(255,255,255,0.5)',
+                        boxShadow: `
+                          0 6px 16px rgba(0,0,0,0.08),
+                          inset 0 1px 0 rgba(255,255,255,0.8)
+                        `
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(55, 65, 81, 0.6)',
+                        borderWidth: 2,
+                        boxShadow: `
+                          0 8px 20px rgba(0,0,0,0.1),
+                          inset 0 1px 0 rgba(255,255,255,0.8)
+                        `
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: '#64748b',
+                      fontWeight: 500,
+                      '&.Mui-focused': {
+                        color: '#374151',
+                      },
+                    },
+                  }}
                 />
 
                 <FormControlLabel
@@ -560,7 +1018,13 @@ const PartnerWerdenPage: React.FC = () => {
                     />
                   }
                   label="Ich stimme den Datenschutzbestimmungen zu"
-                  sx={{ mb: 2 }}
+                  sx={{ 
+                    mb: 3,
+                    '& .MuiFormControlLabel-label': {
+                      color: '#64748b',
+                      fontWeight: 500
+                    }
+                  }}
                 />
 
                 <Button
@@ -570,8 +1034,28 @@ const PartnerWerdenPage: React.FC = () => {
                   size="large"
                   startIcon={<AddIcon />}
                   sx={{
-                    bgcolor: '#667eea',
-                    '&:hover': { bgcolor: '#5a6fd8' }
+                    background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                    borderRadius: 1,
+                    py: 2,
+                    fontWeight: 700,
+                    fontSize: { xs: '1rem', md: '1.1rem' },
+                    textTransform: 'none',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    boxShadow: `
+                      0 8px 32px rgba(5, 150, 105, 0.3),
+                      0 2px 8px rgba(5, 150, 105, 0.2),
+                      inset 0 1px 0 rgba(255,255,255,0.2)
+                    `,
+                    transition: 'all 0.2s ease',
+                    '&:hover': { 
+                      background: 'linear-gradient(135deg, #047857 0%, #065f46 100%)',
+                      transform: 'none',
+                      boxShadow: `
+                        0 12px 40px rgba(5, 150, 105, 0.4),
+                        0 4px 12px rgba(5, 150, 105, 0.3),
+                        inset 0 1px 0 rgba(255,255,255,0.3)
+                      `
+                    }
                   }}
                 >
                   Anfrage senden

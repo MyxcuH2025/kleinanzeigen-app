@@ -120,7 +120,7 @@ export const ChatPage: React.FC = () => {
   // ============================================================================
   const { isConnected } = useWebSocket({
     onNewMessage: (messageData) => {
-      console.log('Echtzeit-Nachricht erhalten:', messageData);
+
       
       // Prüfen ob die Nachricht zur aktuellen Conversation gehört
       if (selectedConversation && messageData.conversation_id === parseInt(selectedConversation.id)) {
@@ -138,7 +138,7 @@ export const ChatPage: React.FC = () => {
         setMessages(prev => {
           const existingIds = prev.map(m => m.id);
           if (existingIds.includes(newMessage.id)) {
-            console.log('Nachricht bereits vorhanden (WebSocket-Duplikat verhindert):', newMessage.id);
+
             return prev;
           }
           return [...prev, newMessage];
@@ -359,7 +359,7 @@ export const ChatPage: React.FC = () => {
           setMessages(prev => {
             const existingIds = prev.map(m => m.id);
             if (existingIds.includes(message.id)) {
-              console.log('Nachricht bereits vorhanden (WebSocket-Duplikat verhindert):', message.id);
+
               return prev;
             }
             return [...prev, message];

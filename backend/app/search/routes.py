@@ -2,19 +2,23 @@
 Search routes for the Kleinanzeigen API
 """
 from fastapi import APIRouter, HTTPException, Depends, Query
-from sqlmodel import Session, select, or_, and_, desc, asc, func
+from sqlmodel import Session, select, or_, and_, desc, asc, func, create_engine
 from models import Listing, User, VerificationState
 from typing import Optional, List
 import json
+from app.cache.decorators import cache_search_results, cache_listings
+from config import config
 
 # Router für Search-Endpoints
 router = APIRouter(prefix="/api", tags=["search"])
 
 def get_session():
+    engine = create_engine(config.DATABASE_URL)
     with Session(engine) as session:
         yield session
 
 @router.get("/search")
+@cache_search_results(ttl=180)  # 3 Minuten Cache
 def search_listings(
     q: str = Query(..., description="Suchbegriff"),
     category: Optional[str] = Query(None, description="Kategorie"),

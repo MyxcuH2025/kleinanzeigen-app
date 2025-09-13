@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BottomNavigation,
   BottomNavigationAction,
@@ -7,6 +7,8 @@ import {
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useFavorites } from '@/context/FavoritesContext';
+import { useUser } from '@/context/UserContext';
+import { notificationService } from '@/services/notificationService';
 import homeIcon from '@/assets/icons/home.svg';
 import favoriteIcon from '@/assets/icons/favorite.svg';
 import addIcon from '@/assets/icons/add.svg';
@@ -16,7 +18,38 @@ import kategorienIcon from '@/assets/icons/kategorien.svg';
 export const BottomNav: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { favorites } = useFavorites();
+  const { favorites, refreshFavorites } = useFavorites();
+  const { user } = useUser();
+  const [unreadMessages, setUnreadMessages] = useState(0);
+
+  // Lade ungelesene Nachrichten
+  const loadUnreadMessages = async () => {
+    if (!user) return;
+    
+    try {
+      // Lade nur ungelesene MESSAGE-Benachrichtigungen
+      const unreadNotifications = await notificationService.getNotifications(100, 0, true);
+      const messageNotifications = unreadNotifications.filter(n => n.type === 'message');
+      setUnreadMessages(messageNotifications.length);
+    } catch (error) {
+      console.error('Fehler beim Laden der ungelesenen Nachrichten:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadUnreadMessages();
+    
+    // Aktualisiere alle 30 Sekunden
+    const interval = setInterval(loadUnreadMessages, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  // Aktualisiere beim Wechseln der Route (falls Nachrichten gelesen wurden)
+  useEffect(() => {
+    if (location.pathname === '/chat') {
+      loadUnreadMessages();
+    }
+  }, [location.pathname]);
 
   const getCurrentValue = () => {
     const path = location.pathname;
@@ -28,19 +61,31 @@ export const BottomNav: React.FC = () => {
     return 0;
   };
 
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleChange = async (event: React.SyntheticEvent, newValue: number) => {
     switch (newValue) {
       case 0:
         navigate('/');
         break;
       case 1:
         navigate('/favorites');
+        // Aktualisiere Favoriten beim Klicken
+        await refreshFavorites();
         break;
       case 2:
         navigate('/create-listing');
         break;
       case 3:
         navigate('/chat');
+        // Aktualisiere ungelesene Nachrichten beim Klicken
+        if (user) {
+          try {
+            const unreadNotifications = await notificationService.getNotifications(100, 0, true);
+            const messageNotifications = unreadNotifications.filter(n => n.type === 'message');
+            setUnreadMessages(messageNotifications.length);
+          } catch (error) {
+            console.error('Fehler beim Aktualisieren der ungelesenen Nachrichten:', error);
+          }
+        }
         break;
       case 4:
         navigate('/dashboard');
@@ -117,18 +162,18 @@ export const BottomNav: React.FC = () => {
         <BottomNavigationAction
           label="Chat"
           icon={
-            <Badge badgeContent="3" color="error" sx={{ '& .MuiBadge-badge': { fontSize: '0.8rem', minWidth: '18px', height: '18px' } }}>
+            <Badge 
+              badgeContent={unreadMessages > 0 ? unreadMessages : null} 
+              color="error" 
+              sx={{ '& .MuiBadge-badge': { fontSize: '0.8rem', minWidth: '18px', height: '18px' } }}
+            >
               <img src={chatIcon} alt="Chat" width="28" height="28" />
             </Badge>
           }
         />
         <BottomNavigationAction
           label="Dashboard"
-          icon={
-            <Badge badgeContent="2" color="error" sx={{ '& .MuiBadge-badge': { fontSize: '0.8rem', minWidth: '18px', height: '18px' } }}>
-              <img src={kategorienIcon} alt="Dashboard" width="28" height="28" />
-            </Badge>
-          }
+          icon={<img src={kategorienIcon} alt="Dashboard" width="28" height="28" />}
         />
       </BottomNavigation>
       </Paper>

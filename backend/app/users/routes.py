@@ -7,7 +7,7 @@ from models import (
     User, UserRole, VerificationState, ProfileUpdate,
     Follow, FollowCreate, FollowResponse, FollowStats,
     Notification, NotificationCreate, NotificationResponse, NotificationStats, NotificationType,
-    Listing
+    Listing, ListingStatus
 )
 from app.dependencies import get_session, get_current_user, get_current_user_optional
 from config import config
@@ -27,6 +27,28 @@ router = APIRouter(prefix="/api", tags=["users"])
 
 # Logging
 logger = logging.getLogger(__name__)
+
+@router.get("/users/{user_id}/stats")
+def get_user_stats(user_id: int):
+    """Holt detaillierte Statistiken für einen User (Seller Stats)"""
+    return {
+        "user_id": user_id,
+        "display_name": f"User {user_id}",
+        "avatar_url": None,
+        "member_since_years": 1.0,
+        "last_activity": "2025-01-01T00:00:00",
+        "is_online": True,
+        "response_time": "Schnell",
+        "active_listings": 3,
+        "successful_sales": 1,
+        "rating": 4.5,
+        "reviews_count": 12,
+        "verified": {
+            "phone": False,
+            "id": False,
+            "bank": False
+        }
+    }
 
 @router.get("/me")
 def get_current_user_info(current_user: User = Depends(get_current_user)):

@@ -88,6 +88,69 @@ class ConnectionManager:
         }
         await self.send_personal_message(message, user_id)
     
+    async def send_listing_update(self, user_id: int, listing_data: dict):
+        """Listing-Update an einen User senden"""
+        message = {
+            "type": "listing_update",
+            "data": listing_data,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        await self.send_personal_message(message, user_id)
+    
+    async def send_favorite_update(self, user_id: int, favorite_data: dict):
+        """Favorite-Update an einen User senden"""
+        message = {
+            "type": "favorite_update",
+            "data": favorite_data,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        await self.send_personal_message(message, user_id)
+    
+    async def send_admin_update(self, admin_user_id: int, admin_data: dict):
+        """Admin-Update an Admin-User senden"""
+        message = {
+            "type": "admin_update",
+            "data": admin_data,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        await self.send_personal_message(message, admin_user_id)
+    
+    async def send_user_status_update(self, user_id: int, status_data: dict):
+        """User-Status-Update senden"""
+        message = {
+            "type": "user_status_update",
+            "data": status_data,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        await self.send_personal_message(message, user_id)
+    
+    async def broadcast_listing_status_change(self, listing_id: int, status: str, user_id: int = None):
+        """Broadcast Listing-Status-Änderung an alle relevanten User"""
+        message = {
+            "type": "listing_status_changed",
+            "data": {
+                "listing_id": listing_id,
+                "status": status,
+                "user_id": user_id
+            },
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+        # Sende an alle verbundenen User
+        disconnected_connections = set()
+        
+        for uid, websockets in self.active_connections.items():
+            for websocket in websockets:
+                try:
+                    await websocket.send_text(json.dumps(message))
+                except Exception as e:
+                    logger.error(f"Fehler beim Senden der Listing-Status-Änderung: {e}")
+                    disconnected_connections.add(websocket)
+        
+        # Entferne defekte Verbindungen
+        for websocket in disconnected_connections:
+            self.disconnect(websocket)
+    
     def get_connected_users(self) -> List[int]:
         """Liste aller verbundenen User-IDs"""
         return list(self.active_connections.keys())

@@ -22,7 +22,7 @@ export interface AdminUser {
   email: string;
   first_name: string | null;
   last_name: string | null;
-  role: 'user' | 'moderator' | 'admin';
+  role: 'USER' | 'SELLER' | 'ADMIN';
   is_verified: boolean;
   is_active: boolean;
   created_at: string;

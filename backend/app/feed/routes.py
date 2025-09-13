@@ -3,6 +3,7 @@ Feed routes for the Kleinanzeigen API
 """
 from fastapi import APIRouter, HTTPException, Depends, Body, status, Path, Query
 from sqlmodel import Session, select, or_, and_, desc, asc, func
+from sqlalchemy.orm import joinedload
 from models import (
     Listing, User, Follow, Favorite, VerificationState
 )
@@ -35,30 +36,30 @@ def get_personalized_feed(
     
     if not following_users:
         # Falls keine gefolgten Benutzer, zeige allgemeine Listings
+        # OPTIMIERT: Eager Loading mit joinedload um N+1 Queries zu vermeiden
+        query = select(Listing).where(Listing.status == "ACTIVE").options(joinedload(Listing.seller))
         listings = session.exec(
-            select(Listing)
-            .where(Listing.status == "ACTIVE")
-            .order_by(Listing.created_at.desc())
+            query.order_by(Listing.created_at.desc())
             .offset(offset)
             .limit(limit)
         ).all()
     else:
         # Listings von gefolgten Benutzern abrufen
+        # OPTIMIERT: Eager Loading mit joinedload um N+1 Queries zu vermeiden
+        query = select(Listing).where(
+            Listing.user_id.in_(following_users),
+            Listing.status == "ACTIVE"
+        ).options(joinedload(Listing.seller))
         listings = session.exec(
-            select(Listing)
-            .where(
-                Listing.user_id.in_(following_users),
-                Listing.status == "ACTIVE"
-            )
-            .order_by(Listing.created_at.desc())
+            query.order_by(Listing.created_at.desc())
             .offset(offset)
             .limit(limit)
         ).all()
     
     result = []
     for listing in listings:
-        # Verkäufer-Informationen abrufen
-        seller = session.get(User, listing.user_id)
+        # OPTIMIERT: Verkäufer-Informationen bereits geladen durch joinedload
+        seller = listing.seller
         
         # Prüfen ob Listing favorisiert ist
         is_favorited = False

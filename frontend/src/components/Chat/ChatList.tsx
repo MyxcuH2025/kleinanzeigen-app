@@ -53,7 +53,7 @@ export const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
   // Debug: Zeige Bild-Informationen wenn sich Chats ändern
   useEffect(() => {
     if (chats.length > 0) {
-      console.log('=== CHAT BILD-DEBUG ===');
+
       chats.forEach((chat, index) => {
         const hasValidImages = chat.listing.images && 
           chat.listing.images !== '' && 
@@ -69,13 +69,13 @@ export const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
           hasValidImages: hasValidImages
         });
       });
-      console.log('=== ENDE DEBUG ===');
+
     }
   }, [chats]);
 
   const reloadAllListingData = async () => {
     try {
-      console.log('Lade alle Anzeigen-Daten neu...');
+
       
       // Sammle alle listingIds aus den Chat-Nachrichten
       const listingIds = new Set<number>();
@@ -91,7 +91,7 @@ export const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
         }
       }
       
-      console.log('Gefundene Listing-IDs:', Array.from(listingIds));
+
       
       // Lade alle Anzeigen-Daten vom Backend
       for (const listingId of listingIds) {
@@ -100,10 +100,10 @@ export const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
           if (response.ok) {
             const listingData = await response.json();
             localStorage.setItem(`listing_${listingId}`, JSON.stringify(listingData));
-            console.log(`Anzeigen-Daten für ID ${listingId} neu geladen:`, listingData.title);
+
           }
         } catch (error) {
-          console.log(`Fehler beim Laden der Anzeigen-Daten für ID ${listingId}:`, error);
+
         }
       }
       
@@ -140,10 +140,10 @@ export const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
       });
       
       // Debug: Zeige alle geladenen Chats
-      console.log('=== GELADENE CHATS ===');
-      console.log('Backend-Chats:', userChats.length);
-      console.log('Lokale Chats:', localChats.length);
-      console.log('Alle Chats:', allChats.length);
+
+
+
+
       allChats.forEach((chat, index) => {
         console.log(`Chat ${index + 1}:`, {
           id: chat.id,
@@ -152,7 +152,7 @@ export const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
           lastMessage: chat.last_message?.content
         });
       });
-      console.log('=== ENDE DEBUG ===');
+
       
       setChats(allChats);
       setLoading(false);
@@ -161,7 +161,7 @@ export const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
       
       // Fallback: Lade nur lokale Chats
       const localChats = await loadLocalChats();
-      console.log('Fallback: Nur lokale Chats geladen:', localChats.length);
+
       setChats(localChats);
       setLoading(false);
     }
@@ -171,17 +171,17 @@ export const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
     const localChats: Conversation[] = [];
     
     try {
-      console.log('=== LADE LOKALE CHATS ===');
+
       
       // Durchsuche alle localStorage-Einträge nach Chat-Nachrichten
-      console.log('Durchsuche localStorage nach Chat-Nachrichten...');
+
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        console.log(`Prüfe localStorage Key: ${key}`);
+
         if (key && key.startsWith('chat_messages_')) {
           try {
             const messages = JSON.parse(localStorage.getItem(key) || '[]');
-            console.log(`Gefundene Nachrichten für ${key}:`, messages.length);
+
             
             // Filtere nur echte Nachrichten (keine Mock-Daten)
             const realMessages = messages.filter((msg: any) => 
@@ -195,14 +195,14 @@ export const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
               !msg.content.includes('Nachricht gesendet') // Filtere auch Erfolgsmeldungen
             );
             
-            console.log(`Echte Nachrichten für ${key}:`, realMessages.length);
+
             
             if (realMessages.length > 0) {
               // Extrahiere listingId und receiverId aus dem Key
               const parts = key.replace('chat_messages_', '').split('_');
               if (parts.length === 2) {
                 const [listingId, receiverId] = parts;
-                console.log(`Verarbeite Chat für Listing ${listingId} und User ${receiverId}`);
+
                 
                 // Versuche echte Anzeigen-Daten vom Backend zu laden
                 let listingData = null;
@@ -212,28 +212,28 @@ export const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
                   if (savedListing) {
                     try {
                       listingData = JSON.parse(savedListing);
-                      console.log('Anzeigen-Daten aus localStorage geladen:', listingData.title);
+
                     } catch (error) {
-                      console.log('Fehler beim Parsen der gespeicherten Anzeigen-Daten');
+
                     }
                   }
                   
                   // Falls nicht im localStorage, versuche vom Backend zu laden
                   if (!listingData) {
-                    console.log('Lade Anzeigen-Daten vom Backend für ID:', listingId);
+
                     const response = await fetch(`http://localhost:8000/api/listings/${listingId}`);
                     if (response.ok) {
                       listingData = await response.json();
                       // Speichere die Daten im localStorage für zukünftige Verwendung
                       localStorage.setItem(`listing_${listingId}`, JSON.stringify(listingData));
-                      console.log('Anzeigen-Daten vom Backend geladen und gespeichert:', listingData.title);
+
                     } else {
-                      console.log('Backend-Response nicht OK:', response.status);
+
                     }
                   }
                   
                 } catch (error) {
-                  console.log('Konnte Anzeigen-Daten nicht laden, verwende Platzhalter:', error);
+
                 }
                 
                 // Erstelle einen lokalen Chat mit echten oder Platzhalter-Daten
@@ -275,8 +275,8 @@ export const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
         }
       }
       
-      console.log('=== ENDE LOKALE CHATS ===');
-      console.log('Gefundene lokale Chats:', localChats.length);
+
+
       
     } catch (error) {
       console.error('Fehler beim Laden der lokalen Chats:', error);
@@ -589,7 +589,7 @@ export const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
                             component="img"
                             src={(() => {
                               try {
-                                console.log('Verarbeite Bild-Daten:', chat.listing.images);
+
                                 
                                 // Versuche zuerst als JSON zu parsen
                                 if (typeof chat.listing.images === 'string' && chat.listing.images.startsWith('[')) {
@@ -600,7 +600,7 @@ export const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
                                     const fullUrl = imagePath.startsWith('http') ? 
                                       imagePath : 
                                       `http://localhost:8000/api/images/${imagePath.startsWith('/') ? imagePath.slice(1) : imagePath}`;
-                                    console.log('Konstruierte Bild-URL (JSON):', fullUrl);
+
                                     return fullUrl;
                                   }
                                 }
@@ -610,7 +610,7 @@ export const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
                                   const fullUrl = chat.listing.images.startsWith('http') ? 
                                     chat.listing.images : 
                                     `http://localhost:8000/api/images/${chat.listing.images.startsWith('/') ? chat.listing.images.slice(1) : chat.listing.images}`;
-                                  console.log('Konstruierte Bild-URL (String):', fullUrl);
+
                                   return fullUrl;
                                 }
                                 // Falls es ein Array ist
@@ -621,14 +621,14 @@ export const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
                                     const fullUrl = imagePath.startsWith('http') ? 
                                       imagePath : 
                                       `http://localhost:8000/api/images/${imagePath.startsWith('/') ? imagePath.slice(1) : imagePath}`;
-                                    console.log('Konstruierte Bild-URL (Array):', fullUrl);
+
                                     return fullUrl;
                                   }
                                 }
                               } catch (error) {
                                 console.error('Fehler beim Parsen der Bilder:', error);
                               }
-                              console.log('Keine gültige Bild-URL gefunden');
+
                               return null;
                             })()}
                             alt={chat.listing.title}
@@ -640,7 +640,7 @@ export const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
                               border: '2px solid #e2e8f0'
                             }}
                             onError={(e) => {
-                              console.log('Bild konnte nicht geladen werden, verwende Avatar');
+
                               e.currentTarget.style.display = 'none';
                               const avatarElement = e.currentTarget.nextElementSibling as HTMLElement;
                               if (avatarElement) {
@@ -648,7 +648,7 @@ export const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
                               }
                             }}
                             onLoad={(e) => {
-                              console.log('Anzeigen-Bild erfolgreich geladen');
+
                               const avatarElement = e.currentTarget.nextElementSibling as HTMLElement;
                               if (avatarElement) {
                                 avatarElement.style.display = 'none';

@@ -13,9 +13,9 @@ class ListingStatus(str, Enum):
     SOLD = "sold"
 
 class UserRole(str, Enum):
-    USER = "user"
-    SELLER = "seller"  # NEU: Verkäufer-Rolle
-    ADMIN = "admin"
+    USER = "USER"
+    SELLER = "SELLER"  # NEU: Verkäufer-Rolle
+    ADMIN = "ADMIN"
 
 class VerificationState(str, Enum):
     UNVERIFIED = "unverified"           # Registriert, aber E-Mail nicht bestätigt
@@ -57,6 +57,7 @@ class User(SQLModel, table=True):
     
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+    last_activity: Optional[datetime] = Field(default=None)  # Für Online-Status
     
     # Beziehungen
     listings: List["Listing"] = Relationship(back_populates="seller")
@@ -150,6 +151,7 @@ class Listing(SQLModel, table=True):
     images: str = Field(default="[]", description="JSON-Array mit Bild-URLs")
     status: ListingStatus = Field(default=ListingStatus.ACTIVE)
     views: int = Field(default=0)
+    highlighted: bool = Field(default=False, description="Ist die Anzeige hervorgehoben?")
     
     # Beziehungen
     user_id: int = Field(foreign_key="user.id")
