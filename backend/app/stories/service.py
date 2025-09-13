@@ -1,7 +1,7 @@
 """
 Stories-Service für Business-Logic
 """
-from sqlmodel import Session, select, and_, or_, func, desc
+from sqlmodel import Session, select, and_, or_, func, desc, joinedload
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 import logging
@@ -78,9 +78,9 @@ class StoriesService:
                     logger.warning(f"Redis-Cache-Fehler (Fallback zu DB): {cache_error}")
                     # Fallback: Weiter ohne Cache
             
-            # Stories von gefolgten Usern abrufen
+            # Stories von gefolgten Usern abrufen (N+1 Query optimiert)
             # TODO: Implementiere Follow-System für Stories-Feed
-            # Für jetzt: Alle aktiven Stories
+            # Für jetzt: Alle aktiven Stories mit User-Info in einer Query
             query = select(Story).where(
                 and_(
                     Story.is_active == True,
@@ -88,19 +88,22 @@ class StoriesService:
                     Story.user_id != user_id  # Eigene Stories nicht im Feed
                 )
             ).options(
-                select(User).where(User.id == Story.user_id)
+                joinedload(Story.user)  # Verhindert N+1 Queries
             ).order_by(desc(Story.created_at)).limit(limit).offset(offset)
             
             stories = self.session.exec(query).all()
             
+            # Batch-Query für Viewer-Status und Reactions (verhindert N+1)
+            story_ids = [story.id for story in stories]
+            viewer_status = self._batch_get_viewer_status(story_ids, user_id)
+            user_reactions = self._batch_get_user_reactions(story_ids, user_id)
+            
             # Stories mit User-Info und Viewer-Status anreichern
             feed_data = []
             for story in stories:
-                # Prüfe ob User die Story bereits gesehen hat
-                has_viewed = self._has_user_viewed_story(story.id, user_id)
-                
-                # User-Reaktion abrufen
-                user_reaction = self._get_user_reaction(story.id, user_id)
+                # Batch-optimierte Abfragen verwenden
+                has_viewed = viewer_status.get(story.id, False)
+                user_reaction = user_reactions.get(story.id, None)
                 
                 feed_data.append({
                     "id": story.id,
@@ -363,3 +366,43 @@ class StoriesService:
         keys = await self.redis.keys(pattern)
         if keys:
             await self.redis.delete(*keys)
+    
+    def _batch_get_viewer_status(self, story_ids: List[int], user_id: int) -> Dict[int, bool]:
+        """Batch-Query für Viewer-Status (verhindert N+1)"""
+        if not story_ids:
+            return {}
+        
+        try:
+            query = select(StoryView.story_id).where(
+                and_(
+                    StoryView.story_id.in_(story_ids),
+                    StoryView.viewer_id == user_id
+                )
+            )
+            
+            viewed_story_ids = self.session.exec(query).all()
+            return {story_id: True for story_id in viewed_story_ids}
+            
+        except Exception as e:
+            logger.error(f"Fehler beim Batch-Abrufen der Viewer-Status: {e}")
+            return {}
+    
+    def _batch_get_user_reactions(self, story_ids: List[int], user_id: int) -> Dict[int, str]:
+        """Batch-Query für User-Reactions (verhindert N+1)"""
+        if not story_ids:
+            return {}
+        
+        try:
+            query = select(StoryReaction.story_id, StoryReaction.reaction_type).where(
+                and_(
+                    StoryReaction.story_id.in_(story_ids),
+                    StoryReaction.user_id == user_id
+                )
+            )
+            
+            reactions = self.session.exec(query).all()
+            return {story_id: reaction_type for story_id, reaction_type in reactions}
+            
+        except Exception as e:
+            logger.error(f"Fehler beim Batch-Abrufen der User-Reactions: {e}")
+            return {}
