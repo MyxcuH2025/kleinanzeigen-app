@@ -4,7 +4,7 @@
 import { storiesApi } from './stories.api';
 
 export interface WebSocketMessage {
-  type: 'connected' | 'new_story' | 'story_viewed' | 'story_reaction_update' | 'pong';
+  type: 'connected' | 'new_story' | 'story_viewed' | 'story_reaction_update' | 'pong' | 'rate_limit_exceeded';
   story?: any;
   story_id?: number;
   user_id?: number;
@@ -14,6 +14,8 @@ export interface WebSocketMessage {
   views_count?: number;
   timestamp?: string;
   message?: string;
+  error?: string;
+  event_type?: string;
 }
 
 export class StoriesWebSocketService {
@@ -121,8 +123,26 @@ export class StoriesWebSocketService {
       handler(message);
     }
 
+    // Rate-Limit-Handling
+    if (message.type === 'rate_limit_exceeded') {
+      console.warn('⚠️ Rate-Limit überschritten:', message);
+      // Hier könnte eine Toast-Benachrichtigung angezeigt werden
+      this.handleRateLimitExceeded(message);
+    }
+
     // Log für Debugging
     console.log('📨 Stories-WebSocket Nachricht:', message);
+  }
+
+  /**
+   * Rate-Limit-Überschreitung behandeln
+   */
+  private handleRateLimitExceeded(message: WebSocketMessage): void {
+    // Rate-Limit-Handler registrieren
+    const rateLimitHandler = this.messageHandlers.get('rate_limit_exceeded');
+    if (rateLimitHandler) {
+      rateLimitHandler(message);
+    }
   }
 
   /**

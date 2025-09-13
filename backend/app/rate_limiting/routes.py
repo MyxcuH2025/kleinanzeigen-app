@@ -1,84 +1,189 @@
 """
-Rate Limiting API Routes für Admin und Monitoring
+Rate-Limiting Admin Routes
 """
-from fastapi import APIRouter, HTTPException, Depends, Request
-from typing import Dict, Any
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlmodel import Session
+from typing import Dict, Any, Optional
 import logging
-from .rate_limit_service import rate_limit_service
 
+from app.dependencies import get_session, get_current_user
+from models.user import User
+from app.rate_limiting.websocket_limiter import websocket_rate_limiter
+
+router = APIRouter(prefix="/api/admin/rate-limiting", tags=["admin-rate-limiting"])
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/rate-limit", tags=["rate-limit"])
+async def verify_admin_user(current_user: User) -> User:
+    """Admin-Berechtigung prüfen"""
+    if not getattr(current_user, 'is_admin', False):
+        raise HTTPException(status_code=403, detail="Admin-Berechtigung erforderlich")
+    return current_user
 
 @router.get("/stats")
-def get_rate_limit_stats(request: Request):
-    """Hole Rate Limit Statistiken für aktuellen Client"""
+async def get_rate_limiting_stats(
+    current_user: User = Depends(verify_admin_user),
+    session: Session = Depends(get_session)
+):
+    """Globale Rate-Limiting-Statistiken abrufen"""
     try:
-        # Extrahiere Client-ID aus Request
-        client_id = _get_client_id_from_request(request)
-        
-        stats = rate_limit_service.get_rate_limit_stats(client_id)
+        stats = websocket_rate_limiter.get_global_stats()
         
         return {
-            "client_id": client_id,
+            "success": True,
             "stats": stats,
-            "service_enabled": rate_limit_service.enabled,
-            "default_limits": {
-                "general": rate_limit_service.default_limit,
-                "search": rate_limit_service.search_limit,
-                "burst_size": rate_limit_service.burst_size,
-                "window_size": rate_limit_service.window_size
-            }
+            "generated_at": datetime.utcnow().isoformat()
         }
+        
     except Exception as e:
-        logger.error(f"Fehler beim Abrufen der Rate Limit Stats: {e}")
+        logger.error(f"Fehler beim Abrufen der Rate-Limiting-Stats: {e}")
         raise HTTPException(status_code=500, detail="Fehler beim Abrufen der Statistiken")
 
-@router.post("/reset/{client_id}")
-def reset_rate_limit(client_id: str, endpoint: str = "general"):
-    """Reset Rate Limit für spezifischen Client (Admin-Funktion)"""
+@router.get("/user/{user_id}")
+async def get_user_rate_limiting_stats(
+    user_id: int,
+    current_user: User = Depends(verify_admin_user),
+    session: Session = Depends(get_session)
+):
+    """User-spezifische Rate-Limiting-Statistiken"""
     try:
-        success = rate_limit_service.reset_rate_limit(client_id, endpoint)
+        user_stats = websocket_rate_limiter.get_user_stats(user_id)
         
-        if success:
-            return {
-                "success": True,
-                "message": f"Rate limit für Client {client_id} (Endpoint: {endpoint}) zurückgesetzt"
-            }
-        else:
-            raise HTTPException(status_code=500, detail="Fehler beim Zurücksetzen des Rate Limits")
-            
+        return {
+            "success": True,
+            "user_id": user_id,
+            "user_stats": user_stats,
+            "generated_at": datetime.utcnow().isoformat()
+        }
+        
     except Exception as e:
-        logger.error(f"Fehler beim Reset Rate Limit: {e}")
-        raise HTTPException(status_code=500, detail="Fehler beim Zurücksetzen")
+        logger.error(f"Fehler beim Abrufen der User-Rate-Limiting-Stats für {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Fehler beim Abrufen der User-Statistiken")
+
+@router.post("/user/{user_id}/reset")
+async def reset_user_rate_limits(
+    user_id: int,
+    event_type: Optional[str] = Query(None, description="Spezifischer Event-Type oder alle zurücksetzen"),
+    current_user: User = Depends(verify_admin_user),
+    session: Session = Depends(get_session)
+):
+    """Rate-Limits für User zurücksetzen"""
+    try:
+        websocket_rate_limiter.reset_user_limits(user_id, event_type)
+        
+        return {
+            "success": True,
+            "message": f"Rate-Limits für User {user_id} zurückgesetzt",
+            "event_type": event_type or "alle",
+            "reset_by": current_user.id,
+            "reset_at": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Fehler beim Zurücksetzen der Rate-Limits für User {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Fehler beim Zurücksetzen der Rate-Limits")
+
+@router.put("/config/{event_type}")
+async def update_rate_limit_config(
+    event_type: str,
+    max_requests: int = Query(..., ge=1, le=1000, description="Maximale Requests pro Zeitfenster"),
+    window_seconds: int = Query(..., ge=10, le=3600, description="Zeitfenster in Sekunden"),
+    message: str = Query(..., description="Fehlermeldung bei Rate-Limit-Überschreitung"),
+    current_user: User = Depends(verify_admin_user),
+    session: Session = Depends(get_session)
+):
+    """Rate-Limit-Konfiguration aktualisieren"""
+    try:
+        websocket_rate_limiter.update_rate_limits(event_type, max_requests, window_seconds, message)
+        
+        return {
+            "success": True,
+            "message": f"Rate-Limit für {event_type} aktualisiert",
+            "config": {
+                "event_type": event_type,
+                "max_requests": max_requests,
+                "window_seconds": window_seconds,
+                "message": message
+            },
+            "updated_by": current_user.id,
+            "updated_at": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Fehler beim Aktualisieren der Rate-Limit-Konfiguration für {event_type}: {e}")
+        raise HTTPException(status_code=500, detail="Fehler beim Aktualisieren der Konfiguration")
 
 @router.get("/config")
-def get_rate_limit_config():
-    """Hole aktuelle Rate Limiting Konfiguration"""
-    return {
-        "enabled": rate_limit_service.enabled,
-        "limits": {
-            "general_requests_per_minute": rate_limit_service.default_limit,
-            "search_requests_per_minute": rate_limit_service.search_limit,
-            "burst_size": rate_limit_service.burst_size,
-            "window_size": rate_limit_service.window_size
-        },
-        "redis_available": True  # Vereinfacht für jetzt
-    }
+async def get_rate_limit_configs(
+    current_user: User = Depends(verify_admin_user),
+    session: Session = Depends(get_session)
+):
+    """Aktuelle Rate-Limit-Konfigurationen abrufen"""
+    try:
+        global_stats = websocket_rate_limiter.get_global_stats()
+        
+        return {
+            "success": True,
+            "configs": global_stats.get("rate_limit_configs", {}),
+            "generated_at": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Fehler beim Abrufen der Rate-Limit-Konfigurationen: {e}")
+        raise HTTPException(status_code=500, detail="Fehler beim Abrufen der Konfigurationen")
 
-def _get_client_id_from_request(request: Request) -> str:
-    """Hilfsfunktion zur Client-ID Extraktion"""
-    # X-Forwarded-For Header
-    forwarded_for = request.headers.get("X-Forwarded-For")
-    if forwarded_for:
-        client_ip = forwarded_for.split(",")[0].strip()
-        return f"ip:{client_ip}"
-    
-    # X-Real-IP Header
-    real_ip = request.headers.get("X-Real-IP")
-    if real_ip:
-        return f"ip:{real_ip}"
-    
-    # Client IP direkt
-    client_ip = request.client.host if request.client else "unknown"
-    return f"ip:{client_ip}"
+@router.get("/health")
+async def get_rate_limiting_health(
+    current_user: User = Depends(verify_admin_user),
+    session: Session = Depends(get_session)
+):
+    """Health-Check für Rate-Limiting-System"""
+    try:
+        global_stats = websocket_rate_limiter.get_global_stats()
+        
+        # Health-Status bestimmen
+        health_status = "healthy"
+        issues = []
+        
+        # Prüfen ob zu viele User blockiert sind
+        active_users = global_stats.get("active_users", 0)
+        blocked_users = global_stats.get("blocked_users", 0)
+        
+        if active_users > 0:
+            blocked_percentage = (blocked_users / active_users) * 100
+            if blocked_percentage > 10:  # Mehr als 10% blockiert
+                health_status = "warning"
+                issues.append(f"Hoher Anteil blockierter User: {blocked_percentage:.1f}%")
+        
+        # Prüfen ob Cleanup funktioniert
+        next_cleanup = global_stats.get("next_cleanup_in", 0)
+        if next_cleanup < 0:  # Cleanup ist überfällig
+            health_status = "warning"
+            issues.append("Cleanup ist überfällig")
+        
+        return {
+            "success": True,
+            "health": {
+                "status": health_status,
+                "active_users": active_users,
+                "blocked_users": blocked_users,
+                "blocked_percentage": round((blocked_users / active_users) * 100, 2) if active_users > 0 else 0,
+                "issues": issues,
+                "last_cleanup": global_stats.get("last_cleanup", 0),
+                "next_cleanup_in": next_cleanup
+            },
+            "generated_at": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Fehler beim Health-Check des Rate-Limiting-Systems: {e}")
+        return {
+            "success": False,
+            "health": {
+                "status": "error",
+                "error": str(e)
+            },
+            "generated_at": datetime.utcnow().isoformat()
+        }
+
+# Import für datetime
+from datetime import datetime

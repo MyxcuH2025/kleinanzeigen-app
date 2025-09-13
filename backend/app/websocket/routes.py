@@ -7,6 +7,7 @@ from sqlmodel import Session, select
 from models import User
 from app.dependencies import get_session
 from app.websocket.manager import manager
+from app.rate_limiting.websocket_limiter import websocket_rate_limiter
 import logging
 import json
 
@@ -84,12 +85,32 @@ async def stories_websocket_endpoint(websocket: WebSocket, token: str = Query(No
                 
                 # Stories-spezifische Nachrichten verarbeiten
                 if message.get("type") == "story_view":
+                    # Rate-Limiting prüfen
+                    is_limited, error_message = websocket_rate_limiter.is_rate_limited(user.id, "story_view")
+                    if is_limited:
+                        await websocket.send_text(json.dumps({
+                            "type": "rate_limit_exceeded",
+                            "error": error_message,
+                            "event_type": "story_view"
+                        }))
+                        continue
+                    
                     # Story-View registrieren
                     story_id = message.get("story_id")
                     if story_id:
                         await _handle_story_view(story_id, user.id, session)
                 
                 elif message.get("type") == "story_reaction":
+                    # Rate-Limiting prüfen
+                    is_limited, error_message = websocket_rate_limiter.is_rate_limited(user.id, "story_reaction")
+                    if is_limited:
+                        await websocket.send_text(json.dumps({
+                            "type": "rate_limit_exceeded",
+                            "error": error_message,
+                            "event_type": "story_reaction"
+                        }))
+                        continue
+                    
                     # Story-Reaction verarbeiten
                     story_id = message.get("story_id")
                     reaction = message.get("reaction")
@@ -97,6 +118,16 @@ async def stories_websocket_endpoint(websocket: WebSocket, token: str = Query(No
                         await _handle_story_reaction(story_id, user.id, reaction, session)
                 
                 elif message.get("type") == "ping":
+                    # Rate-Limiting für Ping prüfen
+                    is_limited, error_message = websocket_rate_limiter.is_rate_limited(user.id, "ping")
+                    if is_limited:
+                        await websocket.send_text(json.dumps({
+                            "type": "rate_limit_exceeded",
+                            "error": error_message,
+                            "event_type": "ping"
+                        }))
+                        continue
+                    
                     await websocket.send_text(json.dumps({
                         "type": "pong",
                         "timestamp": message.get("timestamp")
