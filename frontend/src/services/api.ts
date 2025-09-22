@@ -15,11 +15,24 @@ export async function getListings(): Promise<Listing[]> {
 }
 
 export async function createListing(listing: Omit<Listing, "id">): Promise<Listing> {
-  // images als JSON-String senden
-  const payload = { ...listing, images: JSON.stringify(listing.images ?? []) };
+  // REPARIERT: Bilder immer als Array senden, nie als JSON-String (verursacht "Image corrupt" Fehler)
+  const images = listing.images ?? [];
+  const payload = { 
+    ...listing, 
+    images: images // REPARIERT: Immer als Array senden, nie JSON.stringify()
+  };
+  
+  // JWT-Token für User-Authentifizierung hinzufügen
+  const token = localStorage.getItem('token');
+  const headers: HeadersInit = { "Content-Type": "application/json" };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
   const res = await fetch("http://localhost:8000/api/listings", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error("Fehler beim Erstellen des Listings");
@@ -73,10 +86,23 @@ export class ApiService {
   }
 
   async post<T = unknown>(endpoint: string, data?: unknown): Promise<T> {
+    const token = localStorage.getItem('token');
+    const headers: HeadersInit = {};
+    
+    // Authorization Header hinzufügen
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    // Content-Type nur für JSON setzen, nicht für FormData
+    if (data && !(data instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+    }
+
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: data ? JSON.stringify(data) : undefined,
+      headers,
+      body: data ? (data instanceof FormData ? data : JSON.stringify(data)) : undefined,
     });
 
     if (!response.ok) {

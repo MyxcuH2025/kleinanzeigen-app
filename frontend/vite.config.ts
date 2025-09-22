@@ -7,7 +7,7 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   build: {
-    sourcemap: false, // Source-Maps deaktivieren für bessere Performance
+    sourcemap: false, // Source-Maps aktivieren für besseres Debugging
     rollupOptions: {
       output: {
         sourcemapExcludeSources: true,
@@ -30,7 +30,7 @@ export default defineConfig({
             './src/pages/DashboardPage_Optimized.tsx'
           ],
           'listings': [
-            './src/components/ListingDetail.tsx',
+            './src/components/ListingDetailNextLevel.tsx',
             './src/components/CreateListing_Optimized.tsx',
             './src/components/EditListing.tsx',
             './src/pages/ListingsPage.tsx'

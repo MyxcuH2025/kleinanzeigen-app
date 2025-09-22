@@ -25,6 +25,7 @@ import { useUser } from '@/context/UserContext';
 import { Logo } from './Logo';
 import { getImageUrl } from '@/utils/imageUtils';
 import NotificationBell from './NotificationBell';
+import StoriesIcon from './icons/StoriesIcon';
 
 interface DesktopNavigationProps {
   onSearchClick?: () => void;
@@ -567,31 +568,24 @@ export const DesktopNavigation: React.FC<DesktopNavigationProps> = memo(({
                 </IconButton>
 
                 {/* Stories Button */}
-                <IconButton
+                <Box
                   onClick={() => navigate('/stories')}
                   sx={{
-                    color: 'text.secondary',
                     width: 56,
                     height: 56,
-                    minWidth: 56,
-                    minHeight: 56,
-                    border: '1px solid #e5e7eb',
-                    borderRadius: 1.5,
-                    bgcolor: '#ffffff',
-                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 0.5px 1px rgba(0, 0, 0, 0.03)',
-                    transform: 'translateY(-0.5px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
                     transition: 'all 0.2s ease-in-out',
                     '&:hover': {
-                      color: 'primary.main',
-                      bgcolor: '#f8fafc',
-                      borderColor: '#d1d5db',
-                      boxShadow: '0 2px 6px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.05)',
-                      transform: 'translateY(-1px)'
+                      transform: 'scale(1.1)',
+                      filter: 'brightness(1.1)'
                     }
                   }}
                 >
-                  <Box sx={{ fontSize: 28 }}>📸</Box>
-                </IconButton>
+                  <StoriesIcon size={56} />
+                </Box>
 
                 {/* Benachrichtigungen Bell */}
                 <NotificationBell />
@@ -668,7 +662,7 @@ export const DesktopNavigation: React.FC<DesktopNavigationProps> = memo(({
                     }}
                   >
                     <Avatar 
-                      src={user.avatar ? getImageUrl(user.avatar) : undefined}
+                      src={user.avatar ? getImageUrl(user.avatar) : getImageUrl('default-avatar.jpg')}
                       sx={{ 
                         width: 56, 
                         height: 56,

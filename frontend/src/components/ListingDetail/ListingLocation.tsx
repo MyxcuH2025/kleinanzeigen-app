@@ -115,9 +115,9 @@ const ListingLocation: React.FC<ListingLocationProps> = ({
         </Box>
       </Box>
 
-      <Grid container spacing={3}>
+      <Box sx={{ display: 'grid', gap: 2 }}>
         {/* Location Info */}
-        <Grid item xs={12} md={6}>
+        <Box>
           <Card sx={{ height: '100%', border: '1px solid #f0f0f0' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -157,10 +157,10 @@ const ListingLocation: React.FC<ListingLocationProps> = ({
               </Box>
             </CardContent>
           </Card>
-        </Grid>
+        </Box>
 
         {/* Contact Info */}
-        <Grid item xs={12} md={6}>
+        <Box>
           <Card sx={{ height: '100%', border: '1px solid #f0f8c6' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -254,8 +254,8 @@ const ListingLocation: React.FC<ListingLocationProps> = ({
               )}
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
 
       {/* Additional Info */}
       <Box sx={{ mt: 3, p: 2, bgcolor: 'rgba(220, 248, 198, 0.05)', borderRadius: 1 }}>

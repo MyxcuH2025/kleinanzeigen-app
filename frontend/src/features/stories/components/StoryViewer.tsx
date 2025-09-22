@@ -1,510 +1,652 @@
 /**
- * Story-Viewer - Vollbild-Story-Anzeige wie Instagram
+ * StoryViewer - Vollbild Story-Viewer Overlay
+ * Modulare Komponente für Instagram-ähnliche Story-Anzeige
  */
-import React, { useState, useEffect, useRef } from 'react';
+import * as React from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Box,
   IconButton,
   Typography,
   Avatar,
-  LinearProgress,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
 } from '@mui/material';
 import {
   Close as CloseIcon,
   ArrowBack as ArrowBackIcon,
   ArrowForward as ArrowForwardIcon,
-  Favorite as FavoriteIcon,
-  ChatBubble as ChatIcon,
-  Send as SendIcon
+  Pause as PauseIcon,
+  PlayArrow as PlayIcon,
+  VolumeOff as VolumeOffIcon,
+  VolumeUp as VolumeUpIcon,
 } from '@mui/icons-material';
-import type { Story, StoryReactionType } from '../types/stories.types';
-import { StoryProgress } from './StoryProgress';
-// import { StoryReactions } from './StoryReactions';
+import type { StoryGroup } from '../types/stories.types';
 import { storiesApi } from '../services/stories.api';
-import { storiesWebSocket } from '../services/stories.websocket';
 
 interface StoryViewerProps {
-  stories: Story[];
-  currentIndex: number;
+  storyGroups: StoryGroup[];
+  currentUserId: string | null;
+  currentStoryIndex: number;
+  open: boolean;
   onClose: () => void;
-  onNext: () => void;
-  onPrevious: () => void;
-  onView: (storyId: number) => void;
-  onReaction: (storyId: number, reaction: StoryReactionType) => void;
+  onNextUser: (userId: string) => void;
+  onPrevUser: (userId: string) => void;
+  onNextStory: (userId: string, storyIndex: number) => void;
+  onPrevStory: (userId: string, storyIndex: number) => void;
 }
 
 export const StoryViewer: React.FC<StoryViewerProps> = ({
-  stories,
-  currentIndex,
+  storyGroups,
+  currentUserId,
+  currentStoryIndex,
+  open,
   onClose,
-  onNext,
-  onPrevious,
-  onView,
-  onReaction
+  onNextUser,
+  onPrevUser,
+  onNextStory,
+  onPrevStory,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
-  const [progress, setProgress] = useState(0);
+  // State
   const [isPlaying, setIsPlaying] = useState(true);
-  const [showControls, setShowControls] = useState(true);
-  const [videoLoaded, setVideoLoaded] = useState<boolean>(false);
-  const [videoError, setVideoError] = useState<boolean>(false);
-  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const hideControlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isMuted, setIsMuted] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const [isHolding, setIsHolding] = useState(false);
+  
   const videoRef = useRef<HTMLVideoElement>(null);
-  
-  const currentStory = stories[currentIndex];
-  
-  if (!currentStory) {
-    onClose();
-    return null;
-  }
-  
-  const isExpired = storiesApi.isStoryExpired(currentStory.expires_at);
-  const isVideo = currentStory.media_type === 'video';
-  const duration = currentStory.duration * 1000; // Convert to milliseconds
-  
-  // Video-spezifische Event-Handler
+  const progressIntervalRef = useRef<number | null>(null);
+
+  // Aktuelle Story finden
+  const currentUserGroup = storyGroups.find(group => group.user_id === currentUserId);
+  const currentStory = currentUserGroup?.stories[currentStoryIndex];
+  // REPARIERT: Prüfe ob es sich wirklich um ein Video handelt (verursacht "Video loading error Stack")
+  const isVideo = currentStory?.media_type === 'video' && 
+    currentStory?.media_url && 
+    !currentStory.media_url.includes('noimage.jpeg') &&
+    !currentStory.media_url.includes('placeholder') &&
+    !currentStory.media_url.endsWith('.jpg') &&
+    !currentStory.media_url.endsWith('.jpeg') &&
+    !currentStory.media_url.endsWith('.png');
+
+  // Progress-Timer für Stories (5 Sek für Bilder, Video-Länge für Videos)
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !isVideo) return;
-
-    const handleLoadedData = () => {
-      setVideoLoaded(true);
-      setVideoError(false);
-      if (isPlaying) {
-        video.play().catch(console.error);
-      }
-    };
-
-    const handleError = () => {
-      setVideoError(true);
-      setVideoLoaded(false);
-      console.error('Video-Fehler:', currentStory.media_url);
-    };
-
-    const handleEnded = () => {
-      setIsPlaying(false);
-      onNext();
-    };
-
-    const handleTimeUpdate = () => {
-      if (video.duration > 0) {
-        const videoProgress = (video.currentTime / video.duration) * 100;
-        setProgress(videoProgress);
-      }
-    };
-
-    video.addEventListener('loadeddata', handleLoadedData);
-    video.addEventListener('error', handleError);
-    video.addEventListener('ended', handleEnded);
-    video.addEventListener('timeupdate', handleTimeUpdate);
-
-    return () => {
-      video.removeEventListener('loadeddata', handleLoadedData);
-      video.removeEventListener('error', handleError);
-      video.removeEventListener('ended', handleEnded);
-      video.removeEventListener('timeupdate', handleTimeUpdate);
-    };
-  }, [isVideo, isPlaying, onNext, currentStory.media_url]);
-
-  // Progress-Animation für Bilder
-  useEffect(() => {
-    if (!isPlaying || isExpired || isVideo) return;
+    // Progress beim Story-Wechsel zurücksetzen
+    setProgress(0);
     
-    const startTime = Date.now();
-    progressIntervalRef.current = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const newProgress = Math.min((elapsed / duration) * 100, 100);
-      setProgress(newProgress);
+    if (isPlaying && !isHolding && currentStory && open) {
       
-      if (newProgress >= 100) {
-        setIsPlaying(false);
-        onNext();
+      if (isVideo) {
+        // Für Videos: Progress wird durch onTimeUpdate des Videos gesteuert
+        // Kein Timer nötig - Video steuert Progress selbst
+        return;
+      } else {
+        // Für Bilder: 5 Sekunden Timer
+        const duration = 5; // 5 Sek für Bilder
+        const intervalMs = 100; // 10 FPS für smooth Progress
+        const totalSteps = (duration * 1000) / intervalMs;
+        const progressStep = 100 / totalSteps;
+        
+        progressIntervalRef.current = setInterval(() => {
+          setProgress(prev => {
+            const newProgress = prev + progressStep;
+            if (newProgress >= 100) {
+              setTimeout(() => handleNext(), 0);
+              return 0;
+            }
+            return newProgress;
+          });
+        }, intervalMs);
+
+        return () => {
+          if (progressIntervalRef.current) {
+            clearInterval(progressIntervalRef.current);
+          }
+        };
       }
-    }, 50);
-    
-    return () => {
+    } else {
+      // Pause oder Hold: Timer stoppen
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
       }
-    };
-  }, [isPlaying, duration, onNext, isExpired, isVideo]);
-  
-  // Auto-hide Controls
+    }
+  }, [isPlaying, isHolding, currentStory, open, currentUserId, currentStoryIndex]);
+
+  // Keyboard-Navigation
   useEffect(() => {
-    if (!showControls) return;
-    
-    hideControlsTimeoutRef.current = setTimeout(() => {
-      setShowControls(false);
-    }, 3000);
-    
-    return () => {
-      if (hideControlsTimeoutRef.current) {
-        clearTimeout(hideControlsTimeoutRef.current);
+    if (!open) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case 'ArrowLeft':
+          e.preventDefault();
+          handlePrev();
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          handleNext();
+          break;
+        case 'Escape':
+          e.preventDefault();
+          onClose();
+          break;
+        case ' ':
+          e.preventDefault();
+          setIsPlaying(prev => !prev);
+          break;
       }
     };
-  }, [showControls]);
-  
-  const handleMouseMove = () => {
-    setShowControls(true);
-    if (hideControlsTimeoutRef.current) {
-      clearTimeout(hideControlsTimeoutRef.current);
-    }
-  };
-  
-  const handlePause = () => {
-    setIsPlaying(!isPlaying);
-    setShowControls(true);
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open, onClose]);
+
+  // Navigation-Handler
+  const handleNext = () => {
+    if (!currentUserGroup || !currentUserId) return;
     
-    // Video-spezifische Pause/Play-Logik
-    if (isVideo && videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
+    // Nächste Story im aktuellen User
+    if (currentStoryIndex < currentUserGroup.stories.length - 1) {
+      onNextStory(currentUserId, currentStoryIndex + 1);
+    } else {
+      // Nächster User
+      const currentIndex = storyGroups.findIndex(group => group.user_id === currentUserId);
+      const nextIndex = (currentIndex + 1) % storyGroups.length;
+      if (nextIndex === 0) {
+        onClose(); // Zurück zum Anfang = schließen
       } else {
-        videoRef.current.play().catch(console.error);
+        onNextUser(storyGroups[nextIndex].user_id);
       }
     }
-  };
-  
-  const handleReaction = (reaction: StoryReactionType) => {
-    onReaction(currentStory.id, reaction);
-    
-    // WebSocket-Reaction senden
-    storiesWebSocket.sendStoryReaction(currentStory.id, reaction);
   };
 
-  // Story-View beim Öffnen senden
-  useEffect(() => {
-    if (currentStory) {
-      storiesWebSocket.sendStoryView(currentStory.id);
+  const handlePrev = () => {
+    if (!currentUserGroup || !currentUserId) return;
+    
+    // Vorherige Story im aktuellen User
+    if (currentStoryIndex > 0) {
+      onPrevStory(currentUserId, currentStoryIndex - 1);
+    } else {
+      // Vorheriger User
+      const currentIndex = storyGroups.findIndex(group => group.user_id === currentUserId);
+      const prevIndex = currentIndex - 1;
+      if (prevIndex < 0) {
+        onClose(); // Am Anfang = schließen
+      } else {
+        onPrevUser(storyGroups[prevIndex].user_id);
+      }
     }
-  }, [currentStory]);
-  
-  const mediaUrl = storiesApi.getMediaUrl(currentStory.media_url);
-  const avatarUrl = currentStory.user_avatar 
-    ? storiesApi.getMediaUrl(currentStory.user_avatar)
-    : undefined;
-  
+  };
+
+  // Video-Events
+  const handleVideoEnded = () => {
+    handleNext();
+  };
+
+  const handleVideoError = (error: any) => {
+    // REPARIERT: Video-Fehler besser handhaben (verursacht "Video loading error Stack")
+    console.warn('⚠️ Video loading error - möglicherweise Bild statt Video:', error);
+    
+    // Prüfe ob es sich um ein Bild handelt, das als Video geladen wird
+    if (currentStory?.media_url && (
+      currentStory.media_url.includes('noimage.jpeg') ||
+      currentStory.media_url.includes('placeholder') ||
+      currentStory.media_url.endsWith('.jpg') ||
+      currentStory.media_url.endsWith('.jpeg') ||
+      currentStory.media_url.endsWith('.png')
+    )) {
+      console.info('ℹ️ Bild als Video erkannt - überspringe Video-Loading');
+      return; // Nicht als Fehler behandeln
+    }
+    
+    // Echte Video-Fehler behandeln
+    setTimeout(handleNext, 1000);
+  };
+
+  // Touch/Mouse-Handler für Hold-to-Pause
+  const handleTouchStart = () => {
+    setIsHolding(true);
+    // Video pausieren beim Hold
+    if (isVideo && videoRef.current) {
+      videoRef.current.pause();
+    }
+  };
+  const handleTouchEnd = () => {
+    setIsHolding(false);
+    // Video fortsetzen beim Release
+    if (isVideo && videoRef.current && isPlaying) {
+      videoRef.current.play();
+    }
+  };
+  const handleMouseDown = () => {
+    setIsHolding(true);
+    // Video pausieren beim Hold
+    if (isVideo && videoRef.current) {
+      videoRef.current.pause();
+    }
+  };
+  const handleMouseUp = () => {
+    setIsHolding(false);
+    // Video fortsetzen beim Release
+    if (isVideo && videoRef.current && isPlaying) {
+      videoRef.current.play();
+    }
+  };
+  const handleMouseLeave = () => {
+    setIsHolding(false);
+    // Video fortsetzen beim Release
+    if (isVideo && videoRef.current && isPlaying) {
+      videoRef.current.play();
+    }
+  };
+
+  if (!open || !currentUserGroup || !currentStory) {
+    return null;
+  }
+
+  const mediaUrl = currentStory.media_url ? storiesApi.getMediaUrl(currentStory.media_url) : '';
+  const avatarUrl = currentUserGroup.user_avatar ? storiesApi.getMediaUrl(currentUserGroup.user_avatar) : undefined;
+
   return (
     <Box
       sx={{
         position: 'fixed',
         top: 0,
         left: 0,
-        right: 0,
-        bottom: 0,
+        width: '100vw',
+        height: '100vh',
         bgcolor: 'black',
         zIndex: 9999,
         display: 'flex',
-        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
-      onMouseMove={handleMouseMove}
-      onClick={handlePause}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="story-viewer-title"
     >
-      {/* Header mit Progress */}
+      {/* Screen reader title */}
+      <div id="story-viewer-title" style={{ position: 'absolute', left: '-10000px', top: 'auto', width: '1px', height: '1px', overflow: 'hidden' }}>
+        Story Viewer
+      </div>
+
+      {/* Story Container */}
       <Box
         sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1,
-          p: 2,
+          position: 'relative',
+          width: isMobile ? '100vw' : 'min(400px, 90vw)',
+          height: isMobile ? '100vh' : 'min(600px, 90vh)',
+          aspectRatio: '9/16',
+          bgcolor: 'black',
+          borderRadius: isMobile ? 0 : 2,
+          overflow: 'hidden',
         }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
       >
-        {/* Progress Bars */}
-        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-          {stories.map((_, index) => (
-            <LinearProgress
+        {/* Progress Bar */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '20px',
+            left: '20px',
+            right: '20px',
+            height: '3px',
+            display: 'flex',
+            gap: '4px',
+            zIndex: 20,
+          }}
+        >
+          {currentUserGroup.stories.map((_, index) => (
+            <Box
               key={index}
-              variant="determinate"
-              value={
-                index < currentIndex 
-                  ? 100 
-                  : index === currentIndex 
-                    ? progress 
-                    : 0
-              }
               sx={{
                 flex: 1,
-                height: 3,
-                borderRadius: 2,
-                bgcolor: 'rgba(255,255,255,0.3)',
-                '& .MuiLinearProgress-bar': {
-                  bgcolor: 'white',
-                },
+                height: '100%',
+                bgcolor: 'rgba(255,255,255,0.3)', // Alle Segmente haben grauen Hintergrund
+                borderRadius: '2px',
+                position: 'relative',
+                overflow: 'hidden', // Wichtig für das Füllen
               }}
-            />
+            >
+              {/* Aktives Segment füllt sich */}
+              {index === currentStoryIndex && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    height: '100%',
+                    width: `${progress}%`,
+                    bgcolor: 'rgba(255,255,255,1)', // Weißer Fortschritt
+                    borderRadius: '2px',
+                    transition: isHolding ? 'none' : 'width 0.1s ease',
+                  }}
+                />
+              )}
+            </Box>
           ))}
         </Box>
-        
-        {/* Header Controls */}
-        {showControls && (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              mb: 2,
-            }}
-          >
-            {/* User Info */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Avatar
-                src={avatarUrl}
-                sx={{
-                  width: 40,
-                  height: 40,
-                  border: '2px solid white',
+
+        {/* Header mit User-Info und Controls */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '40px',
+            left: '20px',
+            right: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            zIndex: 20,
+          }}
+        >
+          {/* User Info */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Avatar
+              src={avatarUrl}
+              sx={{ width: 32, height: 32, border: '2px solid #dcf8c6' }}
+              alt={currentUserGroup.user_name}
+            />
+            <Box>
+              <Typography variant="body2" sx={{ color: 'white', fontWeight: 'bold' }}>
+                {currentUserGroup.user_name}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                {storiesApi.formatTimeAgo(currentStory.created_at)}
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Controls */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <IconButton
+              size="small"
+              sx={{ color: 'white' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                const newIsPlaying = !isPlaying;
+                setIsPlaying(newIsPlaying);
+                
+                // Video pausieren/fortsetzen
+                if (isVideo && videoRef.current) {
+                  if (newIsPlaying) {
+                    videoRef.current.play();
+                  } else {
+                    videoRef.current.pause();
+                  }
+                }
+              }}
+            >
+              {isPlaying ? <PauseIcon /> : <PlayIcon />}
+            </IconButton>
+            {isVideo && (
+              <IconButton
+                size="small"
+                sx={{ color: 'white' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsMuted(!isMuted);
                 }}
               >
-                {currentStory.user_name?.charAt(0).toUpperCase()}
-              </Avatar>
-              <Box>
-                <Typography
-                  variant="subtitle2"
-                  sx={{ color: 'white', fontWeight: 'bold' }}
-                >
-                  {currentStory.user_name || 'User'}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{ color: 'rgba(255,255,255,0.7)' }}
-                >
-                  {storiesApi.getStoryAge(currentStory.created_at) < 1 
-                    ? `${Math.round(storiesApi.getStoryAge(currentStory.created_at) * 60)}m`
-                    : `${Math.round(storiesApi.getStoryAge(currentStory.created_at))}h`
-                  } ago
-                </Typography>
-              </Box>
-            </Box>
-            
-            {/* Close Button */}
-            <IconButton
-              onClick={onClose}
-              sx={{
-                color: 'white',
-                bgcolor: 'rgba(0,0,0,0.3)',
-                '&:hover': {
-                  bgcolor: 'rgba(0,0,0,0.5)',
-                },
+                {isMuted ? <VolumeOffIcon /> : <VolumeUpIcon />}
+              </IconButton>
+            )}
+            <IconButton 
+              size="small" 
+              sx={{ color: 'white' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
               }}
             >
               <CloseIcon />
             </IconButton>
           </Box>
-        )}
-      </Box>
-      
-      {/* Media Content */}
-      <Box
-        sx={{
-          flex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-        }}
-      >
-        {isVideo ? (
-          <>
+        </Box>
+
+        {/* Story Media */}
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+          }}
+        >
+          {/* REPARIERT: Immer Bild anzeigen, nie Video für Placeholder (verursacht "Video loading error Stack") */}
+          {isVideo && !mediaUrl.includes('noimage.jpeg') && !mediaUrl.includes('placeholder') ? (
             <video
               ref={videoRef}
               src={mediaUrl}
-              autoPlay
+              autoPlay={isPlaying}
+              muted={isMuted}
               loop={false}
-              muted
-              playsInline
-              preload="metadata"
+              playsInline={true}
               style={{
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
               }}
+              onEnded={handleVideoEnded}
+              onError={handleVideoError}
+              onTimeUpdate={(e) => {
+                if (isPlaying && !isHolding) {
+                  const video = e.target as HTMLVideoElement;
+                  if (video.duration) {
+                    const progress = (video.currentTime / video.duration) * 100;
+                    setProgress(progress);
+                  }
+                }
+              }}
+              onLoadedMetadata={(e) => {
+                const video = e.target as HTMLVideoElement;
+                console.log(`Video geladen: ${video.duration}s`);
+              }}
             />
-            {/* Video Loading Indicator */}
-            {!videoLoaded && !videoError && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  color: 'white',
-                  textAlign: 'center',
-                }}
-              >
-                <Typography variant="h6" sx={{ mb: 1 }}>
-                  📹 Video wird geladen...
-                </Typography>
-                <LinearProgress
-                  sx={{
-                    width: 200,
-                    bgcolor: 'rgba(255,255,255,0.3)',
-                    '& .MuiLinearProgress-bar': {
-                      bgcolor: 'white',
-                    },
-                  }}
-                />
-              </Box>
-            )}
-            {/* Video Error Fallback */}
-            {videoError && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  color: 'white',
-                  textAlign: 'center',
-                }}
-              >
-                <Typography variant="h6" sx={{ mb: 1 }}>
-                  ❌ Video-Fehler
-                </Typography>
-                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
-                  Video konnte nicht geladen werden
-                </Typography>
-              </Box>
-            )}
-            {/* Play/Pause Overlay */}
-            {showControls && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  opacity: isPlaying ? 0 : 1,
-                  transition: 'opacity 0.3s ease',
-                  pointerEvents: 'none',
-                }}
-              >
-                <IconButton
-                  sx={{
-                    bgcolor: 'rgba(0,0,0,0.5)',
-                    color: 'white',
-                    width: 80,
-                    height: 80,
-                    '&:hover': {
-                      bgcolor: 'rgba(0,0,0,0.7)',
-                    },
-                  }}
-                >
-                  {isPlaying ? <CloseIcon /> : <ArrowForwardIcon />}
-                </IconButton>
-              </Box>
-            )}
-          </>
-        ) : (
-          <Box
-            component="img"
-            src={mediaUrl}
-            alt={currentStory.caption || 'Story'}
-            sx={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
-          />
-        )}
-        
-        {/* Navigation Arrows */}
-        {showControls && (
-          <>
-            <IconButton
-              onClick={onPrevious}
-              disabled={currentIndex === 0}
-              sx={{
-                position: 'absolute',
-                left: 16,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'white',
-                bgcolor: 'rgba(0,0,0,0.3)',
-                '&:hover': {
-                  bgcolor: 'rgba(0,0,0,0.5)',
-                },
-                '&:disabled': {
-                  opacity: 0.3,
-                },
+          ) : (
+            <img
+              src={mediaUrl}
+              alt={currentStory.caption || 'Story'}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
               }}
-            >
-              <ArrowBackIcon />
-            </IconButton>
-            
-            <IconButton
-              onClick={onNext}
-              disabled={currentIndex === stories.length - 1}
-              sx={{
-                position: 'absolute',
-                right: 16,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'white',
-                bgcolor: 'rgba(0,0,0,0.3)',
-                '&:hover': {
-                  bgcolor: 'rgba(0,0,0,0.5)',
-                },
-                '&:disabled': {
-                  opacity: 0.3,
-                },
+              onError={(e) => {
+                console.warn('⚠️ Story-Bild konnte nicht geladen werden, verwende Placeholder:', mediaUrl);
+                // REPARIERT: Immer Backend-Placeholder verwenden, nie Base64 (verursacht "Video loading error Stack")
+                const target = e.target as HTMLImageElement;
+                target.src = 'http://localhost:8000/api/images/noimage.jpeg';
               }}
-            >
-              <ArrowForwardIcon />
-            </IconButton>
-          </>
-        )}
-      </Box>
-      
-      {/* Bottom Controls */}
-      {showControls && (
+            />
+          )}
+        </Box>
+
+        {/* Chat Input Field */}
         <Box
           sx={{
             position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            p: 2,
-            background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
+            bottom: '20px',
+            left: '20px',
+            right: '20px',
+            zIndex: 20,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
           }}
         >
-          {/* Caption */}
-          {currentStory.caption && (
+          <Box
+            sx={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              bgcolor: 'rgba(0,0,0,0.7)',
+              borderRadius: 3,
+              px: 2,
+              py: 1,
+            }}
+          >
             <Typography
               variant="body2"
               sx={{
-                color: 'white',
-                mb: 2,
-                textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+                color: 'rgba(255,255,255,0.7)',
+                fontSize: '14px',
+                flex: 1,
               }}
             >
-              {currentStory.caption}
-            </Typography>
-          )}
-          
-          {/* Reaction Buttons */}
-          <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-            {/* StoryReactions temporär deaktiviert */}
-            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-              Reactions: ❤️ {currentStory.reactions_count}
+              Antwort an {currentUserGroup.user_name}...
             </Typography>
           </Box>
-          
-          {/* Stats */}
-          <Box sx={{ display: 'flex', gap: 2, color: 'rgba(255,255,255,0.8)' }}>
-            <Typography variant="caption">
-              👀 {currentStory.views_count} views
-            </Typography>
-            <Typography variant="caption">
-              ❤️ {currentStory.reactions_count} reactions
-            </Typography>
-          </Box>
+          <IconButton
+            sx={{
+              color: 'white',
+              bgcolor: 'rgba(0,0,0,0.7)',
+              '&:hover': {
+                bgcolor: 'rgba(0,0,0,0.8)',
+              },
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {/* Heart Icon */}
+              <Box
+                sx={{
+                  width: 24,
+                  height: 24,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                    fill="white"
+                  />
+                </svg>
+              </Box>
+              {/* Share Icon */}
+              <Box
+                sx={{
+                  width: 24,
+                  height: 24,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"
+                    fill="white"
+                  />
+                </svg>
+              </Box>
+            </Box>
+          </IconButton>
+        </Box>
+
+        {/* Navigation Hotzones */}
+        <Box
+          sx={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            width: '30%',
+            height: 'calc(100% - 80px)', // Platz für Chat-Feld lassen
+            cursor: 'pointer',
+            zIndex: 10,
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            handlePrev();
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            width: '70%',
+            height: 'calc(100% - 80px)', // Platz für Chat-Feld lassen
+            cursor: 'pointer',
+            zIndex: 10,
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleNext();
+          }}
+        />
+
+        {/* Navigation Arrows */}
+        <IconButton
+          sx={{
+            position: 'absolute',
+            left: '20px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: 'white',
+            bgcolor: 'rgba(0,0,0,0.5)',
+            zIndex: 20,
+            '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' },
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            handlePrev();
+          }}
+        >
+          <ArrowBackIcon />
+        </IconButton>
+        <IconButton
+          sx={{
+            position: 'absolute',
+            right: '20px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: 'white',
+            bgcolor: 'rgba(0,0,0,0.5)',
+            zIndex: 20,
+            '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' },
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleNext();
+          }}
+        >
+          <ArrowForwardIcon />
+        </IconButton>
+      </Box>
+
+      {/* Hold-to-Pause Indicator */}
+      {isHolding && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 30,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 1,
+            bgcolor: 'rgba(0,0,0,0.7)',
+            borderRadius: 2,
+            p: 2,
+          }}
+        >
+          <PauseIcon sx={{ color: 'white', fontSize: 40 }} />
+          <Typography variant="body2" sx={{ color: 'white', textAlign: 'center' }}>
+            Gedrückt halten zum Pausieren
+          </Typography>
         </Box>
       )}
     </Box>

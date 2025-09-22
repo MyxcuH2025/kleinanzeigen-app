@@ -4,6 +4,7 @@ API-Endpoints für Performance-Überwachung und Metriken
 """
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session
+from sqlalchemy import text
 from typing import Dict, Any, Optional
 from .monitoring import performance_monitor
 from ..dependencies import get_session
@@ -37,8 +38,8 @@ async def health_check(session: Session = Depends(get_session)) -> Dict[str, Any
     Einfacher Health Check für Load Balancer
     """
     try:
-        # Teste Datenbankverbindung
-        session.exec("SELECT 1").fetchone()
+        # Teste Datenbankverbindung (korrektes Text-Statement)
+        session.exec(text("SELECT 1")).fetchone()
         
         system_metrics = performance_monitor.get_system_metrics()
         

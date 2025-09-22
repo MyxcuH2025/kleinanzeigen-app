@@ -81,13 +81,13 @@ const ListingProperties: React.FC<ListingPropertiesProps> = ({
         )}
       </Box>
 
-      <Grid container spacing={2}>
+      <Box sx={{ display: 'grid', gap: 2 }}>
         {Object.entries(attributes).map(([key, value], index) => {
           // Show only first 6 items if not expanded
           if (!expanded && index >= 6) return null;
 
           return (
-            <Grid item xs={12} sm={6} md={4} key={key}>
+            <Box>
               <Box sx={{ 
                 p: 2, 
                 border: '1px solid #f0f0f0', 
@@ -142,10 +142,10 @@ const ListingProperties: React.FC<ListingPropertiesProps> = ({
                   </Typography>
                 )}
               </Box>
-            </Grid>
+            </Box>
           );
         })}
-      </Grid>
+      </Box>
 
       {!expanded && Object.keys(attributes).length > 6 && (
         <Box sx={{ textAlign: 'center', mt: 2 }}>

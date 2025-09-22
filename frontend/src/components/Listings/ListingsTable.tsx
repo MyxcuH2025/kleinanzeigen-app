@@ -117,11 +117,11 @@ export const ListingsTable: React.FC<ListingsTableProps> = ({
   const [editingPriceType, setEditingPriceType] = React.useState<number | null>(null);
   const [tempPrice, setTempPrice] = React.useState<string>('');
   const [tempPriceType, setTempPriceType] = React.useState<string>('');
-  // Hilfsfunktion für Bildverarbeitung
-  const getImageUrl = (images: string | string[], category?: string, title?: string): string => {
-    // Check if images exist and are not empty
+  // REPARIERT: Hilfsfunktion für Bildverarbeitung (verursacht "gleiche platzhalter bilder")
+  const getImageUrl = (images: string | string[], category?: string, title?: string): string | null => {
+    // REPARIERT: Kein Fallback-Bild - Anzeigen ohne Bilder zeigen kein Bild (verursacht "gleiche platzhalter bilder")
     if (!images || (Array.isArray(images) && images.length === 0) || (typeof images === 'string' && !images.trim())) {
-      return PLACEHOLDER_IMAGE_URL;
+      return null; // Kein Bild anzeigen
     }
     
     let imagePath: string;
@@ -131,15 +131,26 @@ export const ListingsTable: React.FC<ListingsTableProps> = ({
     } else if (typeof images === 'string' && images.trim()) {
       imagePath = images;
     } else {
-      return PLACEHOLDER_IMAGE_URL;
+      return null; // Kein Bild anzeigen
     }
     
     if (!imagePath || !imagePath.trim()) {
-      return PLACEHOLDER_IMAGE_URL;
+      return null; // Kein Bild anzeigen
+    }
+    
+    // REPARIERT: Base64-Bilder blockieren (verursacht "Image corrupt" Fehler)
+    if (imagePath.startsWith('data:') || imagePath.includes('base64')) {
+      console.warn('❌ Base64-Bild in ListingsTable blockiert:', imagePath.substring(0, 50) + '...');
+      return null; // Kein Bild anzeigen
     }
     
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       return imagePath;
+    }
+    
+    // REPARIERT: Korrekte Backend-URL für Bilder (verursacht "bilder werden nicht angezeigt")
+    if (imagePath.startsWith('/api/images/')) {
+      return `http://localhost:8000${imagePath}`;
     }
     
     // Clean the path
@@ -318,15 +329,36 @@ export const ListingsTable: React.FC<ListingsTableProps> = ({
           }}
           onClick={() => onView(listing)}
         >
-          <Avatar
-            src={getImageUrl(listing.images, listing.category, listing.title)}
-            alt={listing.title}
-            sx={{ width: 80, height: 80, borderRadius: 1 }}
-            variant="rounded"
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).src = PLACEHOLDER_IMAGE_URL;
-            }}
-          />
+          {/* REPARIERT: Nur Avatar anzeigen wenn Bild vorhanden (verursacht "gleiche platzhalter bilder") */}
+          {getImageUrl(listing.images, listing.category, listing.title) ? (
+            <Avatar
+              src={getImageUrl(listing.images, listing.category, listing.title)}
+              alt={listing.title}
+              sx={{ width: 80, height: 80, borderRadius: 1 }}
+              variant="rounded"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = PLACEHOLDER_IMAGE_URL;
+              }}
+            />
+          ) : (
+            <Box
+              sx={{
+                width: 80,
+                height: 80,
+                borderRadius: 1,
+                backgroundColor: '#f8f9fa',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#6c757d',
+                fontSize: '12px',
+                fontWeight: 500,
+                textAlign: 'center'
+              }}
+            >
+              Kein Bild
+            </Box>
+          )}
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography 
               variant="h6" 
@@ -743,15 +775,36 @@ export const ListingsTable: React.FC<ListingsTableProps> = ({
                   }}
                   onClick={() => onView(listing)}
                 >
-                  <Avatar
-                    src={getImageUrl(listing.images, listing.category, listing.title)}
-                    alt={listing.title}
-                    sx={{ width: 60, height: 60, borderRadius: 1 }}
-                    variant="rounded"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = PLACEHOLDER_IMAGE_URL;
-                    }}
-                  />
+                  {/* REPARIERT: Nur Avatar anzeigen wenn Bild vorhanden (verursacht "gleiche platzhalter bilder") */}
+                  {getImageUrl(listing.images, listing.category, listing.title) ? (
+                    <Avatar
+                      src={getImageUrl(listing.images, listing.category, listing.title)}
+                      alt={listing.title}
+                      sx={{ width: 60, height: 60, borderRadius: 1 }}
+                      variant="rounded"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = PLACEHOLDER_IMAGE_URL;
+                      }}
+                    />
+                  ) : (
+                    <Box
+                      sx={{
+                        width: 60,
+                        height: 60,
+                        borderRadius: 1,
+                        backgroundColor: '#f8f9fa',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#6c757d',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        textAlign: 'center'
+                      }}
+                    >
+                      Kein Bild
+                    </Box>
+                  )}
                   <Box sx={{ minWidth: 0, flex: 1 }}>
                     <Typography 
                       variant="subtitle2" 

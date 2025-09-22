@@ -150,9 +150,9 @@ const NotificationSettingsPage: React.FC = () => {
           </Alert>
         )}
 
-        <Grid container spacing={3}>
+        <Box sx={{ display: 'grid', gap: 2 }}>
           {/* E-Mail Benachrichtigungen */}
-          <Grid size={12}>
+          <Box>
             <Card>
               <CardHeader
                 avatar={<EmailIcon color="primary" />}
@@ -176,10 +176,10 @@ const NotificationSettingsPage: React.FC = () => {
                 ))}
               </CardContent>
             </Card>
-          </Grid>
+          </Box>
 
           {/* Push Benachrichtigungen */}
-          <Grid size={12}>
+          <Box>
             <Card>
               <CardHeader
                 avatar={<SmartphoneIcon color="primary" />}
@@ -203,10 +203,10 @@ const NotificationSettingsPage: React.FC = () => {
                 ))}
               </CardContent>
             </Card>
-          </Grid>
+          </Box>
 
           {/* In-App Benachrichtigungen */}
-          <Grid size={12}>
+          <Box>
             <Card>
               <CardHeader
                 avatar={<ComputerIcon color="primary" />}
@@ -230,8 +230,8 @@ const NotificationSettingsPage: React.FC = () => {
                 ))}
               </CardContent>
             </Card>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
 
         <Divider sx={{ my: 3 }} />
 

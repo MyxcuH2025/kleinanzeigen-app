@@ -123,8 +123,8 @@ export const LocationTab: React.FC<LocationTabProps> = ({ listing }) => {
       </Box>
 
       {/* Super-Team Location Info */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
+      <Box sx={{ display: 'grid', gap: 2 }}>
+        <Box>
           <Paper
             elevation={0}
             sx={{
@@ -224,9 +224,9 @@ export const LocationTab: React.FC<LocationTabProps> = ({ listing }) => {
             <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
               In der Nähe
             </Typography>
-            <Grid container spacing={1}>
+            <Box sx={{ display: 'grid', gap: 2 }}>
               {locationData.nearbyLandmarks.map((landmark, index) => (
-                <Grid item xs={6} sm={4} key={index}>
+                <Box>
                   <Chip
                     label={landmark}
                     size="small"
@@ -236,13 +236,13 @@ export const LocationTab: React.FC<LocationTabProps> = ({ listing }) => {
                       border: '1px solid rgba(59, 130, 246, 0.2)'
                     }}
                   />
-                </Grid>
+                </Box>
               ))}
-            </Grid>
+            </Box>
           </Paper>
-        </Grid>
+        </Box>
 
-        <Grid item xs={12} md={4}>
+        <Box>
           {/* Super-Team Delivery Options */}
           <Paper
             elevation={0}
@@ -324,8 +324,8 @@ export const LocationTab: React.FC<LocationTabProps> = ({ listing }) => {
               Verkäufer kontaktieren
             </Button>
           </Paper>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
 
       {/* Super-Team Safety Tips */}
       <Alert 

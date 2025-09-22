@@ -198,6 +198,60 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     setDesktopSidebarOpen(!desktopSidebarOpen);
   };
 
+  // Profilbild-Upload Funktion
+  const handleProfileImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validierung
+    if (!file.type.startsWith('image/')) {
+      alert('Bitte wähle ein Bildformat aus (JPG, PNG, etc.)');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB Limit
+      alert('Das Bild ist zu groß. Maximal 5MB erlaubt.');
+      return;
+    }
+
+    try {
+      // Erstelle FormData für Upload
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Upload zum Backend
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/users/me/avatar', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        // Update User-Daten - Backend gibt vollständigen User zurück
+        setUserData(result);
+        localStorage.setItem('user', JSON.stringify(result));
+        
+        console.log('Profilbild erfolgreich hochgeladen:', result.avatar);
+        alert('Profilbild erfolgreich hochgeladen!');
+      } else {
+        const errorText = await response.text();
+        console.error('Upload fehlgeschlagen:', response.status, errorText);
+        alert('Upload fehlgeschlagen. Bitte versuche es erneut.');
+      }
+    } catch (error) {
+      console.error('Upload-Fehler:', error);
+      alert('Upload-Fehler. Bitte versuche es erneut.');
+    }
+
+    // Reset input
+    event.target.value = '';
+  };
+
   // Lade User direkt aus localStorage, ohne UserContext
   useEffect(() => {
     const loadUser = async () => {
@@ -292,6 +346,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               </Box>
               <IconButton
                 size="small"
+                onClick={() => document.getElementById('profile-image-upload')?.click()}
                 sx={{
                   position: 'absolute',
                   bottom: -2,
@@ -311,6 +366,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                 <CameraIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
               </IconButton>
           </Box>
+
+          {/* Versteckter File-Input für Profilbild-Upload */}
+          <input
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            id="profile-image-upload"
+            onChange={handleProfileImageUpload}
+          />
          
             {/* User Info - Zentriert unter dem Avatar */}
             <Box sx={{ 
@@ -329,7 +393,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                   mb: 0.75
                 }}
               >
-                {userData?.username || 'Test User'}
+                {userData?.username || userData?.first_name || 'zaur'}
          </Typography>
               <Typography 
                 variant="body2" 

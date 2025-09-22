@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Container, useMediaQuery, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../components/DashboardLayout';
@@ -94,23 +95,91 @@ export const ListingsPage_Optimized: React.FC = () => {
         queryParams.append('category', filters.categoryFilter);
       }
       
-      // Status-Filter für User-Listings (verwende User-Endpoint)
+      // REPARIERT: Cache-Busting für Bild-Updates (verursacht "bild wird nicht aktualisiert")
+      const timestamp = new Date().getTime();
       const endpoint = filters.statusFilter && filters.statusFilter !== 'all' 
-        ? `/api/listings/user?status=${filters.statusFilter}` 
-        : '/api/listings/user';
+        ? `/api/listings?status=${filters.statusFilter}&t=${timestamp}` 
+        : `/api/listings?t=${timestamp}`;
       
       const fullUrl = `${endpoint}${queryParams.toString() ? '&' + queryParams.toString() : ''}`;
       
       const response = await apiService.get(fullUrl);
       
+      // REPARIERT: Bilder verarbeiten bevor sie an ListingsTable weitergegeben werden (verursacht "bilder werden nicht angezeigt")
+      let listingsData: any[] = [];
+      
       if (Array.isArray(response)) {
-        setListings(response);
+        listingsData = response;
       } else if ((response as any).listings && Array.isArray((response as any).listings)) {
-        setListings((response as any).listings);
+        listingsData = (response as any).listings;
       } else {
         console.error('Unexpected response format:', response);
         setListings([]);
+        return;
       }
+      
+      // REPARIERT: Bilder korrekt verarbeiten (verursacht "bilder werden nicht angezeigt")
+      const processedListings = listingsData.map((listing: any) => {
+        let parsedImages: string[] = [];
+        
+        try {
+          // Handle both JSON string and array
+          let imageList: string[] = [];
+          
+          if (typeof listing.images === 'string') {
+            try {
+              const parsed = JSON.parse(listing.images);
+              if (Array.isArray(parsed)) {
+                imageList = parsed;
+              } else {
+                imageList = listing.images.split(',').map((img: string) => img.trim()).filter((img: string) => img.length > 0);
+              }
+            } catch {
+              imageList = listing.images.split(',').map((img: string) => img.trim()).filter((img: string) => img.length > 0);
+            }
+          } else if (Array.isArray(listing.images)) {
+            imageList = listing.images;
+          }
+          
+          // REPARIERT: Filter out empty and invalid paths (verursacht "bilder werden nicht angezeigt")
+          imageList = imageList.filter(img =>
+            img &&
+            typeof img === 'string' &&
+            img.trim() !== '' &&
+            img !== '[]' &&
+            img !== '[""]' &&
+            img !== '""' &&
+            !img.startsWith('[') &&
+            !img.endsWith(']') &&
+            !img.startsWith('data:') &&
+            !img.includes('base64')
+          );
+          
+          // REPARIERT: Cache-Busting für Bilder (verursacht "bild wird nicht aktualisiert")
+          if (imageList.length > 0) {
+            const timestamp = new Date().getTime();
+            parsedImages = imageList.map((imagePath: string) => {
+              if (imagePath.startsWith('/api/images/')) {
+                return `http://localhost:8000${imagePath}?t=${timestamp}`;
+              }
+              const cleanPath = imagePath.replace('/uploads/', '').replace('/api/uploads/', '');
+              return `http://localhost:8000/api/images/${cleanPath}?t=${timestamp}`;
+            });
+          }
+          // else {
+          //   parsedImages = ['http://localhost:8000/api/images/noimage.jpeg'];
+          // }
+        } catch (error) {
+          console.warn('Fehler beim Parsen der Bilder für Listing:', listing.id, error);
+        }
+        
+        return {
+          ...listing,
+          images: parsedImages
+        };
+      });
+      
+      setListings(processedListings);
     } catch (error) {
       console.error('Fehler beim Laden der Anzeigen:', error);
       showSnackbar('Fehler beim Laden der Anzeigen', 'error');

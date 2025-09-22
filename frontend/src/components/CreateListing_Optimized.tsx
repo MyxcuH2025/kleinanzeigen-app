@@ -34,9 +34,12 @@ const CreateListing_Optimized: React.FC = () => {
   const [priceType, setPriceType] = useState<'fixed' | 'negotiable' | 'free'>('fixed');
   const [location, setLocation] = useState('');
   const [category, setCategory] = useState('');
+  const [subcategory, setSubcategory] = useState('');
+  const [item, setItem] = useState('');
   const [isHighlighted, setIsHighlighted] = useState(false);
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [uploadedUrls, setUploadedUrls] = useState<string[]>([]); // REPARIERT: Hochgeladene URLs
   
   // Backend-synchronisierte Attribute
   const [attributes, setAttributes] = useState<Record<string, any>>({});
@@ -132,8 +135,10 @@ const CreateListing_Optimized: React.FC = () => {
         price: priceType === 'free' ? 0 : parseFloat(price),
         location,
         category,
+        subcategory: subcategory || null,
+        item: item || null,
         condition: attributes.zustand || 'Gut', // Fallback für Kleinanzeigen
-        images: imagePreviews, // URLs der hochgeladenen Bilder
+        images: uploadedUrls, // REPARIERT: Verwende hochgeladene URLs statt Base64-Previews
         attributes: attributes, // Backend-synchronisierte Attribute
         highlighted: isHighlighted,
         listingType
@@ -141,8 +146,30 @@ const CreateListing_Optimized: React.FC = () => {
 
       console.log('Listing-Daten (Backend-synchronisiert):', listingData);
       
-      // Hier würde die API-Anfrage stattfinden
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulierte API-Anfrage
+      // Echte API-Anfrage mit User-ID
+      const response = await fetch('http://localhost:8000/api/listings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(listingData)
+      });
+
+      if (!response.ok) {
+        // 401 Unauthenticated ist normal - User ist nicht eingeloggt
+        if (response.status === 401) {
+          setSnackbar({
+            open: true,
+            message: 'Bitte loggen Sie sich ein, um eine Anzeige zu erstellen',
+            severity: 'error'
+          });
+          return;
+        }
+        throw new Error('Fehler beim Erstellen der Anzeige');
+      }
+
+      const createdListing = await response.json();
       
       setSnackbar({
         open: true,
@@ -208,6 +235,10 @@ const CreateListing_Optimized: React.FC = () => {
               setListingType={setListingType}
               category={category}
               setCategory={setCategory}
+              subcategory={subcategory}
+              setSubcategory={setSubcategory}
+              item={item}
+              setItem={setItem}
               isHighlighted={isHighlighted}
               setIsHighlighted={setIsHighlighted}
               errors={errors}
@@ -247,6 +278,8 @@ const CreateListing_Optimized: React.FC = () => {
               setImages={setImages}
               imagePreviews={imagePreviews}
               setImagePreviews={setImagePreviews}
+              uploadedUrls={uploadedUrls}
+              setUploadedUrls={setUploadedUrls}
               errors={errors}
             />
 

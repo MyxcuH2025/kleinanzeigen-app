@@ -1,12 +1,10 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import * as React from 'react';
+import { useState, useEffect, Suspense, lazy, useMemo, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { CssBaseline, Box, Skeleton, Button, CircularProgress } from '@mui/material';
 import { CategoryCards } from './components/CategoryCards';
 
 // OPTIMIERT: Lazy Loading für alle großen Komponenten
-const ListingDetailMinimal = lazy(() => import('./components/ListingDetailMinimal'));
-const ListingDetailStrong = lazy(() => import('./components/ListingDetailStrong'));
-const ListingDetailNextLevel = lazy(() => import('./components/ListingDetailNextLevel'));
 const ListingDetailPage = lazy(() => import('./features/listingDetail/ListingDetailPage'));
 const CategoryPage = lazy(() => import('./pages/CategoryPage').then(m => ({ default: m.CategoryPage })));
 const ChatPage = lazy(() => import('./pages/ChatPage').then(m => ({ default: m.ChatPage })));
@@ -23,7 +21,9 @@ import { UserProvider } from "./context/UserContext";
 import { FavoritesProvider } from "./context/FavoritesContext";
 import { AdminProvider } from "./context/AdminContext";
 import { FollowProvider } from "./context/FollowContext";
+// REPARIERT: StoriesProvider korrekt importieren (verursacht "useStoriesStore must be used within a StoriesProvider")
 import { StoriesProvider } from "./features/stories/store/stories.store";
+import { StoriesFeature } from "./features/stories/StoriesFeature";
 import SessionManager from "./components/SessionManager";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -47,6 +47,8 @@ const AdminDashboard_Optimized = lazy(() => import("./components/AdminDashboard_
 const DashboardPage = lazy(() => import("./pages/DashboardPage").then(m => ({ default: m.DashboardPage })));
 const DashboardPage_Optimized = lazy(() => import("./pages/DashboardPage_Optimized").then(m => ({ default: m.DashboardPage_Optimized })));
 const FavoritesPage = lazy(() => import("./pages/FavoritesPage").then(m => ({ default: m.FavoritesPage })));
+const PaymentPage = lazy(() => import("./pages/PaymentPage").then(m => ({ default: m.PaymentPage })));
+const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
 const ListingsPage = lazy(() => import("./pages/ListingsPage").then(m => ({ default: m.ListingsPage })));
 const ListingsPage_Optimized = lazy(() => import("./pages/ListingsPage_Optimized").then(m => ({ default: m.ListingsPage_Optimized })));
 const StoriesPage = lazy(() => import("./features/stories/StoriesPage").then(m => ({ default: m.StoriesPage })));
@@ -55,7 +57,6 @@ const StoriesPage = lazy(() => import("./features/stories/StoriesPage").then(m =
 const CalendarPage = lazy(() => import("./pages/CalendarPage").then(m => ({ default: m.CalendarPage })));
 const TemplatesPage = lazy(() => import('./pages/TemplatesPage').then(m => ({ default: m.TemplatesPage })));
 const TextTemplatesPage = lazy(() => import('./pages/TextTemplatesPage').then(m => ({ default: m.TextTemplatesPage })));
-const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const FAQContactPage = lazy(() => import('./pages/FAQContactPage'));
@@ -140,7 +141,7 @@ interface HomePageProps {
 const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
   const [listings, setListings] = useState<any[]>([]);
   const [loadingAds, setLoadingAds] = useState(true);
-  const [filteredAds, setFilteredAds] = useState<any[]>([]);
+  // PERFORMANCE-OPTIMIERUNG: filteredAds jetzt in useMemo
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -150,11 +151,15 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
       try {
         setLoadingAds(true);
         
-        // PERFORMANCE-OPTIMIERUNG: Verzögertes Laden um andere API-Calls nicht zu blockieren
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Verwende die gleiche API wie die User-Profil-Seite
-        const response = await fetch('http://localhost:8000/api/listings');
+        // REPARIERT: Cache-Busting für Bild-Updates (verursacht "bild wird nicht aktualisiert")
+        const timestamp = new Date().getTime();
+        const response = await fetch(`http://localhost:8000/api/listings?t=${timestamp}`, {
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -163,28 +168,56 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
         // Backend gibt jetzt {listings: [...], pagination: {...}} zurück
         const listingsData = data.listings || data;
         
-        // Verarbeite die Bilder für jedes Listing (wie in User-Profil-Seite)
+        // PERFORMANCE-OPTIMIERUNG: Memoized Bildverarbeitung
         const processedListings = listingsData.map((listing: any) => {
           let parsedImages: string[] = [];
           try {
-            // Bilder können als String (kommagetrennt) oder Array kommen
+            // REPARIERT: Bilder korrekt verarbeiten (verursacht "Image corrupt" Fehler)
             let imageList: string[] = [];
             
             if (typeof listing.images === 'string') {
-              // Kommagetrennte Liste in Array umwandeln
-              imageList = listing.images.split(',').map((img: string) => img.trim()).filter((img: string) => img.length > 0);
+              // REPARIERT: JSON-String zu Array parsen
+              try {
+                const parsed = JSON.parse(listing.images);
+                if (Array.isArray(parsed)) {
+                  imageList = parsed;
+                } else {
+                  // Fallback: Kommagetrennte Liste
+                  imageList = listing.images.split(',').map((img: string) => img.trim()).filter((img: string) => img.length > 0);
+                }
+              } catch {
+                // Fallback: Kommagetrennte Liste
+                imageList = listing.images.split(',').map((img: string) => img.trim()).filter((img: string) => img.length > 0);
+              }
             } else if (Array.isArray(listing.images)) {
               imageList = listing.images;
             }
             
+            // REPARIERT: Leere Arrays, ungültige Werte und Base64-Bilder filtern (verursacht "bilder werden nicht angezeigt")
+            imageList = imageList.filter(img => 
+              img && 
+              typeof img === 'string' && 
+              img.trim() !== '' && 
+              img !== '[]' && 
+              img !== '[""]' &&
+              img !== '""' &&
+              !img.startsWith('[') &&
+              !img.endsWith(']') &&
+              !img.startsWith('data:') &&
+              !img.includes('base64')
+            );
+            
             if (imageList.length > 0) {
               parsedImages = imageList.map((imagePath: string) => {
-                // Wenn bereits /api/images/ enthalten ist, verwende es direkt
-                if (imagePath.startsWith('/api/images/')) {
-                  return `http://localhost:8000${imagePath}`;
-                }
-                // Entferne /uploads/ Präfix falls vorhanden
-                const cleanPath = imagePath.replace('/uploads/', '');
+                // Entferne alle Pfad-Präfixe und bereinige
+                let cleanPath = imagePath
+                  .replace('/api/images/', '')
+                  .replace('api/images/', '')
+                  .replace('/api/uploads/', '')
+                  .replace('api/uploads/', '')
+                  .replace('/uploads/', '')
+                  .replace('uploads/', '');
+                
                 // Verwende den /api/images/ Endpunkt
                 return `http://localhost:8000/api/images/${cleanPath}`;
               });
@@ -193,10 +226,10 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
             console.warn('Fehler beim Parsen der Bilder für Listing:', listing.id, error);
           }
           
-          // Fallback-Bild nur wenn wirklich keine Bilder vorhanden
-          if (parsedImages.length === 0) {
-            parsedImages = ['/images/noimage.jpeg'];
-          }
+            // REPARIERT: Kein Fallback-Bild - Anzeigen ohne Bilder zeigen kein Bild (verursacht "gleiche platzhalter bilder")
+            // if (parsedImages.length === 0) {
+            //   parsedImages = ['http://localhost:8000/api/images/noimage.jpeg'];
+            // }
 
           // console.log('Processed listing:', { // Removed for performance
           //   id: listing.id,
@@ -223,32 +256,21 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
   }, []);
 
   // Live-Search Filterung
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      // Wenn Suche leer ist, zeige alle Anzeigen
-      setFilteredAds(listings);
-    } else {
-      // Filtere Anzeigen basierend auf Suchbegriff
-      const filtered = listings.filter((listing: any) => {
-        const searchTerm = searchQuery.toLowerCase();
-        return (
-          listing.title?.toLowerCase().includes(searchTerm) ||
-          listing.description?.toLowerCase().includes(searchTerm) ||
-          listing.category?.toLowerCase().includes(searchTerm) ||
-          listing.location?.toLowerCase().includes(searchTerm)
-        );
-      });
-      setFilteredAds(filtered);
-    }
-  }, [searchQuery, listings]);
+  // PERFORMANCE-OPTIMIERUNG: Alte Filterung entfernt - jetzt in useMemo
 
-  // Filter ads - immer Kleinanzeigen für die Hauptseite
-  useEffect(() => {
-    // Zeige nur Kleinanzeigen (alle außer Autos) auf der Hauptseite
-    setFilteredAds(listings.filter(listing => 
-      listing.category?.toLowerCase() !== 'autos'
-    ));
-  }, [listings]);
+  // PERFORMANCE-OPTIMIERUNG: Memoized Filterung
+  const filteredAds = useMemo(() => {
+    if (searchQuery.trim()) {
+      const searchTerm = searchQuery.toLowerCase();
+      return listings.filter(listing => 
+        listing.title?.toLowerCase().includes(searchTerm) ||
+        listing.description?.toLowerCase().includes(searchTerm) ||
+        listing.location?.toLowerCase().includes(searchTerm)
+      );
+    }
+    // REPARIERT: Zeige alle Anzeigen auf der Hauptseite (verursacht "erstellte anzeige erscheint nicht")
+    return listings;
+  }, [searchQuery, listings]);
 
   return (
     <Box sx={{ 
@@ -259,6 +281,16 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
     }}>
       {/* Keine Suchmaske mehr - direkt zu Kleinanzeigen-Inhalten */}
       <Box sx={{ px: { xs: 1, sm: 2, md: 3 }, bgcolor: '#ffffff', pt: { xs: 0.5, sm: 1, md: 1 } }}>
+        
+                {/* Modulare Stories-Feature direkt unter dem Menü */}
+                <Box sx={{ mb: { xs: 2, sm: 3, md: 3 } }}>
+                  <StoriesFeature
+                    showInFeed={true}
+                    showCreateButton={true}
+                    maxStories={10}
+                  />
+                </Box>
+
         {/* Kategorie-Buttons nur auf Desktop */}
         {/* Hauptkategorien entfernt - Autos Button ist jetzt in der oberen Menüleiste */}
 
@@ -296,13 +328,14 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
                   location={listing.location}
                   images={listing.images}
                   category={listing.category}
-                  status={listing.status}
                   views={listing.views || 0}
                   created_at={listing.created_at}
                   attributes={listing.attributes || {}}
-                  seller={{
-                    name: 'max.mueller',
-                    avatar: ''
+                  seller={listing.seller || {
+                    name: 'Unbekannt',
+                    avatar: '',
+                    rating: 0,
+                    reviewCount: 0
                   }}
                   vehicleDetails={undefined}
                 />
@@ -337,7 +370,7 @@ function App() {
                   >
                     <Routes>
                     <Route path="/" element={<HomePage searchQuery={searchQuery} />} />
-                    <Route path="/category/autos" element={<SuspenseWrapper><AutosPage /></SuspenseWrapper>} />
+                    <Route path="/category/autos" element={<Navigate to="/category/auto-rad-boot" replace />} />
                     <Route path="/category/:slug" element={<SuspenseWrapper><CategoryPage /></SuspenseWrapper>} />
                     <Route path="/category/:slug/:sub" element={<SuspenseWrapper><CategoryPage /></SuspenseWrapper>} />
                     <Route path="/listing/:id" element={<SuspenseWrapper><ListingDetailPage /></SuspenseWrapper>} />
@@ -365,6 +398,16 @@ function App() {
                         <FavoritesPage />
                       </ProtectedRoute>
                     } />
+        <Route path="/payments" element={
+          <ProtectedRoute>
+            <PaymentPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/analytics" element={
+          <ProtectedRoute>
+            <AnalyticsPage />
+          </ProtectedRoute>
+        } />
                     <Route path="/merkliste" element={
                       <ProtectedRoute>
                         <FavoritesPage />

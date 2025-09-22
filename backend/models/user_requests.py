@@ -7,6 +7,8 @@ from typing import Optional, Dict
 class UserCreate(SQLModel):
     email: str = Field(..., description="E-Mail-Adresse")
     password: str = Field(..., min_length=6, max_length=100)
+    first_name: str = Field(..., min_length=1, max_length=100, description="Vorname ist erforderlich")
+    last_name: str = Field(default="", max_length=100, description="Nachname")
 
 class LoginRequest(SQLModel):
     email: str = Field(..., description="E-Mail-Adresse")

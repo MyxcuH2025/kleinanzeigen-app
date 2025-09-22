@@ -151,6 +151,22 @@ class ConnectionManager:
         for websocket in disconnected_connections:
             self.disconnect(websocket)
     
+    async def broadcast(self, message: str):
+        """Broadcast-Nachricht an alle verbundenen Clients"""
+        disconnected_connections = set()
+        
+        for user_id, websockets in self.active_connections.items():
+            for websocket in websockets:
+                try:
+                    await websocket.send_text(message)
+                except Exception as e:
+                    logger.error(f"Fehler beim Broadcast: {e}")
+                    disconnected_connections.add(websocket)
+        
+        # Entferne defekte Verbindungen
+        for websocket in disconnected_connections:
+            self.disconnect(websocket)
+    
     def get_connected_users(self) -> List[int]:
         """Liste aller verbundenen User-IDs"""
         return list(self.active_connections.keys())

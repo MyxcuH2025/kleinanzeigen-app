@@ -407,7 +407,7 @@ def get_user_profile(
                 "subcategory": getattr(listing, 'subcategory', None),
                 "condition": listing.condition,
                 "location": listing.location,
-                "images": json.loads(listing.images) if listing.images else [],
+                "images": json.loads(listing.images) if listing.images and listing.images != "Array[]" else [],
                 "status": listing.status.lower() if listing.status else "active",
                 "created_at": listing.created_at.isoformat() if listing.created_at else None,
                 "updated_at": listing.updated_at.isoformat() if listing.updated_at else None,

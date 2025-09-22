@@ -7,7 +7,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 import logging
 import redis
-from models.story import Story, StoryView, StoryReaction, StoryComment, StoryReactionType
+from models.story import Story, StoryView, StoryReaction, StoryComment, StoryReactionType, StoryMediaType
 from models.user import User
 
 logger = logging.getLogger(__name__)
@@ -23,10 +23,12 @@ class StoriesService:
         self, 
         user_id: int, 
         media_url: str, 
-        media_type: str, 
+        media_type: StoryMediaType, 
         caption: Optional[str] = None,
         duration: int = 15,
-        thumbnail_url: Optional[str] = None
+        thumbnail_url: Optional[str] = None,
+        text_overlays: Optional[str] = None,
+        sticker_overlays: Optional[str] = None
     ) -> Story:
         """Story erstellen"""
         try:
@@ -38,6 +40,8 @@ class StoriesService:
                 caption=caption,
                 duration=duration,
                 thumbnail_url=thumbnail_url,
+                text_overlays=text_overlays,
+                sticker_overlays=sticker_overlays,
                 expires_at=datetime.utcnow() + timedelta(hours=24)
             )
             
@@ -50,6 +54,15 @@ class StoriesService:
             # Redis-Cache für User-Stories invalidieren
             if self.redis:
                 await self._invalidate_user_stories_cache(user_id)
+                # Zusätzlich: Feed-Cache für alle User invalidieren
+                try:
+                    pattern = "stories:feed:*"
+                    keys = self.redis.keys(pattern)
+                    if keys:
+                        self.redis.delete(*keys)
+                        logger.info(f"Feed-Cache invalidiert: {len(keys)} Keys gelöscht")
+                except Exception as cache_error:
+                    logger.warning(f"Fehler beim Invalidieren des Feed-Caches: {cache_error}")
             
             return story
             
@@ -82,11 +95,12 @@ class StoriesService:
             # Stories von gefolgten Usern abrufen (N+1 Query optimiert)
             # TODO: Implementiere Follow-System für Stories-Feed
             # Für jetzt: Alle aktiven Stories mit User-Info in einer Query
+            # WICHTIG: Eigene Stories sind jetzt auch im Feed sichtbar
             query = select(Story).where(
                 and_(
                     Story.is_active == True,
-                    Story.expires_at > datetime.utcnow(),
-                    Story.user_id != user_id  # Eigene Stories nicht im Feed
+                    Story.expires_at > datetime.utcnow()
+                    # Keine user_id != user_id Filterung - eigene Stories sind erlaubt
                 )
             ).options(
                 joinedload(Story.user)  # Verhindert N+1 Queries
@@ -132,6 +146,8 @@ class StoriesService:
                     "created_at": story.created_at.isoformat(),
                     "expires_at": story.expires_at.isoformat(),
                     "is_active": story.is_active,
+                    "text_overlays": story.text_overlays,
+                    "sticker_overlays": story.sticker_overlays,
                     "has_viewed": has_viewed,
                     "user_reaction": user_reaction,
                     "user_name": f"{story.user.first_name} {story.user.last_name}".strip() if story.user else "Unbekannt",
@@ -141,11 +157,23 @@ class StoriesService:
             # In Redis-Cache speichern (5 Minuten TTL)
             if self.redis:
                 import json
-                await self.redis.setex(
+                self.redis.setex(  # ✅ KORREKT: setex() ist synchron
                     cache_key, 
                     300,  # 5 Minuten
                     json.dumps(feed_data, default=str)
                 )
+            
+            # Cache für alle User invalidieren (da eigene Stories jetzt sichtbar sind)
+            if self.redis:
+                try:
+                    # Alle Feed-Caches löschen
+                    pattern = "stories:feed:*"
+                    keys = self.redis.keys(pattern)
+                    if keys:
+                        self.redis.delete(*keys)
+                        logger.info(f"Feed-Cache invalidiert: {len(keys)} Keys gelöscht")
+                except Exception as cache_error:
+                    logger.warning(f"Fehler beim Invalidieren des Feed-Caches: {cache_error}")
             
             return feed_data
             
@@ -159,8 +187,8 @@ class StoriesService:
             query = select(func.count(Story.id)).where(
                 and_(
                     Story.is_active == True,
-                    Story.expires_at > datetime.utcnow(),
-                    Story.user_id != user_id  # Eigene Stories nicht zählen
+                    Story.expires_at > datetime.utcnow()
+                    # Eigene Stories sind jetzt auch im Count enthalten
                 )
             )
             
@@ -284,12 +312,35 @@ class StoriesService:
             if story.user_id != user_id:
                 raise ValueError("Keine Berechtigung zum Löschen dieser Story")
             
-            # Story als inaktiv markieren (soft delete)
-            story.is_active = False
-            self.session.add(story)
+            # Media-Dateien löschen (nur wenn sie existieren)
+            import os
+            if story.media_url:
+                try:
+                    # Prüfe ob Datei existiert und lösche sie
+                    if os.path.exists(story.media_url):
+                        os.remove(story.media_url)
+                        logger.info(f"Media-Datei gelöscht: {story.media_url}")
+                    else:
+                        logger.info(f"Media-Datei existiert nicht: {story.media_url}")
+                except Exception as e:
+                    logger.warning(f"Konnte Media-Datei nicht löschen: {e}")
+            
+            if story.thumbnail_url:
+                try:
+                    # Prüfe ob Datei existiert und lösche sie
+                    if os.path.exists(story.thumbnail_url):
+                        os.remove(story.thumbnail_url)
+                        logger.info(f"Thumbnail-Datei gelöscht: {story.thumbnail_url}")
+                    else:
+                        logger.info(f"Thumbnail-Datei existiert nicht: {story.thumbnail_url}")
+                except Exception as e:
+                    logger.warning(f"Konnte Thumbnail-Datei nicht löschen: {e}")
+            
+            # Story komplett aus Datenbank löschen (hard delete)
+            self.session.delete(story)
             self.session.commit()
             
-            logger.info(f"Story {story_id} von User {user_id} gelöscht")
+            logger.info(f"Story {story_id} von User {user_id} komplett gelöscht")
             
             # Cache invalidieren
             if self.redis:
@@ -366,9 +417,9 @@ class StoriesService:
         
         # Alle Cache-Keys für diese Story entfernen
         pattern = f"stories:*{story_id}*"
-        keys = await self.redis.keys(pattern)
+        keys = self.redis.keys(pattern)  # ✅ KORREKT: keys() ist synchron
         if keys:
-            await self.redis.delete(*keys)
+            self.redis.delete(*keys)  # ✅ KORREKT: delete() ist auch synchron
     
     async def _invalidate_user_stories_cache(self, user_id: int):
         """User-Stories-Cache invalidieren"""
@@ -377,9 +428,9 @@ class StoriesService:
         
         # Alle Cache-Keys für diesen User entfernen
         pattern = f"stories:*{user_id}*"
-        keys = await self.redis.keys(pattern)
+        keys = self.redis.keys(pattern)  # ✅ KORREKT: keys() ist synchron
         if keys:
-            await self.redis.delete(*keys)
+            self.redis.delete(*keys)  # ✅ KORREKT: delete() ist auch synchron
     
     def _batch_get_viewer_status(self, story_ids: List[int], user_id: int) -> Dict[int, bool]:
         """Batch-Query für Viewer-Status (verhindert N+1)"""

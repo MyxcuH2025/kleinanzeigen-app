@@ -1,4 +1,6 @@
 // Breadcrumb Service für dynamische Kategorie-Navigation
+import { categories as frontendCategories } from '@/data/categories';
+
 export interface BreadcrumbItem {
   id: number;
   name: string;
@@ -18,15 +20,21 @@ class BreadcrumbService {
   private subcategories: any[] = [];
   private items: any[] = [];
 
-  // Kategorien vom Backend laden
+  // Kategorien vom Frontend laden (statt Backend)
   async loadCategories() {
     try {
-      const response = await fetch('http://localhost:8000/api/categories/all');
-      if (response.ok) {
-        this.categories = await response.json();
-      }
+      // Verwende Frontend-Kategorien statt Backend
+      this.categories = frontendCategories.map((cat, index) => ({
+        id: index + 1,
+        value: cat.value,
+        label: cat.label,
+        icon: cat.icon,
+        subcategories: cat.subcategories
+      }));
+      
+      console.log('🍞 Frontend categories loaded:', this.categories.length, 'categories');
     } catch (error) {
-      console.error('Fehler beim Laden der Kategorien:', error);
+      console.error('Fehler beim Laden der Frontend-Kategorien:', error);
     }
   }
 
@@ -56,33 +64,33 @@ class BreadcrumbService {
         icon: mainCategory.icon,
         url: `/category/${mainCategory.value}`
       });
-    }
 
-    // Subkategorie hinzufügen (falls vorhanden)
-    if (subcategoryValue && this.subcategories.length > 0) {
-      const subcategory = this.subcategories.find(sub => sub.value === subcategoryValue);
-      if (subcategory) {
-        path.push({
-          id: subcategory.id,
-          name: subcategory.label,
-          slug: subcategory.value,
-          icon: subcategory.icon,
-          url: `/category/${categoryValue}/${subcategory.value}`
-        });
-      }
-    }
+      // Subkategorie hinzufügen (falls vorhanden)
+      if (subcategoryValue && mainCategory.subcategories) {
+        const subcategory = mainCategory.subcategories.find(sub => sub.value === subcategoryValue);
+        if (subcategory) {
+          path.push({
+            id: subcategory.id || 999,
+            name: subcategory.label,
+            slug: subcategory.value,
+            icon: subcategory.icon || '📦',
+            url: `/category/${categoryValue}/${subcategory.value}`
+          });
 
-    // Item hinzufügen (falls vorhanden)
-    if (itemValue && this.items.length > 0) {
-      const item = this.items.find(item => item.value === itemValue);
-      if (item) {
-        path.push({
-          id: item.id,
-          name: item.label,
-          slug: item.value,
-          icon: item.icon,
-          url: `/category/${categoryValue}/${subcategoryValue}/${item.value}`
-        });
+          // Item hinzufügen (falls vorhanden)
+          if (itemValue && subcategory.items) {
+            const item = subcategory.items.find(item => item === itemValue);
+            if (item) {
+              path.push({
+                id: 9999,
+                name: item,
+                slug: item.toLowerCase().replace(/\s+/g, '-'),
+                icon: '🔹',
+                url: `/category/${categoryValue}/${subcategoryValue}/${item.toLowerCase().replace(/\s+/g, '-')}`
+              });
+            }
+          }
+        }
       }
     }
 
@@ -217,25 +225,14 @@ class BreadcrumbService {
 
   // Fallback-Kategorien für unbekannte Werte
   private getFallbackCategory(categoryValue: string): { label: string; icon: string } {
-    const fallbackMap: { [key: string]: { label: string; icon: string } } = {
-      'auto-rad-boot': { label: 'Auto, Rad & Boot', icon: '🚗' },
-      'real-estate': { label: 'Immobilien', icon: '🏠' },
-      'jobs': { label: 'Jobs', icon: '💼' },
-      'services': { label: 'Dienstleistungen', icon: '🔧' },
-      'electronics': { label: 'Elektronik', icon: '📱' },
-      'home-garden': { label: 'Haus & Garten', icon: '🏡' },
-      'freizeit-hobby': { label: 'Freizeit, Hobby & Nachbarschaft', icon: '⚽' },
-      'familie-kind-baby': { label: 'Familie, Kind & Baby', icon: '👶' },
-      'mode-beauty': { label: 'Mode & Beauty', icon: '👕' },
-      'haustiere': { label: 'Haustiere', icon: '🐕' },
-      'eintrittskarten-tickets': { label: 'Eintrittskarten & Tickets', icon: '🎫' },
-      'musik-filme-buecher': { label: 'Musik, Filme & Bücher', icon: '📚' },
-      'verschenken-tauschen': { label: 'Verschenken & Tauschen', icon: '🎁' },
-      'unterricht-kurse': { label: 'Unterricht & Kurse', icon: '🎓' },
-      'personal-items': { label: 'Persönliche Gegenstände', icon: '👕' }
-    };
+    // Verwende Frontend-Kategorien für Fallback
+    const frontendCategory = frontendCategories.find(cat => cat.value === categoryValue);
+    if (frontendCategory) {
+      return { label: frontendCategory.label, icon: frontendCategory.icon };
+    }
 
-    return fallbackMap[categoryValue] || { label: 'Kategorie', icon: '📦' };
+    // Fallback für unbekannte Kategorien
+    return { label: 'Kategorie', icon: '📦' };
   }
 }
 

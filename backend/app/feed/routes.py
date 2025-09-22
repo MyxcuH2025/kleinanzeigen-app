@@ -81,7 +81,7 @@ def get_personalized_feed(
         listing_data = listing.dict()
         try:
             listing_data["attributes"] = json.loads(listing.attributes)
-            listing_data["images"] = json.loads(listing.images)
+            listing_data["images"] = json.loads(listing.images) if listing.images and listing.images != "Array[]" else []
         except:
             listing_data["attributes"] = {}
             listing_data["images"] = []

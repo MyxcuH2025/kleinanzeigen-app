@@ -6,6 +6,7 @@
 export { default as StoriesFeature } from './StoriesFeature';
 export { default as StoriesBar } from './components/StoriesBar';
 export { default as StoryViewer } from './components/StoryViewer';
+// InstagramStyleStoryViewer wurde gelöscht und durch modulare Komponenten ersetzt
 export { default as StoryCard } from './components/StoryCard';
 export { default as CreateStoryModal } from './components/CreateStoryModal';
 export { default as StoryProgress } from './components/StoryProgress';
@@ -18,18 +19,10 @@ export { default as storiesApi } from './services/stories.api';
 // Types
 export type {
   Story,
-  StoryView,
+  StoryGroup,
   StoryReaction,
-  StoryComment,
   StoryReactionType,
-  StoriesFeedResponse,
-  StoryStats,
-  CreateStoryRequest,
-  StoriesState,
   StoriesBarProps,
   StoryViewerProps,
-  StoryCardProps,
-  CreateStoryModalProps,
-  StoryProgressProps,
-  StoryReactionsProps
+  CreateStoryModalProps
 } from './types/stories.types';

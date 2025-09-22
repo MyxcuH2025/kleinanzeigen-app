@@ -19,7 +19,7 @@ router = APIRouter(prefix="/api", tags=["auth"])
 
 # Engine und OAuth2
 engine = create_engine(config.DATABASE_URL)
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -54,10 +54,25 @@ def verify_password(plain_password, hashed_password):
     # Temporärer Fix für Test-Passwort
     if hashed_password == "testpass" and plain_password == "testpass":
         return True
+    
+    # Debug: Log die Eingaben
+    logger.info(f"VERIFY DEBUG: plain_password='{plain_password}', hashed_password='{hashed_password[:20]}...'")
+    
     try:
-        return pwd_context.verify(plain_password, hashed_password)
-    except:
-        return False
+        result = pwd_context.verify(plain_password, hashed_password)
+        logger.info(f"VERIFY DEBUG: pwd_context.verify result={result}")
+        return result
+    except Exception as e:
+        logger.error(f"VERIFY DEBUG: pwd_context.verify failed: {e}")
+        # Fallback: Direkter bcrypt-Vergleich
+        try:
+            import bcrypt
+            result = bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+            logger.info(f"VERIFY DEBUG: bcrypt.checkpw result={result}")
+            return result
+        except Exception as e2:
+            logger.error(f"VERIFY DEBUG: bcrypt.checkpw also failed: {e2}")
+            return False
 
 def get_password_hash(password):
     return pwd_context.hash(password)

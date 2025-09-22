@@ -21,9 +21,9 @@ class User(SQLModel, table=True):
     seller_verified_at: Optional[datetime] = Field(default=None)
     seller_verification_reason: Optional[str] = Field(default=None, max_length=500)
     
-    # Profil-Felder (falls nicht vorhanden)
-    first_name: Optional[str] = Field(default=None, max_length=100)
-    last_name: Optional[str] = Field(default=None, max_length=100)
+    # Profil-Felder (mit Default Values für Deployment)
+    first_name: str = Field(default="User", max_length=100, description="Vorname")
+    last_name: str = Field(default="", max_length=100, description="Nachname")
     phone: Optional[str] = Field(default=None, max_length=20)
     bio: Optional[str] = Field(default=None, max_length=500)
     location: Optional[str] = Field(default=None, max_length=100)

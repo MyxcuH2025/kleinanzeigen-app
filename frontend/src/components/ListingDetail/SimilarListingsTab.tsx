@@ -184,9 +184,9 @@ export const SimilarListingsTab: React.FC<SimilarListingsTabProps> = ({ listing 
       </Box>
 
       {similarListings.length > 0 ? (
-        <Grid container spacing={3}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: 3 }}>
           {similarListings.map((item) => (
-            <Grid item xs={12} sm={6} md={4} key={item.id}>
+            <Box key={item.id}>
               <Paper
                 elevation={0}
                 sx={{
@@ -358,9 +358,9 @@ export const SimilarListingsTab: React.FC<SimilarListingsTabProps> = ({ listing 
                   </Button>
                 </Box>
               </Paper>
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
       ) : (
         <Paper
           elevation={0}

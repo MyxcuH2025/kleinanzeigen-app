@@ -1,17 +1,17 @@
 /**
  * Stories-Feature - Hauptkomponente für Stories-Integration
+ * Modulare Architektur mit sauberer Trennung
  */
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import {
   Box,
-  Fab,
+  Typography,
   useTheme,
   useMediaQuery
 } from '@mui/material';
-import { Add as AddIcon } from '@mui/icons-material';
 import { useStoriesStore } from './store/stories.store';
-import { StoriesBar } from './components/StoriesBar';
-import { StoryViewer } from './components/StoryViewer';
+import { StoryBar } from './components/StoryBar';
+import { SuperTeamStoryViewer } from './components/SuperTeamStoryViewer';
 import { CreateStoryModal } from './components/CreateStoryModal';
 import { storiesWebSocket, type WebSocketMessage } from './services/stories.websocket';
 import { useUser } from '../../context/UserContext';
@@ -25,127 +25,150 @@ interface StoriesFeatureProps {
 export const StoriesFeature: React.FC<StoriesFeatureProps> = ({
   showInFeed = true,
   showCreateButton = true,
-  maxStories = 10
+  maxStories = 10,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { user, isAuthenticated } = useUser();
+  const { user } = useUser();
   
   const {
-    state,
+    storyGroups,
+    loading,
+    error,
+    addStory,
+    markStoryViewed,
     loadStories,
-    openStoryViewer,
-    closeStoryViewer,
-    nextStory,
-    prevStory,
-    openCreateModal,
-    closeCreateModal,
-    addStory
   } = useStoriesStore();
-  
-  const { stories, loading, error, currentStoryIndex, viewerOpen, createModalOpen } = state;
-  
-  // Stories nur für authentifizierte User laden
+
+  // Viewer State
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+
+  // Stories laden beim Mount und bei User-Änderungen (FIXED: Endlos-Loop behoben)
   useEffect(() => {
-    if (isAuthenticated && user) {
-      loadStories();
-      
-      // WebSocket-Nachrichten-Handler registrieren
-      storiesWebSocket.onMessage('new_story', handleNewStory);
-      storiesWebSocket.onMessage('story_reaction_update', handleStoryReactionUpdate);
-      
+    loadStories();
+  }, [user?.id]); // FIXED: loadStories aus Dependencies entfernt um Endlos-Loop zu vermeiden
+
+
+  // WebSocket Connection
+  useEffect(() => {
+    if (user?.id) {
+      // WebSocket wird automatisch beim ersten Aufruf verbunden
+      const handleMessage = (message: WebSocketMessage) => {
+      };
+
+      storiesWebSocket.onMessage('*', handleMessage);
+
       return () => {
-        // Cleanup: Handler entfernen
-        storiesWebSocket.offMessage('new_story');
-        storiesWebSocket.offMessage('story_reaction_update');
+        storiesWebSocket.disconnect();
       };
     }
-  }, [loadStories, isAuthenticated, user]);
+  }, [user?.id]);
 
-  // WebSocket-Nachrichten-Handler
-  const handleNewStory = (message: WebSocketMessage) => {
-    if (message.story) {
-      // Neue Story zum Store hinzufügen
-      console.log('📱 Neue Story empfangen:', message.story);
-      // Hier könnte der Store aktualisiert werden
+  // Story-Viewer öffnen
+  const openStoryViewer = useCallback((userId: string, storyIndex: number = 0) => {
+    setCurrentUserId(userId);
+    setCurrentStoryIndex(storyIndex);
+    setViewerOpen(true);
+    
+    // Story als gesehen markieren
+    const userGroup = storyGroups.find(group => group.user_id === userId);
+    if (userGroup?.stories[storyIndex]) {
+      markStoryViewed(userId, userGroup.stories[storyIndex].id);
     }
-  };
+  }, [storyGroups, markStoryViewed]);
 
-  const handleStoryReactionUpdate = (message: WebSocketMessage) => {
-    console.log('❤️ Story-Reaction Update:', message);
-    // Hier könnte der Store mit neuen Reaction-Daten aktualisiert werden
-  };
-  
-  // Nicht für nicht-authentifizierte User anzeigen
-  if (!isAuthenticated || !user) {
-    return null;
-  }
-  
-  // Loading-State
-  if (loading) {
-    return (
-      <Box sx={{ p: 2, textAlign: 'center' }}>
-        Stories werden geladen...
-      </Box>
-    );
-  }
-  
-  // Error-State
+  // Story-Viewer schließen
+  const closeStoryViewer = useCallback(() => {
+    setViewerOpen(false);
+    setCurrentUserId(null);
+    setCurrentStoryIndex(0);
+  }, []);
+
+  // Navigation zwischen Users
+  const handleNextUser = useCallback((userId: string) => {
+    setCurrentUserId(userId);
+    setCurrentStoryIndex(0);
+  }, []);
+
+  const handlePrevUser = useCallback((userId: string) => {
+    setCurrentUserId(userId);
+    const userGroup = storyGroups.find(group => group.user_id === userId);
+    setCurrentStoryIndex(userGroup ? userGroup.stories.length - 1 : 0);
+  }, [storyGroups]);
+
+  // Navigation zwischen Stories
+  const handleNextStory = useCallback((userId: string, storyIndex: number) => {
+    setCurrentStoryIndex(storyIndex);
+    const userGroup = storyGroups.find(group => group.user_id === userId);
+    if (userGroup?.stories[storyIndex]) {
+      markStoryViewed(userId, userGroup.stories[storyIndex].id);
+    }
+  }, [storyGroups, markStoryViewed]);
+
+  const handlePrevStory = useCallback((userId: string, storyIndex: number) => {
+    setCurrentStoryIndex(storyIndex);
+    const userGroup = storyGroups.find(group => group.user_id === userId);
+    if (userGroup?.stories[storyIndex]) {
+      markStoryViewed(userId, userGroup.stories[storyIndex].id);
+    }
+  }, [storyGroups, markStoryViewed]);
+
+  // Story erstellen
+  const handleCreateStory = useCallback(() => {
+    setCreateModalOpen(true);
+  }, []);
+
+  // handleCreateStorySubmit wird nicht mehr benötigt - das Modal verwaltet alles selbst
+
   if (error) {
     return (
-      <Box sx={{ p: 2, textAlign: 'center', color: 'error.main' }}>
-        Fehler beim Laden der Stories: {error}
+      <Box sx={{ p: 2, textAlign: 'center' }}>
+        <Typography color="error">
+          Fehler beim Laden der Stories: {error}
+        </Typography>
       </Box>
     );
   }
-  
-  // Keine Stories verfügbar
-  if (stories.length === 0) {
-    return (
-      <Box sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
-        Noch keine Stories verfügbar
-        {showCreateButton && (
-          <Fab
-            color="primary"
-            size="small"
-            onClick={openCreateModal}
-            sx={{ ml: 2 }}
-          >
-            <AddIcon />
-          </Fab>
-        )}
-      </Box>
-    );
-  }
-  
+
   return (
-    <Box>
-      {/* Stories-Bar */}
-      {showInFeed && (
-        <StoriesBar 
-          stories={stories.slice(0, maxStories)}
-          onStoryClick={openStoryViewer}
-          onCreateClick={openCreateModal}
-          showCreateButton={showCreateButton}
-        />
-      )}
+    <Box sx={{ position: 'relative' }}>
+      {/* Story-Bar */}
+      <StoryBar
+        storyGroups={storyGroups}
+        onStoryClick={openStoryViewer}
+        onCreateClick={handleCreateStory}
+        showCreateButton={showCreateButton}
+        maxStories={maxStories}
+        loading={loading}
+      />
       
-      {/* Story-Viewer */}
-      <StoryViewer
-        stories={stories}
-        currentIndex={currentStoryIndex}
+      {/* Super Team Story Viewer - 100 Top-Experten Lösung */}
+      <SuperTeamStoryViewer
+        storyGroups={storyGroups}
+        currentUserId={currentUserId}
+        currentStoryIndex={currentStoryIndex}
         open={viewerOpen}
         onClose={closeStoryViewer}
-        onNext={nextStory}
-        onPrev={prevStory}
+        onNextUser={handleNextUser}
+        onPrevUser={handlePrevUser}
+        onNextStory={handleNextStory}
+        onPrevStory={handlePrevStory}
       />
-      
-      {/* Create-Story-Modal */}
+
+      {/* Create Story Modal */}
       <CreateStoryModal
         open={createModalOpen}
-        onClose={closeCreateModal}
-        onStoryCreated={addStory}
+        onClose={() => setCreateModalOpen(false)}
       />
+
+      {/* Floating Action Button entfernt - nur noch gestrichelter Button in der Story-Bar */}
+
+      {/* CSS-Regeln entfernt - jetzt Portal-basierte Lösung mit Body-Scroll-Lock */}
     </Box>
   );
 };
+
+export default StoriesFeature;

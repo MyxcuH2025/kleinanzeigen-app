@@ -9,11 +9,9 @@ import {
   FormControlLabel,
   Radio,
   Switch,
-  FormControlLabel as SwitchLabel,
-  InputLabel,
-  Select,
-  MenuItem
+  FormControlLabel as SwitchLabel
 } from '@mui/material';
+import { CategorySelectionForm } from './CategorySelectionForm';
 
 interface BasicInfoFormProps {
   title: string;
@@ -24,6 +22,10 @@ interface BasicInfoFormProps {
   setListingType: (type: 'offer' | 'request') => void;
   category: string;
   setCategory: (category: string) => void;
+  subcategory?: string;
+  setSubcategory?: (subcategory: string) => void;
+  item?: string;
+  setItem?: (item: string) => void;
   isHighlighted: boolean;
   setIsHighlighted: (highlighted: boolean) => void;
   errors: { [key: string]: string };
@@ -38,6 +40,10 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   setListingType,
   category,
   setCategory,
+  subcategory,
+  setSubcategory,
+  item,
+  setItem,
   isHighlighted,
   setIsHighlighted,
   errors
@@ -48,25 +54,16 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         Grundinformationen
       </Typography>
       
-      {/* Kategorie */}
-      <Box sx={{ mb: 4 }}>
-        <FormControl fullWidth error={!!errors.category}>
-          <InputLabel>Kategorie</InputLabel>
-          <Select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            label="Kategorie"
-          >
-            <MenuItem value="autos">Autos</MenuItem>
-            <MenuItem value="kleinanzeigen">Kleinanzeigen</MenuItem>
-          </Select>
-          {errors.category && (
-            <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
-              {errors.category}
-            </Typography>
-          )}
-        </FormControl>
-      </Box>
+      {/* Kategorie-Auswahl */}
+      <CategorySelectionForm
+        category={category}
+        setCategory={setCategory}
+        subcategory={subcategory}
+        setSubcategory={setSubcategory}
+        item={item}
+        setItem={setItem}
+        errors={errors}
+      />
 
       {/* Gebot/Gesuch */}
       <Box sx={{ mb: 4 }}>

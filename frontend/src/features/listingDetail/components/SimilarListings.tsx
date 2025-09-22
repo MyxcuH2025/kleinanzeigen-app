@@ -12,9 +12,9 @@ const SimilarListings: React.FC<SimilarListingsProps> = ({
   return (
     <Box sx={{ mb: 3 }}>
       <Typography variant="h6" sx={{ mb: 2 }}>Ähnliche Anzeigen</Typography>
-      <Grid container spacing={2}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: 2 }}>
         {listings.map((listing) => (
-          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={listing.id}>
+          <Box key={listing.id}>
             <Card onClick={() => onListingClick(listing.id)}>
               <CardMedia
                 component="img"
@@ -31,9 +31,9 @@ const SimilarListings: React.FC<SimilarListingsProps> = ({
                 </Typography>
               </CardContent>
             </Card>
-          </Grid>
+          </Box>
         ))}
-      </Grid>
+      </Box>
     </Box>
   );
 };

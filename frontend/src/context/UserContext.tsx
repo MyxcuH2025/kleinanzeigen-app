@@ -26,6 +26,8 @@ interface UserContextType {
   logout: () => void;
   isLoading: boolean;
   refreshUser: () => void;
+  isAuthenticated: boolean;
+  updateUserAvatar: (avatarUrl: string) => void;
 }
 
 export const UserContext = createContext<UserContextType>({
@@ -35,6 +37,8 @@ export const UserContext = createContext<UserContextType>({
   logout: () => {},
   isLoading: false,
   refreshUser: () => {},
+  isAuthenticated: false,
+  updateUserAvatar: () => {},
 });
 
 export const useUser = () => useContext(UserContext);
@@ -114,13 +118,23 @@ const UserProvider = ({ children }: { children: React.ReactNode }) => {
     fetchUser();
   };
 
+  // NEUE FUNKTION: User-State nach Profilbild-Upload aktualisieren
+  const updateUserAvatar = (avatarUrl: string) => {
+    if (user) {
+      const updatedUser = { ...user, avatar: avatarUrl };
+      setUser(updatedUser);
+      // Cache aktualisieren
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+  };
+
   // Initial load - nur einmal beim Start
   useEffect(() => {
     fetchUser();
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, setUser, fetchUser, logout, isLoading, refreshUser }}>
+    <UserContext.Provider value={{ user, setUser, fetchUser, logout, isLoading, refreshUser, isAuthenticated: !!user, updateUserAvatar }}>
       {children}
     </UserContext.Provider>
   );

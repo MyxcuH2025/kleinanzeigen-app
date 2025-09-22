@@ -3,7 +3,7 @@ Shared dependencies for all modules
 """
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, HTTPAuthorizationCredentials
-from sqlmodel import Session, select, create_engine
+from sqlmodel import Session, select, create_engine, text
 from models import User
 from config import config
 from jose import jwt, JWTError
@@ -11,6 +11,7 @@ from typing import Optional
 import logging
 
 # Engine und OAuth2 - PRODUKTIONS-READY CONFIG
+# Engine hier definieren um Circular Import zu vermeiden
 engine = create_engine(
     config.DATABASE_URL,
     pool_size=config.POOL_SIZE,  # 20 Verbindungen
@@ -18,10 +19,14 @@ engine = create_engine(
     pool_timeout=config.POOL_TIMEOUT,  # 30 Sekunden Timeout
     pool_recycle=config.POOL_RECYCLE,  # 1 Stunde
     pool_pre_ping=config.POOL_PRE_PING,  # Verbindungen testen
-    echo=True  # Setze auf True für SQL-Debugging
+    echo=False,  # Performance-Optimierung: Kein SQL-Logging
+    # Performance-Optimierungen
+    connect_args={
+        "options": "-c default_transaction_isolation=read_committed"
+    } if "postgresql" in config.DATABASE_URL else {}
 )
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
+optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login", auto_error=False)
 
 # JWT Konfiguration
 SECRET_KEY = config.SECRET_KEY
@@ -32,8 +37,9 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 logger = logging.getLogger(__name__)
 
 def get_session():
-    """Database session dependency"""
+    """Database session dependency - PostgreSQL optimiert"""
     with Session(engine) as session:
+        # PostgreSQL: Keine PRAGMA-Befehle nötig - echte Concurrent Sessions
         yield session
 
 def get_current_user(token: str = Depends(oauth2_scheme)):

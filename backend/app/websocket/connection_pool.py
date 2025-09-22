@@ -48,6 +48,18 @@ class WebSocketConnectionPool:
     
     def _start_cleanup_task(self):
         """Cleanup-Task für inaktive Verbindungen starten"""
+        try:
+            # Prüfe ob Event Loop läuft
+            loop = asyncio.get_running_loop()
+            if self.cleanup_task is None or self.cleanup_task.done():
+                self.cleanup_task = asyncio.create_task(self._cleanup_inactive_connections())
+        except RuntimeError:
+            # Kein Event Loop - Task wird später gestartet
+            logger.info("Kein Event Loop aktiv - Cleanup-Task wird später gestartet")
+            self.cleanup_task = None
+    
+    async def ensure_cleanup_task(self):
+        """Stelle sicher, dass Cleanup-Task läuft"""
         if self.cleanup_task is None or self.cleanup_task.done():
             self.cleanup_task = asyncio.create_task(self._cleanup_inactive_connections())
     

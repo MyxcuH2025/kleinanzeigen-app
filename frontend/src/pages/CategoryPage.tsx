@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Box, Typography, Container, CircularProgress, Alert } from '@mui/material';
 import AdCard from '@/components/AdCard';
@@ -40,20 +40,93 @@ export const CategoryPage: React.FC = () => {
         // Kategorien für Breadcrumbs laden
         await breadcrumbService.loadCategories();
         
-        const response = await fetch(`http://localhost:8000/api/listings/category/${slug}`);
+        const response = await fetch(`http://localhost:8000/api/listings/category/${slug}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          // Retry-Logik für bessere Stabilität
+          signal: AbortSignal.timeout(10000) // 10 Sekunden Timeout
+        });
+        
         if (!response.ok) {
-          throw new Error('Kategorie nicht gefunden');
+          if (response.status === 404) {
+            throw new Error('Kategorie nicht gefunden');
+          } else if (response.status >= 500) {
+            throw new Error('Server-Fehler. Bitte versuchen Sie es später erneut.');
+          } else {
+            throw new Error(`HTTP-Fehler: ${response.status}`);
+          }
         }
         
         const data: CategoryResponse = await response.json();
         setCategoryData(data.category);
-        setListings(data.listings);
+        
+        // REPARIERT: Bildverarbeitung wie in ListingsPage_Optimized
+        const processedListings = data.listings.map((listing: any) => {
+          let parsedImages: string[] = [];
+          
+          try {
+            // Bilder parsen (JSON String oder Array)
+            let imageList: string[] = [];
+            if (typeof listing.images === 'string') {
+              try {
+                imageList = JSON.parse(listing.images);
+              } catch {
+                imageList = [listing.images];
+              }
+            } else if (Array.isArray(listing.images)) {
+              imageList = listing.images;
+            }
+            
+            // Base64 und leere Bilder filtern
+            imageList = imageList.filter((img: string) => 
+              img && 
+              img.trim() !== '' && 
+              !img.includes('data:') && 
+              !img.includes('base64')
+            );
+            
+            // Cache-Busting für Bilder
+            if (imageList.length > 0) {
+              const timestamp = new Date().getTime();
+              parsedImages = imageList.map((imagePath: string) => {
+                if (imagePath.startsWith('/api/images/')) {
+                  return `http://localhost:8000${imagePath}?t=${timestamp}`;
+                }
+                const cleanPath = imagePath.replace('/uploads/', '').replace('/api/uploads/', '');
+                return `http://localhost:8000/api/images/${cleanPath}?t=${timestamp}`;
+              });
+            }
+          } catch (error) {
+            console.warn('Fehler beim Parsen der Bilder für Listing:', listing.id, error);
+          }
+          
+          return {
+            ...listing,
+            images: parsedImages
+          };
+        });
+        
+        setListings(processedListings);
         
         // Breadcrumb-Pfad erstellen
         const breadcrumbPath = breadcrumbService.getBreadcrumbPath(slug);
         setBreadcrumbItems(breadcrumbPath);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Fehler beim Laden der Anzeigen');
+        let errorMessage = 'Fehler beim Laden der Anzeigen';
+        
+        if (err instanceof Error) {
+          if (err.name === 'AbortError') {
+            errorMessage = 'Anfrage wurde abgebrochen. Bitte versuchen Sie es erneut.';
+          } else if (err.message.includes('NetworkError') || err.message.includes('fetch')) {
+            errorMessage = 'Netzwerk-Fehler. Bitte überprüfen Sie Ihre Internetverbindung.';
+          } else {
+            errorMessage = err.message;
+          }
+        }
+        
+        setError(errorMessage);
         console.error('Fehler beim Laden der Kategorie-Anzeigen:', err);
       } finally {
         setLoading(false);

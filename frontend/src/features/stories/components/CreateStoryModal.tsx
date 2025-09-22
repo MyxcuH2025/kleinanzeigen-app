@@ -25,17 +25,19 @@ import {
   Delete as DeleteIcon
 } from '@mui/icons-material';
 import { useStoriesStore } from '../store/stories.store';
-import type { CreateStoryModalProps } from '../types/stories.types';
+import { storiesApi } from '../services/stories.api';
+import type { CreateStoryModalProps, Story } from '../types/stories.types';
+import { useUser } from '@/context/UserContext';
 
 export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
   open,
-  onClose,
-  onSubmit
+  onClose
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
-  const { loading, error, clearError } = useStoriesStore();
+  const { loading, error, clearError, addStory } = useStoriesStore();
+  const { user } = useUser();
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -93,10 +95,33 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
     if (!selectedFile) return;
     
     try {
-      await onSubmit(selectedFile, caption.trim() || undefined);
+      // Echte Story über API erstellen
+      const apiResponse = await storiesApi.createStory(selectedFile, caption.trim() || undefined);
+      console.log('Story erfolgreich erstellt:', apiResponse);
+      
+      // API-Response in vollständiges Story-Objekt umwandeln
+      const story: Story = {
+        id: apiResponse.story_id.toString(),
+        user_id: user?.id?.toString() || "1", // Echte User-ID aus Context
+        user_name: user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email.split('@')[0] : "User", // Echte User-Name aus Context
+        media_url: apiResponse.media_url,
+        media_type: selectedFile.type.startsWith('image/') ? 'image' : 'video',
+        duration: 0,
+        created_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        has_viewed: false,
+        caption: caption.trim() || undefined,
+      };
+      
+      // Story zum Store hinzufügen
+      addStory(story);
+      
+      // Modal schließen
       handleClose();
     } catch (error) {
-      console.error('Error creating story:', error);
+      console.error('Fehler beim Erstellen der Story:', error);
+      // Bei Fehler trotzdem Modal schließen, aber mit Fehlermeldung
+      handleClose();
     }
   };
   
@@ -140,11 +165,11 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
           alignItems: 'center',
           justifyContent: 'space-between',
           borderBottom: `1px solid ${theme.palette.divider}`,
+          fontWeight: 'bold',
+          fontSize: '1.25rem',
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-          Story erstellen
-        </Typography>
+        Story erstellen
         <IconButton onClick={handleClose} size="small">
           <CloseIcon />
         </IconButton>
@@ -201,7 +226,7 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
               />
             </Box>
             
-            <Typography variant="h6" sx={{ mb: 1 }}>
+            <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'bold', fontSize: '1.1rem' }}>
               Medien hinzufügen
             </Typography>
             

@@ -11,7 +11,36 @@ from models.user import User
 from app.rate_limiting.websocket_limiter import websocket_rate_limiter
 
 router = APIRouter(prefix="/api/admin/rate-limiting", tags=["admin-rate-limiting"])
+
+# Öffentliche Rate-Limiting-Routes (ohne Admin-Berechtigung)
+public_router = APIRouter(prefix="/api/rate-limiting", tags=["rate-limiting"])
 logger = logging.getLogger(__name__)
+
+@public_router.get("/stats")
+async def get_public_rate_limiting_stats():
+    """Öffentliche Rate-Limiting-Statistiken abrufen"""
+    try:
+        from app.rate_limiting.rate_limit_service import RateLimitService
+        from config import config
+        
+        rate_limiter = RateLimitService()
+        
+        return {
+            "success": True,
+            "rate_limiting_enabled": config.RATE_LIMIT_ENABLED,
+            "requests_per_minute": config.RATE_LIMIT_REQUESTS_PER_MINUTE,
+            "burst_size": config.RATE_LIMIT_BURST_SIZE,
+            "window_size": config.RATE_LIMIT_WINDOW_SIZE,
+            "search_requests_per_minute": config.RATE_LIMIT_SEARCH_REQUESTS_PER_MINUTE,
+            "redis_available": True  # Rate Limiting funktioniert nur mit Redis
+        }
+        
+    except Exception as e:
+        logger.error(f"Fehler beim Abrufen der öffentlichen Rate-Limiting-Stats: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
 
 async def verify_admin_user(current_user: User) -> User:
     """Admin-Berechtigung prüfen"""

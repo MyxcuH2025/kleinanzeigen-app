@@ -266,7 +266,7 @@ def get_listings_by_category(
                 "category": listing.category,
                 "condition": listing.condition,
                 "location": listing.location,
-                "images": [img.replace('/api/uploads/', '').replace('api/uploads/', '') for img in (json.loads(listing.images) if listing.images else []) if img],
+                "images": [img.replace('/api/uploads/', '').replace('api/uploads/', '') for img in (json.loads(listing.images) if listing.images and listing.images != "Array[]" else []) if img],
                 "status": listing.status,
                 "views": listing.views,
                 "created_at": listing.created_at,

@@ -25,47 +25,47 @@ export const getListingById = async (id: string): Promise<ListingDetail> => {
     }
     
     const frontendListing: ListingDetail = {
-      id: backendListing.id.toString(),
-      title: backendListing.title,
-      price: backendListing.price,
+      id: (backendListing as any).id.toString(),
+      title: (backendListing as any).title,
+      price: (backendListing as any).price,
       currency: 'EUR',
       location: {
-        city: backendListing.location || 'Berlin',
+        city: (backendListing as any).location || 'Berlin',
         lat: 52.5200,
         lng: 13.4050
       },
-      category: backendListing.category,
-      condition: backendListing.attributes?.condition || backendListing.condition || 'gebraucht',
-      createdAt: backendListing.created_at,
-      updatedAt: backendListing.updated_at,
-      views: backendListing.views || 0,
-      favorites: backendListing.favorites_count || 0,
-      media: (backendListing.images || []).map((img: string, index: number) => ({
+      category: (backendListing as any).category,
+      condition: (backendListing as any).attributes?.condition || (backendListing as any).condition || 'gebraucht',
+      createdAt: (backendListing as any).created_at,
+      updatedAt: (backendListing as any).updated_at,
+      views: (backendListing as any).views || 0,
+      favorites: (backendListing as any).favorites_count || 0,
+      media: ((backendListing as any).images || []).map((img: string, index: number) => ({
         id: index.toString(),
         url: img,
         type: 'image' as const
       })),
-      attributes: backendListing.attributes || {},
-      descriptionMd: backendListing.description || '',
+      attributes: (backendListing as any).attributes || {},
+      descriptionMd: (backendListing as any).description || '',
         seller: {
-          id: backendListing.seller?.id?.toString() || '1',
-          displayName: backendListing.seller?.name || backendListing.seller?.display_name || 'Unbekannter Verkäufer',
-          avatarUrl: backendListing.seller?.avatar ? `/api/images/${backendListing.seller.avatar}` : null,
+          id: (backendListing as any).seller?.id?.toString() || '1',
+          displayName: (backendListing as any).seller?.name || (backendListing as any).seller?.display_name || 'Unbekannter Verkäufer',
+          avatarUrl: (backendListing as any).seller?.avatar ? `/api/images/${(backendListing as any).seller.avatar}` : undefined,
         verified: {
-          phone: backendListing.seller?.userType === 'verified_seller' || false,
-          id: backendListing.seller?.userType === 'verified_seller' || false,
-          bank: backendListing.seller?.userType === 'verified_seller' || false
+          phone: (backendListing as any).seller?.userType === 'verified_seller' || false,
+          id: (backendListing as any).seller?.userType === 'verified_seller' || false,
+          bank: (backendListing as any).seller?.userType === 'verified_seller' || false
         },
-        rating: backendListing.seller?.rating || 4.5,
-        reviewsCount: backendListing.seller?.reviewCount || 0,
-        memberSince: backendListing.seller?.created_at || '2022-01-01',
-        lastActiveAt: backendListing.seller?.last_login || new Date().toISOString(),
+        rating: (backendListing as any).seller?.rating || 4.5,
+        reviewsCount: (backendListing as any).seller?.reviewCount || 0,
+        memberSince: (backendListing as any).seller?.created_at || '2022-01-01',
+        lastActiveAt: (backendListing as any).seller?.last_login || new Date().toISOString(),
         isOnline: Math.random() > 0.5, // Random online status
         responseTime: 'Normal' // Placeholder - will be loaded from getUserStats
       },
-      isFavorited: backendListing.is_favorited || false,
-      listingIdPublic: `#${backendListing.id.toString().padStart(6, '0')}`,
-      status: backendListing.status || 'active'
+      isFavorited: (backendListing as any).is_favorited || false,
+      listingIdPublic: `#${(backendListing as any).id.toString().padStart(6, '0')}`,
+      status: (backendListing as any).status || 'active'
     };
     
     return frontendListing;
@@ -88,7 +88,7 @@ export const getSimilarListings = async (
       `${LISTINGS_API}/${id}/similar?radius_km=${radiusKm}&limit=6`
     );
     console.log('Similar listings response:', response);
-    return response; // Backend returns array directly
+    return response as any; // Backend returns array directly
   } catch (error: any) {
     console.error('Fehler beim Laden ähnlicher Anzeigen:', error);
     return []; // Return empty array for non-critical error
@@ -116,7 +116,7 @@ export const revealPhoneNumber = async (id: string): Promise<PhoneRevealResponse
     const response = await apiService.post<ApiResponse<PhoneRevealResponse>>(
       `${LISTINGS_API}/${id}/reveal-phone`
     );
-    return response.data.data;
+    return (response as any).data.data;
   } catch (error: any) {
     throw new Error(error.response?.data?.message || 'Fehler beim Anzeigen der Telefonnummer');
   }
@@ -148,7 +148,7 @@ export const startChatConversation = async (
       CHATS_API,
       { listingId, sellerId }
     );
-    return response.data.data.chatId;
+    return (response as any).data.chatId;
   } catch (error: any) {
     throw new Error(error.response?.data?.message || 'Fehler beim Starten des Chats');
   }
@@ -180,7 +180,7 @@ export const reportListing = async (data: {
 export const getUserPublicProfile = async (userId: string) => {
   try {
     const response = await apiService.get<ApiResponse<any>>(`/api/users/${userId}/public`);
-    return response.data.data;
+    return (response as any).data.data;
   } catch (error: any) {
     throw new Error(error.response?.data?.message || 'Fehler beim Laden des Benutzerprofils');
   }
@@ -226,7 +226,7 @@ export const getUserStats = async (userId: string) => {
 export const shareListing = async (id: string, method: 'copy' | 'social') => {
   try {
     const response = await apiService.post(`${LISTINGS_API}/${id}/share`, { method });
-    return response.data;
+    return (response as any).data;
   } catch (error: any) {
     throw new Error(error.response?.data?.message || 'Fehler beim Teilen der Anzeige');
   }
@@ -239,7 +239,7 @@ export const shareListing = async (id: string, method: 'copy' | 'social') => {
 export const getListingStats = async (id: string) => {
   try {
     const response = await apiService.get<ApiResponse<any>>(`${LISTINGS_API}/${id}/stats`);
-    return response.data.data;
+    return (response as any).data.data;
   } catch (error: any) {
     console.error('Fehler beim Laden der Statistiken:', error);
     return null;
@@ -255,7 +255,7 @@ export const canContactSeller = async (id: string): Promise<boolean> => {
     const response = await apiService.get<ApiResponse<{ canContact: boolean }>>(
       `${LISTINGS_API}/${id}/can-contact`
     );
-    return response.data.data.canContact;
+    return (response as any).data.canContact;
   } catch (error: any) {
     console.error('Fehler beim Prüfen der Kontaktmöglichkeit:', error);
     return false;
@@ -269,7 +269,7 @@ export const canContactSeller = async (id: string): Promise<boolean> => {
 export const getListingAvailability = async (id: string) => {
   try {
     const response = await apiService.get<ApiResponse<any>>(`${LISTINGS_API}/${id}/availability`);
-    return response.data.data;
+    return (response as any).data.data;
   } catch (error: any) {
     console.error('Fehler beim Laden der Verfügbarkeit:', error);
     return null;
@@ -307,7 +307,7 @@ export const removeBookmark = async (id: string): Promise<void> => {
 export const getListingHistory = async (id: string) => {
   try {
     const response = await apiService.get<ApiResponse<any>>(`${LISTINGS_API}/${id}/history`);
-    return response.data.data;
+    return (response as any).data.data;
   } catch (error: any) {
     console.error('Fehler beim Laden der Historie:', error);
     return null;

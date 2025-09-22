@@ -3,6 +3,7 @@
 // import { devtools } from 'zustand/middleware';
 
 // Temporary implementation with React state
+import * as React from 'react';
 import { useState, useCallback } from 'react';
 import { ListingDetail, ListingSummary, ReportData, ListingDetailState, ListingDetailActions } from '../types';
 

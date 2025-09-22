@@ -169,8 +169,8 @@ export const ReviewsTab: React.FC<ReviewsTabProps> = ({ listing }) => {
           bgcolor: 'rgba(255, 255, 255, 0.9)'
         }}
       >
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
+        <Box sx={{ display: 'grid', gap: 2 }}>
+          <Box>
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="h2" sx={{ fontWeight: 700, color: '#fbbf24', mb: 1 }}>
                 {averageRating.toFixed(1)}
@@ -180,8 +180,8 @@ export const ReviewsTab: React.FC<ReviewsTabProps> = ({ listing }) => {
                 Basierend auf {totalReviews} Bewertungen
               </Typography>
             </Box>
-          </Grid>
-          <Grid item xs={12} md={8}>
+          </Box>
+          <Box>
             <Box>
               {[5, 4, 3, 2, 1].map((star) => {
                 const count = reviews.filter(r => r.rating === star).length;
@@ -218,8 +218,8 @@ export const ReviewsTab: React.FC<ReviewsTabProps> = ({ listing }) => {
                 );
               })}
             </Box>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Paper>
 
       {/* Super-Team Write Review */}

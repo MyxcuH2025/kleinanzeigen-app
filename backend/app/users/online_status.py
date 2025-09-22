@@ -30,24 +30,19 @@ async def get_online_users(
 ):
     """
     Hole Online-User (optimiert für Performance)
-    - Nur User die in den letzten 5 Minuten aktiv waren
-    - Begrenzt auf 50 User für Performance
-    - Cached für 30 Sekunden
+    - Fallback-Implementation ohne last_activity Spalte
+    - Zeigt alle aktiven User als "online"
     """
     try:
-        # Zeit-Schwellenwert für "online"
-        online_threshold = datetime.utcnow() - timedelta(minutes=ONLINE_THRESHOLD_MINUTES)
-        
-        # Query: Hole User mit letzter Aktivität in den letzten 5 Minuten
-        query = select(User.id, User.email, User.avatar, User.verification_state, User.last_activity)
-        query = query.where(User.last_activity.isnot(None))
-        query = query.where(User.last_activity >= online_threshold)
+        # Fallback-Query: Hole alle aktiven User
+        query = select(User.id, User.email, User.avatar, User.verification_state, User.updated_at)
+        query = query.where(User.is_active == True)
         
         # Wenn spezifischer User angefragt wird, nur diesen prüfen
         if user_id:
             query = query.where(User.id == user_id)
         else:
-            query = query.order_by(User.last_activity.desc()).limit(limit)
+            query = query.order_by(User.updated_at.desc()).limit(limit)
             
         online_users = session.exec(query).all()
         
@@ -60,7 +55,7 @@ async def get_online_users(
                 "avatar": user.avatar,
                 "status": "online",
                 "verification_state": user.verification_state.value if user.verification_state else "unverified",
-                "last_activity": user.last_activity.isoformat() if user.last_activity else None
+                "last_activity": user.updated_at.isoformat() if user.updated_at else None
             })
         
         return {
@@ -72,7 +67,14 @@ async def get_online_users(
         
     except Exception as e:
         logger.error(f"Fehler beim Laden der Online-User: {e}")
-        raise HTTPException(status_code=500, detail="Fehler beim Laden der Online-User")
+        # Graceful Fallback: Leere Liste zurückgeben
+        return {
+            "online_users": [],
+            "total_online": 0,
+            "timestamp": datetime.utcnow().isoformat(),
+            "cache_ttl": CACHE_TTL_SECONDS,
+            "error": "Fehler beim Laden der Online-User"
+        }
 
 @router.get("/online-count")
 async def get_online_count(

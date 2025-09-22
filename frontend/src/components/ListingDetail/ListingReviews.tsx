@@ -118,13 +118,13 @@ const ListingReviews: React.FC<ListingReviewsProps> = ({
       {/* Average Rating */}
       {averageRating > 0 && (
         <Box sx={{ mb: 3, p: 2, bgcolor: 'rgba(220, 248, 198, 0.1)', borderRadius: 2 }}>
-          <Grid container alignItems="center" spacing={2}>
-            <Grid item>
+          <Box sx={{ display: 'grid', gap: 2 }}>
+            <Box>
               <Typography variant="h3" sx={{ fontWeight: 700, color: '#dcf8c6' }}>
                 {averageRating.toFixed(1)}
               </Typography>
-            </Grid>
-            <Grid item xs>
+            </Box>
+            <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                 <Rating value={averageRating} readOnly precision={0.1} />
                 <Typography variant="body2" sx={{ ml: 1 }}>
@@ -134,8 +134,8 @@ const ListingReviews: React.FC<ListingReviewsProps> = ({
               <Typography variant="body2" color="text.secondary">
                 Basierend auf {totalReviews} Kundenbewertungen
               </Typography>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </Box>
       )}
 

@@ -150,23 +150,21 @@ const ShopProfilePage: React.FC = () => {
         </Button>
         
         <Paper elevation={0} sx={{ p: 4, borderRadius: 3, border: '1px solid #e5e7eb' }}>
-          <Grid container spacing={4} alignItems="center">
-            <Grid size={{ xs: 12, md: 3 }}>
-              <Box display="flex" justifyContent="center">
-                <Avatar
-                  src={shop.image}
-                  sx={{
-                    width: 120,
-                    height: 120,
-                    border: '4px solid #f3f4f6'
-                  }}
-                >
-                  <Store sx={{ fontSize: 60 }} />
-                </Avatar>
-              </Box>
-            </Grid>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'auto 1fr' }, gap: 2, alignItems: 'start' }}>
+            <Box display="flex" justifyContent="center">
+              <Avatar
+                src={shop.image}
+                sx={{
+                  width: 120,
+                  height: 120,
+                  border: '4px solid #f3f4f6'
+                }}
+              >
+                <Store sx={{ fontSize: 60 }} />
+              </Avatar>
+            </Box>
             
-            <Grid size={{ xs: 12, md: 9 }}>
+            <Box>
               <Box display="flex" alignItems="center" gap={1} mb={1}>
                 <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
                   {shop.name}
@@ -241,14 +239,14 @@ const ShopProfilePage: React.FC = () => {
                   <Share />
                 </IconButton>
               </Box>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </Paper>
       </Box>
 
       {/* Details */}
-      <Grid container spacing={3}>
-        <Grid size={{ xs: 12, md: 8 }}>
+      <Box sx={{ display: 'grid', gap: 2 }}>
+        <Box>
           <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: '1px solid #e5e7eb', mb: 3 }}>
             <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
               Shop-Informationen
@@ -274,9 +272,9 @@ const ShopProfilePage: React.FC = () => {
               <Chip label="Shop" size="small" />
             </Box>
           </Paper>
-        </Grid>
+        </Box>
         
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Box>
           <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: '1px solid #e5e7eb' }}>
             <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
               Statistiken
@@ -303,8 +301,8 @@ const ShopProfilePage: React.FC = () => {
               Mitglied seit {new Date(shop.created_at).toLocaleDateString('de-DE')}
             </Typography>
           </Paper>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
     </Container>
   );
 };

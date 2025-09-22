@@ -121,22 +121,46 @@ export const adService = {
           condition: String(ad.condition || ''),
           images: (() => {
             const imagesData = ad.images;
-            if (Array.isArray(imagesData)) {
+            if (Array.isArray(imagesData) && imagesData.length > 0) {
               return imagesData.map(img => {
                 const imagePath = String(img);
+                // Entferne JSON-Array-Syntax falls vorhanden
+                let cleanPath = imagePath;
+                
+                // Entferne JSON-Array-Syntax: ["filename"] -> filename
+                if (cleanPath.startsWith('["') && cleanPath.endsWith('"]')) {
+                  cleanPath = cleanPath.slice(2, -2);
+                }
+                // Entferne einfache Anführungszeichen: "filename" -> filename
+                else if (cleanPath.startsWith('"') && cleanPath.endsWith('"')) {
+                  cleanPath = cleanPath.slice(1, -1);
+                }
+                // Entferne unvollständige JSON-Array-Syntax: ["filename -> filename
+                else if (cleanPath.startsWith('["') && !cleanPath.endsWith('"]')) {
+                  cleanPath = cleanPath.slice(2);
+                }
+                // Entferne unvollständige Anführungszeichen: "filename -> filename
+                else if (cleanPath.startsWith('"') && !cleanPath.endsWith('"')) {
+                  cleanPath = cleanPath.slice(1);
+                }
+                
                 // Verwende den /api/images/ Endpunkt für alle Bilder
-                if (imagePath.startsWith('/uploads/')) {
-                  return `http://localhost:8000/api/images/${imagePath.replace('/uploads/', '')}`;
+                if (cleanPath.startsWith('/uploads/')) {
+                  return `http://localhost:8000/api/images/${cleanPath.replace('/uploads/', '')}`;
                 }
                 // Wenn es bereits eine absolute URL ist, verwende sie direkt
-                if (imagePath.startsWith('http')) {
-                  return imagePath;
+                if (cleanPath.startsWith('http')) {
+                  return cleanPath;
                 }
-                // Für Dateinamen ohne Pfad
-                if (imagePath.includes('.') && !imagePath.includes('/')) {
-                  return `http://localhost:8000/api/images/${imagePath}`;
+                // REPARIERT: Für Dateinamen ohne Pfad
+                if (cleanPath.includes('.') && !cleanPath.includes('/')) {
+                  return `http://localhost:8000/api/images/${cleanPath}`;
                 }
-                return imagePath;
+                // REPARIERT: Stelle sicher, dass alle Pfade korrekt formatiert sind
+                if (cleanPath.startsWith('http://localhost:8000')) {
+                  return cleanPath;
+                }
+                return `http://localhost:8000/api/images/${cleanPath}`;
               });
             }
             if (typeof imagesData === 'string') {
@@ -145,10 +169,19 @@ export const adService = {
                 if (Array.isArray(parsed)) {
                   return parsed.map(img => {
                     const imagePath = String(img);
-                    if (imagePath.startsWith('/uploads/')) {
-                      return `http://localhost:8000${imagePath}`;
+                    // Entferne JSON-Array-Syntax falls vorhanden
+                    let cleanPath = imagePath;
+                    if (cleanPath.startsWith('["') && cleanPath.endsWith('"]')) {
+                      cleanPath = cleanPath.slice(2, -2);
                     }
-                    return imagePath;
+                    if (cleanPath.startsWith('"') && cleanPath.endsWith('"')) {
+                      cleanPath = cleanPath.slice(1, -1);
+                    }
+                    
+                    if (cleanPath.startsWith('/uploads/')) {
+                      return `http://localhost:8000/api/images/${cleanPath.replace('/uploads/', '')}`;
+                    }
+                    return `http://localhost:8000/api/images/${cleanPath}`;
                   });
                 }
                 return [];
@@ -156,7 +189,8 @@ export const adService = {
                 return [];
               }
             }
-            return [];
+            // Fallback für leere Arrays oder keine Bilder
+            return ['http://localhost:8000/api/images/noimage.jpeg'];
           })(),
           createdAt: String(ad.created_at || ad.createdAt || ''),
           updatedAt: String(ad.updated_at || ad.updatedAt || ''),
@@ -257,22 +291,46 @@ export const adService = {
           condition: String(ad.condition || ''),
           images: (() => {
             const imagesData = ad.images;
-            if (Array.isArray(imagesData)) {
+            if (Array.isArray(imagesData) && imagesData.length > 0) {
               return imagesData.map(img => {
                 const imagePath = String(img);
+                // Entferne JSON-Array-Syntax falls vorhanden
+                let cleanPath = imagePath;
+                
+                // Entferne JSON-Array-Syntax: ["filename"] -> filename
+                if (cleanPath.startsWith('["') && cleanPath.endsWith('"]')) {
+                  cleanPath = cleanPath.slice(2, -2);
+                }
+                // Entferne einfache Anführungszeichen: "filename" -> filename
+                else if (cleanPath.startsWith('"') && cleanPath.endsWith('"')) {
+                  cleanPath = cleanPath.slice(1, -1);
+                }
+                // Entferne unvollständige JSON-Array-Syntax: ["filename -> filename
+                else if (cleanPath.startsWith('["') && !cleanPath.endsWith('"]')) {
+                  cleanPath = cleanPath.slice(2);
+                }
+                // Entferne unvollständige Anführungszeichen: "filename -> filename
+                else if (cleanPath.startsWith('"') && !cleanPath.endsWith('"')) {
+                  cleanPath = cleanPath.slice(1);
+                }
+                
                 // Verwende den /api/images/ Endpunkt für alle Bilder
-                if (imagePath.startsWith('/uploads/')) {
-                  return `http://localhost:8000/api/images/${imagePath.replace('/uploads/', '')}`;
+                if (cleanPath.startsWith('/uploads/')) {
+                  return `http://localhost:8000/api/images/${cleanPath.replace('/uploads/', '')}`;
                 }
                 // Wenn es bereits eine absolute URL ist, verwende sie direkt
-                if (imagePath.startsWith('http')) {
-                  return imagePath;
+                if (cleanPath.startsWith('http')) {
+                  return cleanPath;
                 }
-                // Für Dateinamen ohne Pfad
-                if (imagePath.includes('.') && !imagePath.includes('/')) {
-                  return `http://localhost:8000/api/images/${imagePath}`;
+                // REPARIERT: Für Dateinamen ohne Pfad
+                if (cleanPath.includes('.') && !cleanPath.includes('/')) {
+                  return `http://localhost:8000/api/images/${cleanPath}`;
                 }
-                return imagePath;
+                // REPARIERT: Stelle sicher, dass alle Pfade korrekt formatiert sind
+                if (cleanPath.startsWith('http://localhost:8000')) {
+                  return cleanPath;
+                }
+                return `http://localhost:8000/api/images/${cleanPath}`;
               });
             }
             if (typeof imagesData === 'string') {
@@ -281,10 +339,19 @@ export const adService = {
                 if (Array.isArray(parsed)) {
                   return parsed.map(img => {
                     const imagePath = String(img);
-                    if (imagePath.startsWith('/uploads/')) {
-                      return `http://localhost:8000${imagePath}`;
+                    // Entferne JSON-Array-Syntax falls vorhanden
+                    let cleanPath = imagePath;
+                    if (cleanPath.startsWith('["') && cleanPath.endsWith('"]')) {
+                      cleanPath = cleanPath.slice(2, -2);
                     }
-                    return imagePath;
+                    if (cleanPath.startsWith('"') && cleanPath.endsWith('"')) {
+                      cleanPath = cleanPath.slice(1, -1);
+                    }
+                    
+                    if (cleanPath.startsWith('/uploads/')) {
+                      return `http://localhost:8000/api/images/${cleanPath.replace('/uploads/', '')}`;
+                    }
+                    return `http://localhost:8000/api/images/${cleanPath}`;
                   });
                 }
                 return [];
@@ -292,7 +359,8 @@ export const adService = {
                 return [];
               }
             }
-            return [];
+            // Fallback für leere Arrays oder keine Bilder
+            return ['http://localhost:8000/api/images/noimage.jpeg'];
           })(),
           createdAt: String(ad.created_at || ad.createdAt || ''),
           updatedAt: String(ad.updated_at || ad.updatedAt || ''),
@@ -514,8 +582,8 @@ export const adService = {
         throw new Error('Nicht eingeloggt (kein Token)');
       }
 
-      // Korrektes Backend-Endpoint: /api/upload-image
-      const response = await fetch(getFullApiUrl('api/upload-image'), {
+      // Korrektes Backend-Endpoint: /api/upload
+      const response = await fetch(getFullApiUrl('api/upload'), {
         method: 'POST',
         headers: {
           // Content-Type NICHT setzen, Browser setzt Boundary automatisch
@@ -542,7 +610,7 @@ export const adService = {
       }
       
       const data = await response.json();
-      const imageUrl = data.url || data.filename;
+      const imageUrl = data.url || `http://localhost:8000/api/images/${data.filename}`;
 
       return imageUrl;
     } catch (error) {

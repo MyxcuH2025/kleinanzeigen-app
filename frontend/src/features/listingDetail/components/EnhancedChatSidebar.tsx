@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Paper,
@@ -15,7 +16,8 @@ import {
   ListItemText,
   useTheme,
   useMediaQuery,
-  Collapse
+  Collapse,
+  Tooltip
 } from '@mui/material';
 import {
   Send as SendIcon,
@@ -78,6 +80,7 @@ const EnhancedChatSidebar: React.FC<EnhancedChatSidebarProps> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
   const [newMessage, setNewMessage] = React.useState('');
   const [showContactOptions, setShowContactOptions] = React.useState(false);
 
@@ -93,6 +96,14 @@ const EnhancedChatSidebar: React.FC<EnhancedChatSidebarProps> = ({
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  const handleAvatarClick = () => {
+    navigate(`/user/${seller.id}`);
+  };
+
+  const handleNameClick = () => {
+    navigate(`/user/${seller.id}`);
   };
 
   const formatTime = (timestamp: string) => {
@@ -118,33 +129,49 @@ const EnhancedChatSidebar: React.FC<EnhancedChatSidebarProps> = ({
       <Box sx={{ p: 2, bgcolor: '#fafafa', borderBottom: '1px solid #f0f0f0' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Box
-              sx={{
-                width: 48,
-                height: 48,
-                borderRadius: 1,
-                backgroundImage: seller.avatarUrl ? `url(${seller.avatarUrl})` : 'none',
-                backgroundColor: seller.avatarUrl ? 'transparent' : '#e8e8e8',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mr: 2,
-                border: '2px solid #e8e8e8',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-              }}
-            >
-              {!seller.avatarUrl && (
-                <Typography variant="h6" sx={{ color: '#000000', fontWeight: 600 }}>
-                  {seller.displayName.charAt(0).toUpperCase()}
-                </Typography>
-              )}
-            </Box>
+            <Tooltip title="Profil besuchen">
+              <Avatar
+                onClick={handleAvatarClick}
+                src={undefined} // Verwende immer Fallback - Profilbilder später konfigurieren
+                sx={{
+                  width: 48,
+                  height: 48,
+                  mr: 2,
+                  backgroundColor: '#dcf8c6', // WhatsApp Green als Fallback
+                  color: '#2d5016', // Dunkelgrün für Buchstaben
+                  fontWeight: 800,
+                  fontSize: '20px',
+                  border: '2px solid #e8e8e8',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s ease-in-out',
+                  '&:hover': {
+                    transform: 'scale(1.05)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                  }
+                }}
+              >
+                {seller.displayName?.charAt(0)?.toUpperCase() || 'U'}
+              </Avatar>
+            </Tooltip>
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#000000' }}>
-                {seller.displayName}
-              </Typography>
+              <Tooltip title="Profil besuchen">
+                <Typography 
+                  variant="subtitle1" 
+                  onClick={handleNameClick}
+                  sx={{ 
+                    fontWeight: 600, 
+                    color: '#000000',
+                    cursor: 'pointer',
+                    transition: 'color 0.2s ease-in-out',
+                    '&:hover': {
+                      color: '#1976d2'
+                    }
+                  }}
+                >
+                  {seller.displayName}
+                </Typography>
+              </Tooltip>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Chip 
                   icon={<OnlineIcon />}

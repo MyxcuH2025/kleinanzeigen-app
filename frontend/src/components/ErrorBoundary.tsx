@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -161,3 +161,14 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+// Hook for error handling in functional components
+export const useErrorHandler = () => {
+  const handleError = useCallback((error: Error) => {
+    console.error('Error caught by useErrorHandler:', error);
+    // You can add additional error handling logic here
+    // For example, sending to error reporting service
+  }, []);
+
+  return { handleError };
+};

@@ -144,7 +144,7 @@ const EditListing: React.FC = () => {
       formData.append('file', image);
       
       try {
-        const response = await fetch('http://localhost:8000/api/upload-image', {
+        const response = await fetch('http://localhost:8000/api/upload', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
@@ -154,7 +154,7 @@ const EditListing: React.FC = () => {
         
         if (response.ok) {
           const data = await response.json();
-          const imageUrl = data.url || data.filename || `http://localhost:8000/api/images/${data.filename}`;
+          const imageUrl = data.url || `http://localhost:8000/api/images/${data.filename}`;
           uploadedUrls.push(imageUrl);
         } else {
           const errText = await response.text();
@@ -229,7 +229,21 @@ const EditListing: React.FC = () => {
         }, 2000);
       } else {
         const errorData = await response.json();
-        setError(errorData.detail || 'Fehler beim Aktualisieren der Anzeige');
+        // REPARIERT: Handle error objects properly (verursacht "Objects are not valid as a React child")
+        let errorMessage = 'Fehler beim Aktualisieren der Anzeige';
+        
+        if (errorData.detail) {
+          if (typeof errorData.detail === 'string') {
+            errorMessage = errorData.detail;
+          } else if (Array.isArray(errorData.detail)) {
+            // Handle validation errors array
+            errorMessage = errorData.detail.map((err: any) => err.msg || err.message || JSON.stringify(err)).join(', ');
+          } else if (typeof errorData.detail === 'object') {
+            errorMessage = JSON.stringify(errorData.detail);
+          }
+        }
+        
+        setError(errorMessage);
       }
     } catch (error) {
       console.error('Error updating listing:', error);
@@ -967,7 +981,7 @@ const EditListing: React.FC = () => {
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
         <Alert onClose={() => setError(null)} severity="error" sx={{ width: '100%' }}>
-          {error}
+          {typeof error === 'string' ? error : JSON.stringify(error)}
         </Alert>
       </Snackbar>
       

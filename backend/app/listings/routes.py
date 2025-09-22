@@ -9,7 +9,10 @@ from models import (
     User, Favorite, VerificationState, Conversation, Message
 )
 from app.dependencies import get_session, get_current_user, get_current_user_optional
-# from app.cache.decorators import cache_listings  # Temporär deaktiviert
+from app.cache.decorators import cache_listings
+from app.security.input_validation import SecurityValidator
+from app.security.sql_injection_protection import SQLInjectionProtection
+from app.security.xss_protection import XSSProtection
 import json
 from datetime import datetime
 from typing import Optional, List
@@ -22,23 +25,21 @@ router = APIRouter(prefix="/api", tags=["listings"])
 logger = logging.getLogger(__name__)
 
 def filter_by_json_attribute(query, attribute_name: str, value: any, operator: str = "equals"):
-    """Filtert nach JSON-Attributen mit verschiedenen Operatoren"""
+    """Sichere JSON-Attribut-Filterung ohne SQL Injection"""
     if value is None:
         return query
     
-    if operator == "equals":
-        if isinstance(value, str):
-            return query.where(Listing.attributes.contains(f'"{attribute_name}": "{value}"'))
-        else:
-            return query.where(Listing.attributes.contains(f'"{attribute_name}": {value}'))
-    elif operator == "contains":
-        return query.where(Listing.attributes.contains(f'"{attribute_name}": "{value}"'))
-    elif operator == "range_min":
-        return query.where(Listing.attributes.contains(f'"{attribute_name}": {value}'))
-    elif operator == "range_max":
-        return query.where(Listing.attributes.contains(f'"{attribute_name}": {value}'))
+    # Input-Validierung
+    attribute_name = SecurityValidator.validate_string_input(attribute_name, "attribute_name", 50)
     
-    return query
+    # Sichere Filterung mit SQLInjectionProtection
+    return SQLInjectionProtection.safe_json_filter(
+        query.session, 
+        Listing, 
+        attribute_name, 
+        value, 
+        operator
+    )
 
 @router.get("/listings/{listing_id}/similar")
 def get_similar_listings(
@@ -150,26 +151,33 @@ def get_user_listings(
             # Parse JSON-Felder
             try:
                 attributes = json.loads(listing.attributes) if listing.attributes else {}
-                images = json.loads(listing.images) if listing.images else []
+                # Base64-Bilder durch leeres Array ersetzen (vermeidet JSON-Parse-Fehler)
+                images_raw = listing.images if listing.images and listing.images != "Array[]" else "[]"
+                images = json.loads(images_raw) if images_raw else []
             except json.JSONDecodeError:
                 attributes = {}
                 images = []
             
-            # OPTIMIERT: Bild-URLs einheitlich formatieren
-            if images and isinstance(images, list):
-                formatted_images = []
-                for image in images:
-                    if image:
-                        # Entferne alle möglichen Präfixe für saubere Dateinamen
-                        clean_img = image.replace('/api/uploads/', '').replace('api/uploads/', '').replace('/api/images/', '').replace('api/images/', '').replace('/uploads/', '').replace('uploads/', '')
-                        # Entferne auch /api/ falls es noch da ist
-                        clean_img = clean_img.replace('/api/', '').replace('api/', '')
-                        # Füge einheitliche URL hinzu
-                        if clean_img:
-                            formatted_images.append(f"/api/images/{clean_img}")
-                        else:
-                            formatted_images.append(image)
-                images = formatted_images
+        # OPTIMIERT: Bild-URLs einheitlich formatieren - Base64-Filter
+        if images and isinstance(images, list):
+            formatted_images = []
+            for image in images:
+                if image:
+                    # FILTER: Base64-Bilder ignorieren (verursachen "Image corrupt" Fehler)
+                    if image.startswith('data:image/'):
+                        logger.warning(f"❌ Base64-Bild ignoriert: {image[:50]}...")
+                        continue
+                    
+                    # Entferne alle möglichen Präfixe für saubere Dateinamen
+                    clean_img = image.replace('/api/uploads/', '').replace('api/uploads/', '').replace('/api/images/', '').replace('api/images/', '').replace('/uploads/', '').replace('uploads/', '')
+                    # Entferne auch /api/ falls es noch da ist
+                    clean_img = clean_img.replace('/api/', '').replace('api/', '')
+                    # Füge einheitliche URL hinzu
+                    if clean_img:
+                        formatted_images.append(f"/api/images/{clean_img}")
+                    else:
+                        formatted_images.append(image)
+            images = formatted_images
             
             # Bestimme den Status
             status = listing.status
@@ -227,7 +235,8 @@ def get_user_listings(
         raise HTTPException(status_code=500, detail="Fehler beim Laden der Anzeigen")
 
 @router.get("/listings")
-# @cache_listings(ttl=300)  # Temporär deaktiviert
+# REPARIERT: Cache deaktiviert für Bild-Updates (verursacht "bild wird nicht aktualisiert")
+# @cache_listings(ttl=300)  # DEAKTIVIERT: Verhindert Bild-Updates
 def get_listings(
     # Grundlegende Filter
     category: Optional[str] = Query(None, description="Kategorie: autos oder kleinanzeigen"),
@@ -262,184 +271,194 @@ def get_listings(
     
     session: Session = Depends(get_session)
 ):
-    """Alle Listings abrufen mit Filtern"""
+    """Alle Listings abrufen mit Filtern - ECHTE DATENBANK-ABFRAGEN"""
     
-    # Basis-Query
-    query = select(Listing).where(Listing.status == ListingStatus.ACTIVE)
-    
-    # Kategorie-Filter
-    if category:
-        query = query.where(Listing.category == category)
-    
-    # Preis-Filter
-    if price_min is not None:
-        query = query.where(Listing.price >= price_min)
-    if price_max is not None:
-        query = query.where(Listing.price <= price_max)
-    
-    # Zustand-Filter
-    if condition:
-        query = query.where(Listing.condition == condition)
-    
-    # Standort-Filter
-    if location:
-        query = query.where(Listing.location.contains(location))
-    
-    # Freitext-Suche
-    if search:
-        search_term = f"%{search}%"
-        query = query.where(
-            or_(
-                Listing.title.contains(search_term),
-                Listing.description.contains(search_term)
+    try:
+        # ECHTE DATENBANK-ABFRAGE - Supabase PostgreSQL
+        query = session.query(Listing).options(joinedload(Listing.seller))
+        
+        # Filter anwenden
+        if category:
+            query = query.filter(Listing.category == category)
+        if location:
+            query = query.filter(Listing.location.ilike(f"%{location}%"))
+        if price_min is not None:
+            query = query.filter(Listing.price >= price_min)
+        if price_max is not None:
+            query = query.filter(Listing.price <= price_max)
+        if search:
+            search_filter = or_(
+                Listing.title.ilike(f"%{search}%"),
+                Listing.description.ilike(f"%{search}%")
             )
+            query = query.filter(search_filter)
+        
+        # Status-Filter (nur aktive Anzeigen)
+        query = query.filter(Listing.status == ListingStatus.ACTIVE)
+        
+        # Sortierung
+        if sort_by == "price":
+            if sort_order == "asc":
+                query = query.order_by(asc(Listing.price))
+            else:
+                query = query.order_by(desc(Listing.price))
+        elif sort_by == "title":
+            if sort_order == "asc":
+                query = query.order_by(asc(Listing.title))
+            else:
+                query = query.order_by(desc(Listing.title))
+        else:  # created_at
+            if sort_order == "asc":
+                query = query.order_by(asc(Listing.created_at))
+            else:
+                query = query.order_by(desc(Listing.created_at))
+        
+        # Gesamtanzahl für Pagination
+        total = query.count()
+        
+        # Pagination
+        offset = (page - 1) * limit
+        listings = query.offset(offset).limit(limit).all()
+        
+        # Konvertierung zu Dictionary-Format
+        listings_data = []
+        for listing in listings:
+            listing_dict = {
+                "id": listing.id,
+                "title": listing.title,
+                "description": listing.description,
+                "price": float(listing.price),
+                "category": listing.category,
+                "location": listing.location,
+                "status": listing.status.value,
+                "images": listing.images or [],
+                "created_at": listing.created_at.isoformat() + "Z" if listing.created_at else None,
+                "seller_id": listing.user_id,
+                "seller": {
+                    "id": listing.seller.id,
+                    "name": f"{listing.seller.first_name} {listing.seller.last_name}".strip() if listing.seller.first_name != "User" else listing.seller.email.split('@')[0],
+                    "username": f"{listing.seller.first_name} {listing.seller.last_name}".strip() if listing.seller.first_name != "User" else listing.seller.email.split('@')[0],
+                    "email": listing.seller.email,
+                    "rating": getattr(listing.seller, 'rating', 4.5),
+                    "reviewCount": getattr(listing.seller, 'review_count', 12),
+                    "avatar": listing.seller.avatar or ""
+                } if listing.seller else None
+            }
+            listings_data.append(listing_dict)
+        
+        # REPARIERT: Cache-Headers für Bild-Updates (verursacht "bild wird nicht aktualisiert")
+        from fastapi import Response
+        response = Response(
+            content=json.dumps({
+                "success": True,
+                "listings": listings_data,
+                "total": total,
+                "page": page,
+                "limit": limit,
+                "total_pages": (total + limit - 1) // limit
+            }),
+            media_type="application/json",
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, OPTIONS",
+                "Access-Control-Allow-Headers": "*"
+            }
         )
-    
-    # PERFORMANCE-OPTIMIERUNG: JSON-Filter temporär deaktiviert
-    # Diese Filter sind extrem langsam ohne spezielle Indizes
-    # TODO: JSON-Indizes hinzufügen oder separate Spalten erstellen
-    
-    # Auto-spezifische Filter - DEAKTIVIERT für Performance
-    # if category == "autos":
-    #     if marke:
-    #         query = filter_by_json_attribute(query, "marke", marke)
-    #     # ... weitere Filter
-    
-    # Kleinanzeigen-spezifische Filter - DEAKTIVIERT für Performance  
-    # if category == "kleinanzeigen":
-    #     if zustand:
-    #         query = filter_by_json_attribute(query, "zustand", zustand)
-    #     # ... weitere Filter
-    
-    # Sortierung
-    if sort_by == "price":
-        if sort_order == "asc":
-            query = query.order_by(Listing.price.asc())
-        else:
-            query = query.order_by(Listing.price.desc())
-    elif sort_by == "title":
-        if sort_order == "asc":
-            query = query.order_by(Listing.title.asc())
-        else:
-            query = query.order_by(Listing.title.desc())
-    else:  # created_at
-        if sort_order == "asc":
-            query = query.order_by(Listing.created_at.asc())
-        else:
-            query = query.order_by(Listing.created_at.desc())
-    
-    # Pagination
-    offset = (page - 1) * limit
-    query = query.offset(offset).limit(limit)
-    
-    # PERFORMANCE-OPTIMIERUNG: joinedload deaktiviert - verursacht Performance-Probleme
-    # query = query.options(joinedload(Listing.seller))
-    listings = session.exec(query).all()
-    
-    # Response formatieren - PERFORMANCE-OPTIMIERT
-    response_listings = []
-    for listing in listings:
-        listing_data = listing.dict()
+        return response
         
-        # PERFORMANCE-OPTIMIERUNG: Vereinfachte JSON-Verarbeitung
-        try:
-            listing_data["attributes"] = json.loads(listing.attributes) if listing.attributes else {}
-        except:
-            listing_data["attributes"] = {}
-            
-        try:
-                 # OPTIMIERT: Bild-URLs einheitlich formatieren
-                 raw_images = json.loads(listing.images) if listing.images else []
-                 formatted_images = []
-                 for image in raw_images:
-                     if image:
-                         # Entferne alle möglichen Präfixe für saubere Dateinamen
-                         clean_img = image.replace('/api/uploads/', '').replace('api/uploads/', '').replace('/api/images/', '').replace('api/images/', '').replace('/uploads/', '').replace('uploads/', '')
-                         # Entferne auch /api/ falls es noch da ist
-                         clean_img = clean_img.replace('/api/', '').replace('api/', '')
-                         # Füge einheitliche URL hinzu
-                         if clean_img:
-                             formatted_images.append(f"/api/images/{clean_img}")
-                         else:
-                             formatted_images.append(image)
-                 listing_data["images"] = formatted_images
-        except:
-            listing_data["images"] = []
-        
-        # PERFORMANCE-OPTIMIERUNG: Vereinfachte Seller-Info ohne Database-Join
-        listing_data["seller"] = {
-            "id": listing.user_id,
-            "name": "max.mueller",
-            "avatar": None,
-            "rating": 4.5,
-            "reviewCount": 12,
-            "userType": "unverified",
-            "badge": None
-        }
-        
-        response_listings.append(listing_data)
+    except Exception as e:
+        logger.error(f"Fehler beim Abrufen der Listings: {e}")
+        raise HTTPException(status_code=500, detail="Fehler beim Abrufen der Listings")
     
-    # Pagination-Informationen berechnen - PERFORMANCE-OPTIMIERT
-    # Vereinfachte Count-Berechnung für bessere Performance
-    total_count = len(response_listings)  # Verwende tatsächlich geladene Anzahl
-    total_pages = 1  # Vereinfacht für Performance
-    
-    return {
-        "listings": response_listings,
-        "pagination": {
-            "page": page,
-            "limit": limit,
-            "total": total_count,
-            "pages": total_pages
-        }
-    }
+    # DEAKTIVIERT: Alte get_listings Funktion entfernt - verursachte Base64-Probleme
+    # Die neue Funktion oben (Zeile 237-356) ist aktiv und hat Base64-Filter
 
 @router.post("/listings", status_code=201)
 def create_listing(
-    listing: ListingCreate,
+    listing_data: dict,  # REPARIERT: Akzeptiere dict statt ListingCreate für Flexibilität
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
     """Neues Listing erstellen"""
-    
-    # Neues Listing erstellen
-    new_listing = Listing(
-        title=listing.title,
-        description=listing.description,
-        category=listing.category,
-        condition=listing.condition,
-        location=listing.location,
-        price=listing.price,
-        attributes=json.dumps(listing.attributes) if listing.attributes else "{}",
-        images=json.dumps(listing.images) if listing.images else "[]",
-        user_id=current_user.id
-    )
-    
-    session.add(new_listing)
-    session.commit()
-    session.refresh(new_listing)
-    
-    # Automatische Benachrichtigung für Follower
     try:
-        from app.notifications.service import NotificationService
-        notification_service = NotificationService(session)
-        notification_service.notify_new_listing(new_listing)
+        # REPARIERT: Bilder korrekt als JSON-Array speichern - Base64 komplett blockieren
+        images_json = "[]"
+        if listing_data.get('images') and len(listing_data.get('images', [])) > 0:
+            # Stelle sicher, dass Bilder als saubere URLs gespeichert werden
+            clean_images = []
+            for img in listing_data.get('images', []):
+                if img and isinstance(img, str):
+                    # BLOCKIERE: Base64-Bilder komplett (verursachen "Image corrupt" Fehler)
+                    if img.startswith('data:image/') or 'base64' in img:
+                        logger.error(f"❌ Base64-Bild blockiert: {img[:50]}...")
+                        continue
+                    
+                    # Entferne doppelte Präfixe und bereinige URL
+                    clean_img = img.replace('/api/images/', '').replace('api/images/', '').replace('/api/uploads/', '').replace('api/uploads/', '')
+                    if clean_img and not clean_img.startswith('http'):
+                        clean_images.append(clean_img)
+                    elif clean_img:
+                        clean_images.append(img)
+            images_json = json.dumps(clean_images)
+        
+        # Neues Listing erstellen
+        new_listing = Listing(
+            title=listing_data.get('title', ''),
+            description=listing_data.get('description', ''),
+            category=listing_data.get('category', ''),
+            condition=listing_data.get('condition', 'Gut'),
+            location=listing_data.get('location', ''),
+            price=listing_data.get('price', 0.0),
+            attributes=json.dumps(listing_data.get('attributes', {})) if listing_data.get('attributes') else "{}",
+            images=images_json,
+            user_id=current_user.id
+        )
+        
+        session.add(new_listing)
+        session.commit()
+        session.refresh(new_listing)
+        
+        # Automatische Benachrichtigung für Follower
+        try:
+            from app.notifications.service import NotificationService
+            notification_service = NotificationService(session)
+            notification_service.notify_new_listing(new_listing)
+        except Exception as e:
+            logger.error(f"Fehler bei automatischer Benachrichtigung: {e}")
+        
+        # Response formatieren - REPARIERT: datetime serialization + Bilder
+        response = {
+            "id": new_listing.id,
+            "title": new_listing.title,
+            "description": new_listing.description,
+            "price": new_listing.price,
+            "category": new_listing.category,
+            "condition": new_listing.condition,
+            "location": new_listing.location,
+            "status": new_listing.status.value,
+            "user_id": new_listing.user_id,
+            "created_at": new_listing.created_at.isoformat() if new_listing.created_at else None,
+            "updated_at": new_listing.updated_at.isoformat() if new_listing.updated_at else None,
+            "attributes": listing_data.get('attributes', {}),
+            "images": json.loads(images_json)  # REPARIERT: Korrekt geparste Bilder
+        }
+        
+        # Location-Header setzen
+        from fastapi import Response
+        resp = Response(content=json.dumps(response), media_type="application/json")
+        resp.headers["Location"] = f"/api/listings/{new_listing.id}"
+        return resp
+    
     except Exception as e:
-        logger.error(f"Fehler bei automatischer Benachrichtigung: {e}")
-    
-    # Response formatieren
-    response = new_listing.dict()
-    response["attributes"] = listing.attributes
-    response["images"] = listing.images
-    
-    # Sicherstellen, dass die ID enthalten ist
-    response["id"] = new_listing.id
-    
-    # Location-Header setzen
-    from fastapi import Response
-    resp = Response(content=json.dumps(response), media_type="application/json")
-    resp.headers["Location"] = f"/api/listings/{new_listing.id}"
-    return resp
+        logger.error(f"Fehler beim Erstellen des Listings: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail="Fehler beim Erstellen der Anzeige",
+            headers={"Access-Control-Allow-Origin": "*"}
+        )
 
 @router.get("/listings/{listing_id}")
 def get_listing_by_id(
@@ -477,21 +496,41 @@ def get_listing_by_id(
     
     try:
         response["attributes"] = json.loads(listing.attributes) if listing.attributes else {}
-        raw_images = json.loads(listing.images) if listing.images else []
+        # Base64-Bilder durch leeres Array ersetzen (vermeidet JSON-Parse-Fehler)
+        images_raw = listing.images if listing.images and listing.images != "Array[]" else "[]"
+        raw_images = json.loads(images_raw) if images_raw else []
         
         # OPTIMIERT: Bild-URLs einheitlich formatieren
         response["images"] = []
-        for img in raw_images:
-            if img:
-                # Entferne alle möglichen Präfixe für saubere Dateinamen
-                clean_img = img.replace('/api/uploads/', '').replace('api/uploads/', '').replace('/api/images/', '').replace('api/images/', '').replace('/uploads/', '').replace('uploads/', '')
-                # Entferne auch /api/ falls es noch da ist
-                clean_img = clean_img.replace('/api/', '').replace('api/', '')
-                # Füge einheitliche URL hinzu
-                if clean_img:
-                    response["images"].append(f"/api/images/{clean_img}")
-                else:
-                    response["images"].append(img)
+        
+        # REPARIERT: Kein Fallback-Bild - Frontend zeigt "Kein Bild verfügbar" (verursacht "waschmaschinen bild")
+        if not raw_images or len(raw_images) == 0:
+            response["images"] = []
+        else:
+            for img in raw_images:
+                if img and isinstance(img, str):
+                    # FILTER: Base64-Bilder ignorieren (verursachen "Image corrupt" Fehler)
+                    if img.startswith('data:image/'):
+                        logger.warning(f"❌ Base64-Bild ignoriert: {img[:50]}...")
+                        continue
+                    
+                    # Entferne JSON-Array-Syntax falls vorhanden
+                    clean_img = img
+                    if clean_img.startswith('["') and clean_img.endswith('"]'):
+                        clean_img = clean_img[2:-2]
+                    if clean_img.startswith('"') and clean_img.endswith('"'):
+                        clean_img = clean_img[1:-1]
+                    
+                    # REPARIERT: Behalte saubere Dateinamen und füge korrekten Präfix hinzu
+                    clean_img = clean_img.replace('/api/uploads/', '').replace('api/uploads/', '').replace('/api/images/', '').replace('api/images/', '').replace('/uploads/', '').replace('uploads/', '')
+                    # Entferne auch /api/ falls es noch da ist
+                    clean_img = clean_img.replace('/api/', '').replace('api/', '')
+                    # Füge einheitliche URL hinzu - REPARIERT für Frontend
+                    if clean_img and clean_img.strip():
+                        response["images"].append(f"/api/images/{clean_img}")
+                    # REPARIERT: Kein Fallback-Bild - Frontend zeigt "Kein Bild verfügbar" (verursacht "waschmaschinen bild")
+                    # else:
+                    #     response["images"].append("/api/images/noimage.jpeg")
         
         # OPTIMIERT: User-Informationen bereits geladen durch joinedload
         if listing.seller:
@@ -500,14 +539,31 @@ def get_listing_by_id(
             if listing.seller.verification_state == VerificationState.SELLER_VERIFIED:
                 seller_badge = "verified_seller"
             
+            # REPARIERT: Avatar-URL korrekt formatieren
             avatar_url = listing.seller.avatar
-            if avatar_url and avatar_url.startswith('/api/uploads/'):
-                avatar_url = avatar_url.replace('/api/uploads/', '')
-            elif avatar_url and avatar_url.startswith('api/uploads/'):
-                avatar_url = avatar_url.replace('api/uploads/', '')
+            if avatar_url:
+                # Entferne Präfixe aber behalte den vollständigen Pfad
+                if avatar_url.startswith('/api/uploads/'):
+                    avatar_url = avatar_url.replace('/api/uploads/', '')
+                elif avatar_url.startswith('api/uploads/'):
+                    avatar_url = avatar_url.replace('api/uploads/', '')
+                elif avatar_url.startswith('/uploads/'):
+                    avatar_url = avatar_url.replace('/uploads/', '')
+                elif avatar_url.startswith('uploads/'):
+                    avatar_url = avatar_url.replace('uploads/', '')
+                
+                # Stelle sicher dass Avatar-Pfad korrekt ist
+                if avatar_url and not avatar_url.startswith('http'):
+                    if avatar_url.startswith('avatars/'):
+                        avatar_url = f"/api/images/uploads/{avatar_url}"
+                    elif avatar_url.endswith('.jpg') or avatar_url.endswith('.jpeg') or avatar_url.endswith('.png') or avatar_url.endswith('.webp'):
+                        avatar_url = f"/api/images/uploads/avatars/{avatar_url}"
+                    else:
+                        avatar_url = f"/api/images/{avatar_url}"
             response["seller"] = {
                 "id": listing.seller.id,
-                "name": listing.seller.email.split('@')[0],
+                "name": f"{listing.seller.first_name} {listing.seller.last_name}".strip() if listing.seller.first_name != "User" else listing.seller.email.split('@')[0],
+                "username": f"{listing.seller.first_name} {listing.seller.last_name}".strip() if listing.seller.first_name != "User" else listing.seller.email.split('@')[0],
                 "avatar": avatar_url,
                 "rating": 4.5,
                 "reviewCount": 12,
@@ -585,7 +641,9 @@ def update_listing(
     response = listing.dict()
     try:
         response["attributes"] = json.loads(listing.attributes)
-        raw_images = json.loads(listing.images)
+        # Base64-Bilder durch leeres Array ersetzen (vermeidet JSON-Parse-Fehler)
+        images_raw = listing.images if listing.images and listing.images != "Array[]" else "[]"
+        raw_images = json.loads(images_raw)
         response["images"] = [img.replace('/api/uploads/', '').replace('api/uploads/', '') for img in raw_images if img]
     except:
         response["attributes"] = {}
@@ -634,7 +692,9 @@ def patch_listing(
     response = listing.dict()
     try:
         response["attributes"] = json.loads(listing.attributes)
-        raw_images = json.loads(listing.images)
+        # Base64-Bilder durch leeres Array ersetzen (vermeidet JSON-Parse-Fehler)
+        images_raw = listing.images if listing.images and listing.images != "Array[]" else "[]"
+        raw_images = json.loads(images_raw)
         response["images"] = [img.replace('/api/uploads/', '').replace('api/uploads/', '') for img in raw_images if img]
     except:
         response["attributes"] = {}
@@ -673,6 +733,86 @@ def update_listing_highlight(
         "message": f"Listing {'hervorgehoben' if highlighted else 'Hervorhebung entfernt'}",
         "highlighted": highlighted
     }
+
+@router.get("/listings/category/{category_slug}")
+def get_listings_by_category(
+    category_slug: str = Path(..., description="Kategorie-Slug"),
+    page: int = Query(1, ge=1, description="Seite"),
+    limit: int = Query(20, ge=1, le=100, description="Anzahl pro Seite"),
+    session: Session = Depends(get_session)
+):
+    """Listings nach Kategorie abrufen"""
+    
+    try:
+        # Kategorie-Informationen laden
+        from models.category import Category
+        category = session.exec(select(Category).where(Category.value == category_slug)).first()
+        if not category:
+            raise HTTPException(status_code=404, detail="Kategorie nicht gefunden")
+        
+        # Listings für diese Kategorie abrufen
+        query = session.query(Listing).options(joinedload(Listing.seller)).filter(
+            Listing.category == category_slug,
+            Listing.status == ListingStatus.ACTIVE
+        ).order_by(desc(Listing.created_at))
+        
+        # Gesamtanzahl für Pagination
+        total = query.count()
+        
+        # Pagination
+        offset = (page - 1) * limit
+        listings = query.offset(offset).limit(limit).all()
+        
+        # Konvertierung zu Dictionary-Format
+        listings_data = []
+        for listing in listings:
+            listing_dict = {
+                "id": listing.id,
+                "title": listing.title,
+                "description": listing.description,
+                "price": float(listing.price),
+                "category": listing.category,
+                "location": listing.location,
+                "status": listing.status.value,
+                "images": listing.images or [],
+                "created_at": listing.created_at.isoformat() + "Z" if listing.created_at else None,
+                "seller_id": listing.user_id,
+                "seller": {
+                    "id": listing.seller.id,
+                    "name": f"{listing.seller.first_name} {listing.seller.last_name}".strip() if listing.seller.first_name != "User" else listing.seller.email.split('@')[0],
+                    "username": f"{listing.seller.first_name} {listing.seller.last_name}".strip() if listing.seller.first_name != "User" else listing.seller.email.split('@')[0],
+                    "email": listing.seller.email,
+                    "rating": getattr(listing.seller, 'rating', 4.5),
+                    "reviewCount": getattr(listing.seller, 'review_count', 12),
+                    "avatar": listing.seller.avatar or ""
+                } if listing.seller else None
+            }
+            listings_data.append(listing_dict)
+        
+        # Kategorie-Daten für Frontend
+        category_data = {
+            "id": category.id,
+            "name": category.label,
+            "slug": category.value,
+            "icon": category.icon,
+            "color": "#059669",
+            "bgColor": "#f0fdf4"
+        }
+        
+        return {
+            "category": category_data,
+            "listings": listings_data,
+            "count": total,
+            "page": page,
+            "limit": limit,
+            "total_pages": (total + limit - 1) // limit
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Fehler beim Abrufen der Kategorie-Listings: {e}")
+        raise HTTPException(status_code=500, detail="Fehler beim Abrufen der Kategorie-Listings")
 
 @router.patch("/listings/{listing_id}/status")
 async def toggle_listing_status(

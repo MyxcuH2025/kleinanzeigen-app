@@ -228,8 +228,8 @@ export const StoriesAnalyticsDashboard: React.FC = () => {
       )}
 
       {/* Key Metrics */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={3}>
+      <Box sx={{ display: 'grid', gap: 2 }}>
+        <Box>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -246,9 +246,9 @@ export const StoriesAnalyticsDashboard: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Grid>
+        </Box>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Box>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -265,9 +265,9 @@ export const StoriesAnalyticsDashboard: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Grid>
+        </Box>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Box>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -284,9 +284,9 @@ export const StoriesAnalyticsDashboard: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Grid>
+        </Box>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Box>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -303,8 +303,8 @@ export const StoriesAnalyticsDashboard: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
 
       {/* Realtime Metrics */}
       <Card sx={{ mb: 3 }}>
@@ -313,24 +313,24 @@ export const StoriesAnalyticsDashboard: React.FC = () => {
             <TrendingUpIcon color="primary" />
             Echtzeit-Metriken
           </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={6} md={3}>
+          <Box sx={{ display: 'grid', gap: 2 }}>
+            <Box>
               <Typography variant="body2" color="text.secondary">Views (1h)</Typography>
               <Typography variant="h6">{realtime.views_last_hour}</Typography>
-            </Grid>
-            <Grid item xs={6} md={3}>
+            </Box>
+            <Box>
               <Typography variant="body2" color="text.secondary">Reactions (1h)</Typography>
               <Typography variant="h6">{realtime.reactions_last_hour}</Typography>
-            </Grid>
-            <Grid item xs={6} md={3}>
+            </Box>
+            <Box>
               <Typography variant="body2" color="text.secondary">Aktive User (1h)</Typography>
               <Typography variant="h6">{realtime.active_users_last_hour}</Typography>
-            </Grid>
-            <Grid item xs={6} md={3}>
+            </Box>
+            <Box>
               <Typography variant="body2" color="text.secondary">Engagement (1h)</Typography>
               <Typography variant="h6">{realtime.engagement_rate_last_hour}%</Typography>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </CardContent>
       </Card>
 

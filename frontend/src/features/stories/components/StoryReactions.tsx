@@ -80,7 +80,7 @@ export const StoryReactions: React.FC<StoryReactionsProps> = ({
     onReaction(reaction);
   };
   
-  const currentReaction = story.user_reaction;
+  const currentReaction = null; // user_reaction nicht in Story-Interface
   
   return (
     <Box

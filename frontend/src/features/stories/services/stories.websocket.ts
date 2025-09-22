@@ -4,7 +4,7 @@
 import { storiesApi } from './stories.api';
 
 export interface WebSocketMessage {
-  type: 'connected' | 'new_story' | 'story_viewed' | 'story_reaction_update' | 'pong' | 'rate_limit_exceeded';
+  type: 'connected' | 'new_story' | 'story_viewed' | 'story_reaction_update' | 'story_reply' | 'pong' | 'rate_limit_exceeded';
   story?: any;
   story_id?: number;
   user_id?: number;
@@ -12,6 +12,7 @@ export interface WebSocketMessage {
   reaction?: string;
   total_count?: number;
   views_count?: number;
+  text?: string;
   timestamp?: string;
   message?: string;
   error?: string;
@@ -25,6 +26,10 @@ export class StoriesWebSocketService {
   private reconnectInterval = 3000;
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private messageHandlers: Map<string, (message: WebSocketMessage) => void> = new Map();
+  private lastStoryViewTime = 0;
+  private storyViewCooldown = 2000; // 2 Sekunden Cooldown zwischen Story-Views
+  private rateLimitCount = 0;
+  private maxRateLimitCount = 5; // Nach 5 Rate-Limits WebSocket stoppen
 
   constructor() {
     this.connect();
@@ -37,7 +42,7 @@ export class StoriesWebSocketService {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        console.warn('Kein Token für Stories-WebSocket verfügbar');
+        console.log('User nicht authentifiziert - WebSocket-Verbindung übersprungen');
         return;
       }
 
@@ -90,14 +95,24 @@ export class StoriesWebSocketService {
   }
 
   /**
-   * Story-View senden
+   * Story-View senden (mit Rate-Limiting)
    */
   public sendStoryView(storyId: number): void {
+    const now = Date.now();
+    
+    // Rate-Limiting: Nur alle 2 Sekunden eine Story-View senden
+    if (now - this.lastStoryViewTime < this.storyViewCooldown) {
+      console.log('⏳ Story-View zu schnell, warte...');
+      return;
+    }
+    
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.lastStoryViewTime = now;
       this.ws.send(JSON.stringify({
         type: 'story_view',
         story_id: storyId
       }));
+      console.log('📤 Story-View gesendet:', storyId);
     }
   }
 
@@ -115,9 +130,33 @@ export class StoriesWebSocketService {
   }
 
   /**
+   * Story-Reply senden (Textantwort)
+   */
+  public sendStoryReply(storyId: number, text: string): void {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({
+        type: 'story_reply',
+        story_id: storyId,
+        text
+      }));
+    }
+  }
+
+  /**
    * Nachrichten verarbeiten
    */
   private handleMessage(message: WebSocketMessage): void {
+    // REPARIERT: Nur Base64-Bilder in WebSocket-Nachrichten filtern, lokale URLs erlauben
+    if (message.story && message.story.media_url) {
+      if (message.story.media_url.startsWith('data:') || message.story.media_url.includes('base64')) {
+        console.warn('❌ Base64-Story-Media in WebSocket blockiert:', message.story.media_url.substring(0, 50) + '...');
+        message.story.media_url = 'http://localhost:8000/api/images/noimage.jpeg';
+      } else if (message.story.media_url.startsWith('/api/images/') || message.story.media_url.startsWith('/uploads/')) {
+        // REPARIERT: Lokale Backend-URLs erlauben und korrekt formatieren
+        message.story.media_url = `http://localhost:8000${message.story.media_url}`;
+      }
+    }
+
     const handler = this.messageHandlers.get(message.type);
     if (handler) {
       handler(message);
@@ -126,22 +165,55 @@ export class StoriesWebSocketService {
     // Rate-Limit-Handling
     if (message.type === 'rate_limit_exceeded') {
       console.warn('⚠️ Rate-Limit überschritten:', message);
-      // Hier könnte eine Toast-Benachrichtigung angezeigt werden
       this.handleRateLimitExceeded(message);
+      return; // Früher Return, um weitere Verarbeitung zu stoppen
     }
 
-    // Log für Debugging
-    console.log('📨 Stories-WebSocket Nachricht:', message);
+    // Log für Debugging (nur bei wichtigen Nachrichten)
+    if (message.type !== 'story_viewed' && message.type !== 'pong') {
+      console.log('📨 Stories-WebSocket Nachricht:', message);
+    }
   }
 
   /**
    * Rate-Limit-Überschreitung behandeln
    */
   private handleRateLimitExceeded(message: WebSocketMessage): void {
+    this.rateLimitCount++;
+    console.warn(`⚠️ Rate-Limit überschritten (${this.rateLimitCount}/${this.maxRateLimitCount}):`, message);
+    
     // Rate-Limit-Handler registrieren
     const rateLimitHandler = this.messageHandlers.get('rate_limit_exceeded');
     if (rateLimitHandler) {
       rateLimitHandler(message);
+    }
+    
+    // Nach zu vielen Rate-Limits WebSocket komplett stoppen
+    if (this.rateLimitCount >= this.maxRateLimitCount) {
+      console.error('🚫 Zu viele Rate-Limits, WebSocket wird gestoppt');
+      this.disconnect();
+      return;
+    }
+    
+    // WebSocket-Verbindung temporär pausieren
+    this.pauseConnection(2000); // 2 Sekunden Pause
+  }
+
+  /**
+   * WebSocket-Verbindung temporär pausieren
+   */
+  private pauseConnection(duration: number): void {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.close();
+      console.log(`⏸️ WebSocket pausiert für ${duration}ms`);
+      
+      // Verhindere Reconnect-Loop
+      if (this.rateLimitCount < this.maxRateLimitCount) {
+        setTimeout(() => {
+          console.log('▶️ WebSocket-Verbindung wird wiederhergestellt');
+          this.connect();
+        }, duration);
+      }
     }
   }
 
@@ -173,6 +245,12 @@ export class StoriesWebSocketService {
    * Reconnect-Logik
    */
   private handleReconnect(): void {
+    // Verhindere Reconnect bei zu vielen Rate-Limits
+    if (this.rateLimitCount >= this.maxRateLimitCount) {
+      console.error('🚫 Reconnect wegen zu vielen Rate-Limits gestoppt');
+      return;
+    }
+    
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
       console.log(`🔄 Stories-WebSocket Reconnect ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);

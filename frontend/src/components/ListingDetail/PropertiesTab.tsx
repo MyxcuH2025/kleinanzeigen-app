@@ -132,9 +132,9 @@ export const PropertiesTab: React.FC<PropertiesTabProps> = ({ listing }) => {
       </Box>
 
       {/* Super-Team Properties Grid */}
-      <Grid container spacing={2}>
+      <Box sx={{ display: 'grid', gap: 2 }}>
         {propertyEntries.map(([key, value], index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
+          <Box>
             <Paper
               elevation={0}
               sx={{
@@ -170,12 +170,12 @@ export const PropertiesTab: React.FC<PropertiesTabProps> = ({ listing }) => {
                   mt: 0.5
                 }}
               >
-                {value}
+                {String(value)}
               </Typography>
             </Paper>
-          </Grid>
+          </Box>
         ))}
-      </Grid>
+      </Box>
 
       {/* Super-Team Quick Stats */}
       <Box sx={{ mt: 4 }}>
@@ -183,8 +183,8 @@ export const PropertiesTab: React.FC<PropertiesTabProps> = ({ listing }) => {
         <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
           Schnell-Statistiken
         </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={6} sm={3}>
+        <Box sx={{ display: 'grid', gap: 2 }}>
+          <Box>
             <Box sx={{ 
               textAlign: 'center', 
               p: 2,
@@ -200,8 +200,8 @@ export const PropertiesTab: React.FC<PropertiesTabProps> = ({ listing }) => {
                 Aufrufe
               </Typography>
             </Box>
-          </Grid>
-          <Grid item xs={6} sm={3}>
+          </Box>
+          <Box>
             <Box sx={{ 
               textAlign: 'center', 
               p: 2,
@@ -217,8 +217,8 @@ export const PropertiesTab: React.FC<PropertiesTabProps> = ({ listing }) => {
                 Favoriten
               </Typography>
             </Box>
-          </Grid>
-          <Grid item xs={6} sm={3}>
+          </Box>
+          <Box>
             <Box sx={{ 
               textAlign: 'center', 
               p: 2,
@@ -234,8 +234,8 @@ export const PropertiesTab: React.FC<PropertiesTabProps> = ({ listing }) => {
                 Erstellt
               </Typography>
             </Box>
-          </Grid>
-          <Grid item xs={6} sm={3}>
+          </Box>
+          <Box>
             <Box sx={{ 
               textAlign: 'center', 
               p: 2,
@@ -251,8 +251,8 @@ export const PropertiesTab: React.FC<PropertiesTabProps> = ({ listing }) => {
                 Bilder
               </Typography>
             </Box>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Box>
     </Box>
   );

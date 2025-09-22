@@ -7,7 +7,7 @@ from typing import Optional
 
 class Conversation(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    listing_id: int = Field(foreign_key="listing.id")
+    listing_id: Optional[int] = Field(default=None, foreign_key="listing.id")
     buyer_id: int = Field(foreign_key="users.id")
     seller_id: int = Field(foreign_key="users.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)

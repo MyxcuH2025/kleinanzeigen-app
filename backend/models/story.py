@@ -31,6 +31,11 @@ class StoryBase(SQLModel):
     views_count: int = Field(default=0, ge=0, description="Anzahl der Views")
     reactions_count: int = Field(default=0, ge=0, description="Anzahl der Reaktionen")
     is_active: bool = Field(default=True, description="Story ist aktiv")
+    is_highlighted: bool = Field(default=False, description="Story ist als Highlight gespeichert")
+    
+    # Overlay-Daten für Videos
+    text_overlays: Optional[str] = Field(default=None, description="JSON-String mit Text-Overlay-Daten")
+    sticker_overlays: Optional[str] = Field(default=None, description="JSON-String mit Sticker-Overlay-Daten")
 
 class Story(StoryBase, table=True):
     """Stories-Tabelle"""
@@ -74,6 +79,10 @@ class StoryResponse(SQLModel):
     created_at: datetime
     expires_at: datetime
     is_active: bool
+    
+    # Overlay-Daten für Videos
+    text_overlays: Optional[str] = None
+    sticker_overlays: Optional[str] = None
     
     # User-Info
     user_name: Optional[str] = None
@@ -145,6 +154,43 @@ class StoryCommentResponse(SQLModel):
     # User-Info
     user_name: Optional[str] = None
     user_avatar: Optional[str] = None
+
+class StoryHighlightBase(SQLModel):
+    """Basis-Story-Highlight-Modell"""
+    user_id: int = Field(foreign_key="users.id")
+    title: str = Field(max_length=100, description="Highlight-Titel")
+    cover_image_url: Optional[str] = Field(default=None, description="Cover-Bild für Highlight")
+    description: Optional[str] = Field(default=None, max_length=200, description="Highlight-Beschreibung")
+    is_active: bool = Field(default=True, description="Highlight ist aktiv")
+
+class StoryHighlight(StoryHighlightBase, table=True):
+    """Story-Highlights Tabelle"""
+    __tablename__ = "story_highlights"
+    
+    id: Optional[int] = Field(default=None, primary_key=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    # Relationships
+    user: Optional["User"] = Relationship()
+    stories: List["StoryHighlightStory"] = Relationship(back_populates="highlight")
+
+class StoryHighlightStoryBase(SQLModel):
+    """Basis-Story-Highlight-Zuordnung"""
+    highlight_id: int = Field(foreign_key="story_highlights.id")
+    story_id: int = Field(foreign_key="stories.id")
+    order_index: int = Field(default=0, description="Reihenfolge im Highlight")
+
+class StoryHighlightStory(StoryHighlightStoryBase, table=True):
+    """Story-Highlight-Zuordnung Tabelle"""
+    __tablename__ = "story_highlight_stories"
+    
+    id: Optional[int] = Field(default=None, primary_key=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    # Relationships
+    highlight: Optional["StoryHighlight"] = Relationship(back_populates="stories")
+    story: Optional["Story"] = Relationship()
 
 class StoriesFeedResponse(SQLModel):
     """Stories-Feed-Response"""

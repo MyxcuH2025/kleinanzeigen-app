@@ -112,9 +112,9 @@ const SimilarListings: React.FC<SimilarListingsProps> = ({
           </Typography>
         </Box>
       ) : (
-        <Grid container spacing={2}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: 2 }}>
           {listings.map((listing) => (
-            <Grid item xs={12} sm={6} md={4} key={listing.id}>
+            <Box key={listing.id}>
               <Card 
                 sx={{ 
                   height: '100%',
@@ -239,9 +239,9 @@ const SimilarListings: React.FC<SimilarListingsProps> = ({
                   </Box>
                 </CardActions>
               </Card>
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
       )}
 
       {/* Load More Button */}

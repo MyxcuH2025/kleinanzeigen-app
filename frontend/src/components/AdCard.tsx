@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { Box, Typography, IconButton } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Edit, Report, Star } from '@mui/icons-material';
@@ -7,7 +7,7 @@ import { useUser } from '@/context/UserContext';
 import { useFavorites } from '@/context/FavoritesContext';
 import { AdminListingEdit } from './AdminListingEdit';
 import type { AdCardProps } from '@/types';
-import './AdCard.css';
+// import './AdCard.css'; // CSS-Datei existiert nicht, verwende Material-UI Styling
 import { getImageUrl as getImageUrlFromUtils } from '@/utils/imageUtils';
 import VerificationBadge from './VerificationBadge';
 
@@ -95,7 +95,17 @@ const CameraIcon = () => (
   </svg>
 );
 
-const AdCard: React.FC<AdCardProps> = ({ id, title, price, location, images, category, created_at, seller, vehicleDetails }) => {
+const AdCard: React.FC<AdCardProps> = ({ 
+  id, 
+  title, 
+  price, 
+  location, 
+  images, 
+  category, 
+  created_at, 
+  seller, 
+  vehicleDetails 
+}: AdCardProps) => {
   const { user } = useUser();
   const { isFavorite: isFavoriteGlobal, addFavorite, removeFavorite } = useFavorites();
   const navigate = useNavigate();
@@ -180,15 +190,31 @@ const AdCard: React.FC<AdCardProps> = ({ id, title, price, location, images, cat
     imgs = [];
   }
 
-  if (!imgs || imgs.length === 0) {
-    imgs = ['/images/noimage.jpeg'];
-  }
+  // REPARIERT: Base64-Bilder filtern und Fallback-Bild setzen (verursacht "bilder werden nicht angezeigt")
+  imgs = imgs.filter(img => 
+    img && 
+    typeof img === 'string' && 
+    img.trim() !== '' && 
+    img !== '[]' &&
+    img !== '[""]' &&
+    img !== '""' &&
+    !img.startsWith('[') &&
+    !img.endsWith(']') &&
+    !img.startsWith('data:') && 
+    !img.includes('base64')
+  );
 
-  const displayImages = imgs.length === 1 ? [imgs[0], imgs[0]] : imgs;
-  const currentImage = displayImages[currentImageIndex] || displayImages[0];
+  // REPARIERT: Kein Fallback-Bild - Anzeigen ohne Bilder zeigen kein Bild (verursacht "gleiche platzhalter bilder")
+  // if (!imgs || imgs.length === 0) {
+  //   imgs = ['http://localhost:8000/api/images/noimage.jpeg'];
+  // }
+
+  // REPARIERT: Handle leere Bilder-Arrays (verursacht "gleiche platzhalter bilder")
+  const displayImages = imgs.length === 0 ? [] : (imgs.length === 1 ? [imgs[0], imgs[0]] : imgs);
+  const currentImage = displayImages.length > 0 ? (displayImages[currentImageIndex] || displayImages[0]) : null;
 
   // Verwende die zentrale getImageUrl Funktion
-  const imageUrl = getImageUrlFromUtils(currentImage);
+  const imageUrl = currentImage ? getImageUrlFromUtils(currentImage) : null;
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('de-DE', {
@@ -416,30 +442,61 @@ const AdCard: React.FC<AdCardProps> = ({ id, title, price, location, images, cat
         onMouseMove={handleImageMouseMove}
         onMouseLeave={handleImageMouseLeave}
       >
-        <img
-          src={imageUrl}
-          alt={title}
-          style={{ 
-            width: '100%', 
-            height: '100%', 
-            objectFit: 'cover', 
-            objectPosition: 'center top',
-            transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-            zIndex: 2,
-            position: 'relative',
-            filter: 'brightness(1.02) contrast(1.05)'
-          }}
-          loading="lazy"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = '/images/noimage.jpeg';
-            target.style.objectFit = 'contain';
-            target.style.backgroundColor = '#f8f9fa';
-          }}
-        />
+        {/* REPARIERT: Nur Bild anzeigen wenn vorhanden (verursacht "gleiche platzhalter bilder") */}
+        {currentImage && imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={title}
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              objectFit: 'cover', 
+              objectPosition: 'center top',
+              transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+              zIndex: 2,
+              position: 'relative',
+              filter: 'brightness(1.02) contrast(1.05)'
+            }}
+            loading="lazy"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = '/images/noimage.jpeg';
+              target.style.objectFit = 'contain';
+              target.style.backgroundColor = '#f8f9fa';
+            }}
+          />
+        ) : (
+          /* REPARIERT: Platzhalter für Anzeigen ohne Bilder (verursacht "gleiche platzhalter bilder") */
+          <Box
+            sx={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#f8f9fa',
+              color: '#6c757d',
+              fontSize: '14px',
+              fontWeight: 500,
+              textAlign: 'center',
+              padding: 2
+            }}
+          >
+            <img 
+              src="/images/noimage.jpeg" 
+              alt="Kein Bild verfügbar"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                opacity: 0.6
+              }}
+            />
+          </Box>
+        )}
 
-        {/* Indikatoren (unten rechts) – aktives Bild als längere Linie */}
-        {displayImages.length > 1 && (
+        {/* REPARIERT: Indikatoren nur bei mehreren Bildern (verursacht "gleiche platzhalter bilder") */}
+        {displayImages.length > 1 && currentImage && (
           <Box
             sx={{
               position: 'absolute',
@@ -467,6 +524,10 @@ const AdCard: React.FC<AdCardProps> = ({ id, title, price, location, images, cat
                   backgroundColor: i === currentImageIndex ? '#dcf8c6' : 'rgba(255,255,255,0.6)',
                   transition: 'all 200ms cubic-bezier(0.25, 0.8, 0.25, 1)',
                   boxShadow: i === currentImageIndex ? '0 2px 4px rgba(220, 248, 198, 0.3)' : 'none'
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentImageIndex(i);
                 }}
               />
             ))}

@@ -151,9 +151,24 @@ const UserProfilePage: React.FC = () => {
     navigate(`/listings/${listingId}`);
   };
 
-  const handleContactUser = () => {
-    // TODO: Implement contact functionality
+  const handleContactUser = async () => {
+    if (!profile) return;
 
+    // Prüfe ob User eingeloggt ist
+    const token = localStorage.getItem('token');
+    if (!token) {
+      const nextUrl = encodeURIComponent(window.location.pathname + window.location.search);
+      navigate(`/login?next=${nextUrl}`);
+      return;
+    }
+
+    try {
+      // Navigiere direkt zum Chat mit User-Informationen
+      const userName = `${profile.first_name || 'Unbekannt'} ${profile.last_name || 'User'}`;
+      navigate(`/chat?directUser=${profile.id}&userName=${encodeURIComponent(userName)}`);
+    } catch (error) {
+      console.error('Fehler beim Öffnen des User-Chats:', error);
+    }
   };
 
   const handleShowPhone = () => {

@@ -15,14 +15,23 @@ import {
 import { Add as AddIcon, PlayArrow as PlayIcon } from '@mui/icons-material';
 import { useStoriesStore } from '../store/stories.store';
 import { StoryCard } from './StoryCard';
+import { StoryGroup } from '../types/stories.types';
 
 interface StoriesBarProps {
+  storyGroups: StoryGroup[];
+  onStoryClick: (userId: string, storyIndex: number) => void;
+  onCreateClick: () => void;
+  showCreateButton: boolean;
   onAddStory?: () => void;
   maxStories?: number;
   showAddButton?: boolean;
 }
 
 export const StoriesBar: React.FC<StoriesBarProps> = ({
+  storyGroups,
+  onStoryClick,
+  onCreateClick,
+  showCreateButton,
   onAddStory,
   maxStories = 10,
   showAddButton = true
@@ -31,11 +40,11 @@ export const StoriesBar: React.FC<StoriesBarProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
   const { 
-    stories, 
     loading, 
     openViewer, 
     openCreateModal,
-    getUnviewedStoriesCount 
+    getUnviewedStoriesCount,
+    loadStories
   } = useStoriesStore();
   
   const unviewedCount = getUnviewedStoriesCount();
@@ -48,13 +57,17 @@ export const StoriesBar: React.FC<StoriesBarProps> = ({
     }
   };
   
-  const handleStoryClick = (storyIndex: number) => {
-    openViewer(storyIndex);
+  const handleStoryClick = (userId: string, storyIndex: number) => {
+    onStoryClick(userId, storyIndex);
   };
   
-  // Stories nach Erstellungsdatum sortieren und limitieren
-  const sortedStories = stories
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  // StoryGroups nach neuesten Stories sortieren und limitieren
+  const sortedStoryGroups = storyGroups
+    .sort((a, b) => {
+      const lastStoryA = a.stories[a.stories.length - 1];
+      const lastStoryB = b.stories[b.stories.length - 1];
+      return new Date(lastStoryB.created_at).getTime() - new Date(lastStoryA.created_at).getTime();
+    })
     .slice(0, maxStories);
   
   return (
@@ -130,6 +143,7 @@ export const StoriesBar: React.FC<StoriesBarProps> = ({
           </Typography>
         </Box>
       )}
+
       
       {/* Stories */}
       {loading ? (
@@ -158,15 +172,18 @@ export const StoriesBar: React.FC<StoriesBarProps> = ({
           </Box>
         ))
       ) : (
-        sortedStories.map((story, index) => (
-          <StoryCard
-            key={story.id}
-            story={story}
-            onClick={() => handleStoryClick(index)}
-            size={isMobile ? 'small' : 'medium'}
-            showUnviewedIndicator={!story.has_viewed}
-          />
-        ))
+        sortedStoryGroups.map((storyGroup, index) => {
+          const firstStory = storyGroup.stories[0]; // Erste Story für Thumbnail
+          return (
+            <StoryCard
+              key={storyGroup.user_id}
+              story={firstStory}
+              onClick={() => handleStoryClick(storyGroup.user_id, 0)}
+              size={isMobile ? 'small' : 'medium'}
+              showUnviewedIndicator={storyGroup.has_unviewed_stories}
+            />
+          );
+        })
       )}
       
       {/* Unviewed Stories Indicator */}
@@ -198,7 +215,11 @@ export const StoriesBar: React.FC<StoriesBarProps> = ({
                   bgcolor: 'primary.dark',
                 },
               }}
-              onClick={() => handleStoryClick(0)}
+              onClick={() => {
+                if (sortedStoryGroups.length > 0) {
+                  handleStoryClick(sortedStoryGroups[0].user_id, 0);
+                }
+              }}
             >
               <PlayIcon fontSize="small" />
             </IconButton>

@@ -309,9 +309,19 @@ export const ChatPage: React.FC = () => {
           let images = [];
           if (conv.listing?.images) {
             try {
-              images = JSON.parse(conv.listing.images);
+              // Prüfe ob es bereits ein Array ist oder ein JSON-String
+              if (Array.isArray(conv.listing.images)) {
+                images = conv.listing.images;
+              } else if (typeof conv.listing.images === 'string') {
+                // Prüfe ob es ein gültiger JSON-String ist
+                if (conv.listing.images.trim() === '[]' || conv.listing.images.trim() === 'Array[]') {
+                  images = [];
+                } else {
+                  images = JSON.parse(conv.listing.images);
+                }
+              }
             } catch (e) {
-              console.warn('Failed to parse images JSON:', images);
+              console.warn('Failed to parse images JSON:', conv.listing.images, 'Error:', e);
               images = [];
             }
           }
@@ -339,8 +349,25 @@ export const ChatPage: React.FC = () => {
         // Lade gespeicherte temporäre Konversationen aus localStorage
         const savedTempConversations = JSON.parse(localStorage.getItem('temp_conversations') || '[]');
         
-        // Kombiniere Backend-Konversationen mit temporären
-        const allConversations = [...backendConversations, ...savedTempConversations];
+        // Entferne Duplikate: Temporäre Conversations, die bereits als echte Conversations existieren
+        const filteredTempConversations = savedTempConversations.filter((tempConv: any) => {
+          // Prüfe ob es bereits eine echte Conversation mit demselben User gibt
+          const hasRealConversation = backendConversations.some(backendConv => 
+            backendConv.other_user?.id === tempConv.other_user?.id
+          );
+          return !hasRealConversation;
+        });
+        
+        // Kombiniere Backend-Konversationen mit gefilterten temporären
+        const allConversations = [...backendConversations, ...filteredTempConversations];
+        
+        console.log(`📋 Conversations geladen: ${backendConversations.length} Backend + ${filteredTempConversations.length} temporäre = ${allConversations.length} total`);
+        
+        // Bereinige localStorage: Speichere nur die gefilterten temporären Conversations
+        if (filteredTempConversations.length !== savedTempConversations.length) {
+          localStorage.setItem('temp_conversations', JSON.stringify(filteredTempConversations));
+          console.log(`🧹 localStorage bereinigt: ${savedTempConversations.length - filteredTempConversations.length} Duplikate entfernt`);
+        }
         
         setConversations(allConversations);
       } else {
@@ -382,6 +409,25 @@ export const ChatPage: React.FC = () => {
       return;
     }
     
+    // Prüfe ob es eine Story-Conversation ist
+    if (conversationId.toString().startsWith('story_')) {
+      // Für Story-Conversations: Lade temporäre Nachrichten aus localStorage
+      const tempConversations = JSON.parse(localStorage.getItem('temp_conversations') || '[]');
+      const storyConv = tempConversations.find(c => c.id === conversationId.toString());
+      if (storyConv) {
+        setMessages([{
+          id: Date.now(),
+          content: storyConv.lastMessage,
+          sender_id: 0,
+          conversation_id: parseInt(conversationId.toString().replace('story_', '')),
+          created_at: storyConv.timestamp,
+          isOwn: true,
+          type: 'text'
+        }]);
+      }
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
@@ -434,14 +480,43 @@ export const ChatPage: React.FC = () => {
       return;
     }
 
+    // Prüfe ob es eine Story-Conversation ist
+    if (selectedConversation.id.toString().startsWith('story_')) {
+      // Für Story-Conversations: Nachricht zu localStorage hinzufügen
+      const tempConversations = JSON.parse(localStorage.getItem('temp_conversations') || '[]');
+      const storyConv = tempConversations.find(c => c.id === selectedConversation.id.toString());
+      if (storyConv) {
+        storyConv.lastMessage = newMessage;
+        storyConv.timestamp = new Date().toISOString();
+        localStorage.setItem('temp_conversations', JSON.stringify(tempConversations));
+        
+        // Nachricht zu UI hinzufügen
+        const tempMessage: Message = {
+          id: Date.now(),
+          content: newMessage,
+          sender_id: user.id,
+          conversation_id: parseInt(selectedConversation.id.toString().replace('story_', '')),
+          created_at: new Date().toISOString(),
+          isOwn: true,
+          type: 'text'
+        };
+        setMessages(prev => [...prev, tempMessage]);
+        setNewMessage('');
+      }
+      return;
+    }
+
     // Prüfe ob es eine temporäre Konversation ist
     if (selectedConversation.id.startsWith('temp_')) {
       // Für temporäre Konversationen: Nur lokale Nachricht hinzufügen
+      const conversationIdStr = selectedConversation.id.toString().replace('temp_user_', '').replace('temp_seller_', '');
+      const conversationId = conversationIdStr && !isNaN(parseInt(conversationIdStr)) ? parseInt(conversationIdStr) : 0;
+      
       const tempMessage: Message = {
         id: Date.now(), // Temporäre ID
         content: newMessage,
         sender_id: user.id,
-        conversation_id: parseInt(selectedConversation.id.replace('temp_user_', '').replace('temp_seller_', '')),
+        conversation_id: conversationId,
         created_at: new Date().toISOString(),
         isOwn: true,
         type: 'text'
@@ -556,13 +631,18 @@ export const ChatPage: React.FC = () => {
     setMobileOpen(false);
     loadMessages(conversation.id);
     
-    // Nachrichten als gelesen markieren
-    try {
-      await chatService.markConversationAsRead(parseInt(conversation.id));
-      // Conversations neu laden um unread_count zu aktualisieren
-      loadConversations(false);
-    } catch (error) {
-      console.error('Fehler beim Markieren der Nachrichten als gelesen:', error);
+    // Nachrichten als gelesen markieren - NUR für echte Conversations (nicht temp_user_)
+    if (!conversation.id.toString().startsWith('temp_')) {
+      try {
+        const conversationId = conversation.id.toString().replace('temp_user_', '').replace('temp_seller_', '');
+        if (conversationId && !isNaN(parseInt(conversationId))) {
+          await chatService.markConversationAsRead(parseInt(conversationId));
+          // Conversations neu laden um unread_count zu aktualisieren
+          loadConversations(false);
+        }
+      } catch (error) {
+        console.error('Fehler beim Markieren der Nachrichten als gelesen:', error);
+      }
     }
   };
 
@@ -586,20 +666,50 @@ export const ChatPage: React.FC = () => {
         await loadConversations(false);
       }
       
-      // Prüfe ob bereits eine Konversation mit diesem User existiert
-      const existingConv = conversations.find(conv => 
-        conv.other_user.id === parseInt(userId) && conv.id.startsWith('temp_user_')
+      // Prüfe ob bereits eine echte Konversation mit diesem User existiert
+      const existingRealConv = conversations.find(conv => 
+        conv.other_user.id === parseInt(userId) && !conv.id.toString().startsWith('temp_') && !conv.id.toString().startsWith('story_')
       );
       
-      if (existingConv) {
-        // Konversation existiert bereits - öffne sie
-        setSelectedConversation(existingConv);
+      if (existingRealConv) {
+        // Echte Konversation existiert bereits - öffne sie
+        setSelectedConversation(existingRealConv);
         return;
       }
       
-      // Erstelle temporäre Konversation für direkten User-Chat
+      // Prüfe ob bereits eine temporäre Konversation mit diesem User existiert
+      const existingTempConv = conversations.find(conv => 
+        conv.other_user?.id === parseInt(userId) && conv.id.toString().startsWith('temp_user_')
+      );
+      
+      if (existingTempConv) {
+        // Temporäre Konversation existiert bereits - öffne sie
+        console.log(`✅ Bestehende temporäre Konversation gefunden: ${existingTempConv.id}`);
+        setSelectedConversation(existingTempConv);
+        return;
+      }
+      
+      // Versuche echte Konversation zu erstellen (ohne listing_id)
+      try {
+        const conversationId = await chatService.createConversation(null, parseInt(userId));
+        console.log('✅ Echte User-Conversation erstellt:', conversationId);
+        
+        // Lade Conversations neu um die neue zu bekommen
+        await loadConversations(false);
+        
+        // Finde und öffne die neue Konversation
+        const newConv = conversations.find(conv => conv.id === conversationId);
+        if (newConv) {
+          setSelectedConversation(newConv);
+          return;
+        }
+      } catch (convError) {
+        console.warn('Echte Conversation-Erstellung fehlgeschlagen, verwende temporäre:', convError);
+      }
+      
+      // Fallback: Erstelle temporäre Konversation für direkten User-Chat
       const tempConv = {
-        id: `temp_user_${userId}`,
+        id: `temp_user_${userId}_${Date.now()}`, // Eindeutige ID um Key-Konflikte zu vermeiden
         title: `Chat mit ${userName}`,
         lastMessage: '',
         timestamp: new Date().toISOString(),
@@ -618,15 +728,22 @@ export const ChatPage: React.FC = () => {
         isDirectUserChat: true // Flag für spezielle UI
       };
       
-      // Füge zur Konversationsliste hinzu und öffne sie
-      setConversations(prev => [tempConv, ...prev]);
+      // Füge zur Konversationsliste hinzu und öffne sie (nur wenn nicht bereits vorhanden)
+      setConversations(prev => {
+        const existingTemp = prev.find(c => c.other_user?.id === parseInt(userId) && c.id.toString().startsWith('temp_user_'));
+        return existingTemp ? prev : [tempConv, ...prev];
+      });
       setSelectedConversation(tempConv);
       
-      // Speichere in localStorage für Persistenz
+      // Speichere in localStorage für Persistenz (nur wenn nicht bereits vorhanden)
       const savedConversations = JSON.parse(localStorage.getItem('temp_conversations') || '[]');
-      savedConversations.push(tempConv);
-      localStorage.setItem('temp_conversations', JSON.stringify(savedConversations));
+      const existingSaved = savedConversations.find(c => c.other_user?.id === parseInt(userId));
+      if (!existingSaved) {
+        savedConversations.push(tempConv);
+        localStorage.setItem('temp_conversations', JSON.stringify(savedConversations));
+      }
       
+      console.log('✅ Temporäre User-Conversation erstellt:', tempConv.id);
 
     } catch (error) {
       console.error('Fehler beim Erstellen der User-Konversation:', error);
@@ -702,6 +819,17 @@ export const ChatPage: React.FC = () => {
   // Effects
   useEffect(() => {
     if (user) {
+      // Bereinige localStorage vor dem Laden
+      const savedTempConversations = JSON.parse(localStorage.getItem('temp_conversations') || '[]');
+      const uniqueTempConversations = savedTempConversations.filter((conv: any, index: number, arr: any[]) => 
+        arr.findIndex(c => c.id === conv.id) === index
+      );
+      
+      if (uniqueTempConversations.length !== savedTempConversations.length) {
+        localStorage.setItem('temp_conversations', JSON.stringify(uniqueTempConversations));
+        console.log(`🧹 Duplikate aus localStorage entfernt: ${savedTempConversations.length - uniqueTempConversations.length}`);
+      }
+      
       loadConversations();
     }
   }, [user]);
@@ -710,6 +838,8 @@ export const ChatPage: React.FC = () => {
   useEffect(() => {
     const userId = searchParams.get('user');
     const userName = searchParams.get('userName');
+    const directUser = searchParams.get('directUser'); // Neuer Parameter für User-Profile-Chat
+    const directUserName = searchParams.get('userName'); // Für User-Profile-Chat
     const sellerId = searchParams.get('sellerId');
     const sellerName = searchParams.get('sellerName');
     const conversationId = searchParams.get('conversationId');
@@ -718,6 +848,9 @@ export const ChatPage: React.FC = () => {
     if (conversationId && user) {
       // Direkte Konversation über conversationId öffnen
       handleOpenConversationById(conversationId);
+    } else if (directUser && directUserName && user) {
+      // Erstelle oder finde direkten Chat mit User (von User-Profile-Seite)
+      handleDirectChatWithUser(directUser, directUserName);
     } else if (userId && userName && user) {
       // Erstelle oder finde Konversation mit dem User
       handleDirectChatWithUser(userId, userName);
@@ -872,9 +1005,9 @@ export const ChatPage: React.FC = () => {
                 </Box>
               ) : (
                 <List>
-                  {filteredConversations.map((conversation: any) => (
+                  {filteredConversations.map((conversation: any, index: number) => (
                     <ListItem
-                      key={conversation.id}
+                      key={`${conversation.id}_${index}`}
                       onClick={() => handleConversationSelect(conversation)}
                       sx={{
                         cursor: 'pointer',
@@ -1539,9 +1672,9 @@ export const ChatPage: React.FC = () => {
               </Box>
             ) : (
               <List>
-                {filteredConversations.map((conversation) => (
+                {filteredConversations.map((conversation, index) => (
                   <ListItem
-                    key={conversation.id}
+                    key={`${conversation.id}_${index}`}
                     onClick={() => handleConversationSelect(conversation)}
                     sx={{
                       cursor: 'pointer',

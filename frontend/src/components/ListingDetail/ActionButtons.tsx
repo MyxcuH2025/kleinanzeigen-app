@@ -33,7 +33,7 @@ interface ActionButtonsProps {
   canBlock?: boolean;
 }
 
-export const ActionButtons: React.FC<ActionButtonsProps> = ({
+const ActionButtons: React.FC<ActionButtonsProps> = ({
   isFavorite,
   onToggleFavorite,
   onShare,
@@ -225,3 +225,5 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
     </Box>
   );
 };
+
+export default ActionButtons;

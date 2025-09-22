@@ -346,7 +346,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   {tab.icon}
                   <span>{tab.label}</span>
-                  {tab.count !== null && tab.count > 0 && (
+                  {tab.count !== null && tab.count !== undefined && tab.count > 0 && (
                     <Chip 
                       label={tab.count} 
                       size="small" 

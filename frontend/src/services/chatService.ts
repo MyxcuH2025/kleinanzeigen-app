@@ -10,7 +10,7 @@ export interface Message {
 }
 
 export interface Conversation {
-  id: number;
+  id: string | number;  // Flexibel für temp_user_ IDs
   listing: {
     id: number;
     title: string;
@@ -43,35 +43,77 @@ class ChatService {
     };
   }
 
-  async createConversation(listingId: number, _sellerId: number): Promise<number> {
-    // 1) Zuerst lokal prüfen, ob es bereits eine Konversation zu diesem Listing gibt
+  async createConversation(listingId: number | null, sellerId?: number): Promise<number> {
+    console.log(`🔍 createConversation: listingId=${listingId}, sellerId=${sellerId}`);
+    
+    // 1) Zuerst lokal prüfen, ob es bereits eine Konversation gibt
     try {
-      const existing = (await this.getConversations()).find(c => c.listing?.id === listingId);
-      if (existing) return existing.id;
+      console.log(`🔍 Prüfe bestehende Conversations für listingId=${listingId}, sellerId=${sellerId}`);
+      const conversations = await this.getConversations();
+      console.log(`📋 Gefundene Conversations:`, conversations);
+      
+      let existing;
+      if (listingId) {
+        // Für Listing-Chats: Suche nach listing_id
+        existing = conversations.find(c => c.listing?.id === listingId);
+      } else if (sellerId) {
+        // Für direkte User-Chats: Suche nach seller_id ohne listing
+        existing = conversations.find(c => c.other_user?.id === sellerId && !c.listing?.id);
+      }
+      
+      if (existing) {
+        console.log(`✅ Bestehende Conversation gefunden: ID=${existing.id}`);
+        return existing.id;
+      }
+      console.log(`❌ Keine bestehende Conversation gefunden`);
     } catch (_) {
+      console.log(`⚠️ Fehler beim Laden bestehender Conversations, versuche neue zu erstellen`);
       // Ignorieren – wir versuchen dann normal zu erstellen
     }
 
     // 2) Backend erwartet einen rohen JSON-Integer als Body (kein Objekt)
-    const payload = Number(listingId);
-    const response = await fetch(getFullApiUrl('api/conversations'), {
+    const payload = listingId ? Number(listingId) : null;
+    console.log(`📤 POST /api/conversations mit payload:`, payload);
+    
+    // URL mit Query-Parameter für direkte User-Chats erstellen
+    let url = getFullApiUrl('api/conversations');
+    if (listingId === null && sellerId) {
+      url += `?seller_id=${sellerId}`;
+    }
+
+    const response = await fetch(url, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(payload),
     });
 
+    console.log(`📥 Response Status: ${response.status}`);
+
     if (!response.ok) {
       const text = await response.text();
-      // Fallback: Wenn Konversation bereits existiert, passende ID ermitteln
-      if (response.status === 400 && text?.toLowerCase().includes('konversation existiert bereits')) {
+      console.error(`❌ Conversation-Erstellung fehlgeschlagen: ${response.status} - ${text}`);
+      
+      // Fallback in allen Fehlerfällen: Prüfe vorhandene Konversationen
+      try {
         const conversations = await this.getConversations();
-        const existing = conversations.find(c => c.listing?.id === listingId);
-        if (existing) return existing.id;
-      }
-      throw new Error(text || 'Failed to create conversation');
+        let existing;
+        if (listingId) {
+          existing = conversations.find(c => c.listing?.id === listingId);
+        } else if (sellerId) {
+          existing = conversations.find(c => c.other_user?.id === sellerId && !c.listing?.id);
+        }
+        if (existing) {
+          console.log(`🔄 Fallback: Bestehende Conversation gefunden: ID=${existing.id}`);
+          return existing.id;
+        }
+      } catch (_) { /* ignore */ }
+      throw new Error(text || `Failed to create conversation (status ${response.status})`);
     }
 
     const data = await response.json();
+    console.log(`✅ Conversation erstellt:`, data);
+    console.log(`🆔 Zurückgegebene ID: ${data.id}`);
+    
     return data.id;  // Backend gibt 'id' zurück, nicht 'conversation_id'
   }
 
@@ -82,7 +124,15 @@ class ChatService {
       });
 
       if (!response.ok) {
-
+        // 401 Unauthenticated ist normal - User ist nicht eingeloggt
+        if (response.status === 401) {
+          console.log('User nicht authentifiziert - leere Conversations-Liste');
+          return [];
+        }
+        
+        // Echte Server-Fehler loggen
+        const errorText = await response.text();
+        console.error(`Server-Fehler beim Laden der Conversations (${response.status}):`, errorText);
         return [];
       }
 
@@ -114,6 +164,8 @@ class ChatService {
   }
 
   async sendMessage(conversationId: number, content: string): Promise<Message> {
+    console.log(`📤 sendMessage: conversationId=${conversationId}, content="${content}"`);
+    
     // Backend erwartet ein Dictionary mit 'content' Feld
     const response = await fetch(getFullApiUrl(`api/conversations/${conversationId}/messages`), {
       method: 'POST',
@@ -121,12 +173,17 @@ class ChatService {
       body: JSON.stringify({ content: content }),
     });
 
+    console.log(`📥 sendMessage Response Status: ${response.status}`);
+
     if (!response.ok) {
       const error = await response.text();
+      console.error(`❌ Nachricht senden fehlgeschlagen: ${response.status} - ${error}`);
       throw new Error(error || 'Failed to send message');
     }
 
-    return response.json();
+    const result = await response.json();
+    console.log(`✅ Nachricht gesendet:`, result);
+    return result;
   }
 
   async markConversationAsRead(conversationId: number): Promise<void> {

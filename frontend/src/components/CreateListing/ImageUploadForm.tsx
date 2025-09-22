@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Box,
   Typography,
@@ -7,19 +7,23 @@ import {
   Card,
   CardContent,
   Grid,
-  Alert
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import {
   PhotoCamera as PhotoCameraIcon,
   Delete as DeleteIcon,
   Add as AddIcon
 } from '@mui/icons-material';
+import { uploadImage } from '@/utils/imageUtils';
 
 interface ImageUploadFormProps {
   images: File[];
   setImages: (images: File[]) => void;
   imagePreviews: string[];
   setImagePreviews: (previews: string[]) => void;
+  uploadedUrls: string[]; // REPARIERT: Hochgeladene URLs
+  setUploadedUrls: (urls: string[]) => void; // REPARIERT: Setter für URLs
   errors: { [key: string]: string };
 }
 
@@ -28,11 +32,14 @@ export const ImageUploadForm: React.FC<ImageUploadFormProps> = ({
   setImages,
   imagePreviews,
   setImagePreviews,
+  uploadedUrls,
+  setUploadedUrls,
   errors
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     const validFiles = files.filter(file => 
       file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024 // 5MB limit
@@ -42,24 +49,45 @@ export const ImageUploadForm: React.FC<ImageUploadFormProps> = ({
       alert('Einige Dateien sind zu groß oder kein Bild. Max. 5MB pro Bild.');
     }
 
-    const newImages = [...images, ...validFiles];
-    setImages(newImages);
+    if (validFiles.length === 0) return;
 
-    // Create previews
-    validFiles.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreviews([...imagePreviews, e.target?.result as string]);
-      };
-      reader.readAsDataURL(file);
-    });
+    setUploading(true);
+
+    try {
+      // Upload alle Bilder
+      const uploadPromises = validFiles.map(file => uploadImage(file));
+      const urls = await Promise.all(uploadPromises);
+      
+      // URLs speichern
+      setUploadedUrls(prev => [...prev, ...urls]);
+      
+      // Dateien und Previews aktualisieren
+      const newImages = [...images, ...validFiles];
+      setImages(newImages);
+
+      // Create previews - NUR für UI-Anzeige, nicht für Backend
+      validFiles.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setImagePreviews(prev => [...prev, e.target?.result as string]);
+        };
+        reader.readAsDataURL(file);
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Fehler beim Hochladen der Bilder');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const removeImage = (index: number) => {
     const newImages = images.filter((_, i) => i !== index);
     const newPreviews = imagePreviews.filter((_, i) => i !== index);
+    const newUrls = uploadedUrls.filter((_, i) => i !== index);
     setImages(newImages);
     setImagePreviews(newPreviews);
+    setUploadedUrls(newUrls); // REPARIERT: Auch URLs entfernen
   };
 
   return (

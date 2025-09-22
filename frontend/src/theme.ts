@@ -46,21 +46,25 @@ export const lightTheme = createTheme({
       main: '#10b981', // Modern Green
       light: '#34d399',
       dark: '#059669',
+      contrastText: '#ffffff',
     },
     warning: {
       main: '#f59e0b', // Modern Orange
       light: '#fbbf24',
       dark: '#d97706',
+      contrastText: '#ffffff',
     },
     error: {
       main: '#ef4444', // Modern Red
       light: '#f87171',
       dark: '#dc2626',
+      contrastText: '#ffffff',
     },
     info: {
       main: '#059669', // Modern Green
       light: '#10b981',
       dark: '#047857',
+      contrastText: '#ffffff',
     },
     // Erweiterte Farbpalette für Design-System
     grey: {

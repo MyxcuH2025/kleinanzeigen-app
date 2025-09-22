@@ -7,10 +7,11 @@ from sqlmodel import Session, select
 from models import User
 from app.dependencies import get_session
 from app.websocket.manager import manager
-from app.rate_limiting.websocket_limiter import websocket_rate_limiter
-from app.websocket.connection_pool import connection_pool
+from app.dependencies import engine
 import logging
 import json
+import time
+from datetime import datetime
 
 # Router für WebSocket-Endpoints
 router = APIRouter(prefix="/ws", tags=["websocket"])
@@ -55,10 +56,8 @@ async def stories_websocket_endpoint(websocket: WebSocket, token: str = Query(No
         await websocket.close(code=1008, reason="Token required")
         return
     
-    # Session für User-Validierung
-    from config import config
-    from sqlmodel import create_engine
-    engine = create_engine(config.DATABASE_URL)
+    # Session für User-Validierung - Engine aus dependencies.py verwenden
+    from app.dependencies import engine
     session = Session(engine)
     
     try:
@@ -68,9 +67,9 @@ async def stories_websocket_endpoint(websocket: WebSocket, token: str = Query(No
         # WebSocket-Verbindung herstellen
         await manager.connect(websocket, user.id)
         
-        # Connection Pool hinzufügen
+        # Connection Pool hinzufügen (temporär deaktiviert)
         websocket_id = f"stories_{user.id}_{int(time.time())}"
-        await connection_pool.add_connection(websocket_id, user.id, "stories")
+        # await connection_pool.add_connection(websocket_id, user.id, "stories")
         
         logger.info(f"Stories-WebSocket verbunden für User {user.id} ({user.email})")
         
@@ -89,20 +88,13 @@ async def stories_websocket_endpoint(websocket: WebSocket, token: str = Query(No
                 data = await websocket.receive_text()
                 message = json.loads(data)
                 
-                # Aktivität im Connection Pool aktualisieren
-                await connection_pool.update_activity(websocket_id)
+                # Aktivität im Connection Pool aktualisieren (temporär deaktiviert)
+                # await connection_pool.update_activity(websocket_id)
                 
                 # Stories-spezifische Nachrichten verarbeiten
                 if message.get("type") == "story_view":
-                    # Rate-Limiting prüfen
-                    is_limited, error_message = websocket_rate_limiter.is_rate_limited(user.id, "story_view")
-                    if is_limited:
-                        await websocket.send_text(json.dumps({
-                            "type": "rate_limit_exceeded",
-                            "error": error_message,
-                            "event_type": "story_view"
-                        }))
-                        continue
+        # Rate-Limiting prüfen (temporär deaktiviert)
+        # TODO: Rate-Limiting wieder aktivieren
                     
                     # Story-View registrieren
                     story_id = message.get("story_id")
@@ -110,15 +102,8 @@ async def stories_websocket_endpoint(websocket: WebSocket, token: str = Query(No
                         await _handle_story_view(story_id, user.id, session)
                 
                 elif message.get("type") == "story_reaction":
-                    # Rate-Limiting prüfen
-                    is_limited, error_message = websocket_rate_limiter.is_rate_limited(user.id, "story_reaction")
-                    if is_limited:
-                        await websocket.send_text(json.dumps({
-                            "type": "rate_limit_exceeded",
-                            "error": error_message,
-                            "event_type": "story_reaction"
-                        }))
-                        continue
+                    # Rate-Limiting prüfen (temporär deaktiviert)
+                    # TODO: Rate-Limiting wieder aktivieren
                     
                     # Story-Reaction verarbeiten
                     story_id = message.get("story_id")
@@ -126,16 +111,16 @@ async def stories_websocket_endpoint(websocket: WebSocket, token: str = Query(No
                     if story_id and reaction:
                         await _handle_story_reaction(story_id, user.id, reaction, session)
                 
+                elif message.get("type") == "story_reply":
+                    # Text-Antwort auf Story
+                    story_id = message.get("story_id")
+                    text = message.get("text")
+                    if story_id and text:
+                        await _handle_story_reply(story_id, user.id, text, session)
+                
                 elif message.get("type") == "ping":
-                    # Rate-Limiting für Ping prüfen
-                    is_limited, error_message = websocket_rate_limiter.is_rate_limited(user.id, "ping")
-                    if is_limited:
-                        await websocket.send_text(json.dumps({
-                            "type": "rate_limit_exceeded",
-                            "error": error_message,
-                            "event_type": "ping"
-                        }))
-                        continue
+                    # Rate-Limiting für Ping prüfen (temporär deaktiviert)
+                    # TODO: Rate-Limiting wieder aktivieren
                     
                     await websocket.send_text(json.dumps({
                         "type": "pong",
@@ -144,8 +129,8 @@ async def stories_websocket_endpoint(websocket: WebSocket, token: str = Query(No
                 
             except WebSocketDisconnect:
                 logger.info(f"Stories-WebSocket getrennt für User {user.id}")
-                # Connection Pool bereinigen
-                await connection_pool.remove_connection(websocket_id)
+                # Connection Pool bereinigen (temporär deaktiviert)
+                # await connection_pool.remove_connection(websocket_id)
                 break
             except Exception as e:
                 logger.error(f"Stories-WebSocket Fehler für User {user.id}: {e}")
@@ -170,10 +155,8 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(None)):
         await websocket.close(code=1008, reason="Token required")
         return
     
-    # Session für User-Validierung
-    from config import config
-    from sqlmodel import create_engine
-    engine = create_engine(config.DATABASE_URL)
+    # Session für User-Validierung - Engine aus dependencies.py verwenden
+    from app.dependencies import engine
     session = Session(engine)
     
     try:
@@ -340,6 +323,74 @@ async def _broadcast_story_reaction(story_id: int, user_id: int, reaction: str, 
     except Exception as e:
         logger.error(f"Fehler beim Broadcasten von Story-Reaction: {e}")
 
+async def _handle_story_reply(story_id: int, sender_id: int, text: str, session: Session):
+    """Story-Reply verarbeiten: Benachrichtige Story-Owner und broadcast-Event."""
+    try:
+        from models.story import Story
+        from models import Conversation, Message
+        from sqlmodel import select, or_, and_
+        story = session.get(Story, story_id)
+        if not story:
+            return
+        # DM-Konversation suchen/erstellen (listing_id = None)
+        buyer_id = sender_id
+        seller_id = story.user_id
+        convo = session.exec(
+            select(Conversation).where(
+                Conversation.listing_id == None,  # noqa: E711
+                or_(
+                    and_(Conversation.buyer_id == buyer_id, Conversation.seller_id == seller_id),
+                    and_(Conversation.buyer_id == seller_id, Conversation.seller_id == buyer_id)
+                )
+            )
+        ).first()
+        if not convo:
+            convo = Conversation(listing_id=None, buyer_id=buyer_id, seller_id=seller_id)
+            session.add(convo)
+            session.commit()
+            session.refresh(convo)
+        # Nachricht speichern (auch bei Selbst-Reply)
+        msg = Message(conversation_id=convo.id, sender_id=sender_id, content=text)
+        session.add(msg)
+        # Konversation nach vorne ziehen
+        from datetime import datetime
+        convo.updated_at = datetime.utcnow()
+        session.commit()
+        # Chat-Event an Teilnehmer senden (für ChatPage-Realtime)
+        payload = {
+            "id": msg.id,
+            "content": msg.content,
+            "sender_id": msg.sender_id,
+            "conversation_id": msg.conversation_id,
+            "created_at": msg.created_at.isoformat() if msg.created_at else None,
+            "message_type": "text",
+            "file_url": None
+        }
+        # Wenn Selbstantwort: nur an Sender
+        receiver_id = seller_id if sender_id == buyer_id else buyer_id
+        try:
+            await manager.send_personal_message(json.dumps({"type": "message", "data": payload}), sender_id)
+            if receiver_id != sender_id:
+                await manager.send_personal_message(json.dumps({"type": "message", "data": payload}), receiver_id)
+        except Exception as _:
+            pass
+        # An Owner senden
+        await manager.send_personal_message(json.dumps({
+            "type": "story_reply",
+            "story_id": story_id,
+            "user_id": sender_id,
+            "text": text,
+        }), story.user_id)
+        # Optional: echo an Sender (andere Tabs)
+        await manager.send_personal_message(json.dumps({
+            "type": "story_reply",
+            "story_id": story_id,
+            "user_id": sender_id,
+            "text": text,
+        }), sender_id)
+    except Exception as e:
+        logger.error(f"Fehler beim Verarbeiten von Story-Reply: {e}")
+
 @router.websocket("/notifications/{user_id}")
 async def websocket_endpoint_with_user(websocket: WebSocket, user_id: int, token: str = Query(None)):
     """Alternative WebSocket-Endpoint mit User-ID im Pfad"""
@@ -348,10 +399,8 @@ async def websocket_endpoint_with_user(websocket: WebSocket, user_id: int, token
         await websocket.close(code=1008, reason="Token required")
         return
     
-    # Session für User-Validierung
-    from config import config
-    from sqlmodel import create_engine
-    engine = create_engine(config.DATABASE_URL)
+    # Session für User-Validierung - Engine aus dependencies.py verwenden
+    from app.dependencies import engine
     session = Session(engine)
     
     try:

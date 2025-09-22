@@ -15,7 +15,7 @@ const TestHookComponent = () => {
   const { handleError } = useErrorHandler();
   
   return (
-    <button onClick={handleError}>
+    <button onClick={() => handleError(new Error('Test error'))}>
       Trigger Error
     </button>
   );
@@ -169,7 +169,7 @@ describe('useErrorHandler', () => {
     
     // Should not throw when called
     expect(() => {
-      handleError();
+      handleError(new Error('Test error'));
     }).not.toThrow();
   });
 });

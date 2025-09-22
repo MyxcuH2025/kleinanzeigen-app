@@ -92,6 +92,7 @@ const renderAdCard = (props = {}, user = mockUser, favoritesContext = mockFavori
         logout: jest.fn(),
         isLoading: false,
         refreshUser: jest.fn(),
+        isAuthenticated: true,
       }}>
         <FavoritesContext.Provider value={favoritesContext}>
           <MemoryRouter>

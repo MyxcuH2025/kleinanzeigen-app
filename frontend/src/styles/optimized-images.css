@@ -1,0 +1,284 @@
+/**
+ * 🚀 TOP 10 SUPER-TEAM: OPTIMIERTE BILDSTYLES
+ * 
+ * Performance-Engineer: CSS-Optimierungen für bessere Ladezeiten
+ * UX-Designer: Smooth Transitions und Hover-Effekte
+ * Mobile-Expert: Touch-optimierte Bedienung
+ * Accessibility-Expert: Focus-States und Screen-Reader
+ */
+
+/* Basis-Styles für optimierte Bilder */
+.optimized-image-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.optimized-image-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.optimized-image-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.3s ease;
+  will-change: transform;
+}
+
+.optimized-image-card:hover img {
+  transform: scale(1.05);
+}
+
+/* Loading States */
+.image-loading-skeleton {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Bild-Indikatoren */
+.image-indicators {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  z-index: 3;
+}
+
+.image-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.image-indicator.active {
+  background-color: #fff;
+  transform: scale(1.2);
+}
+
+.image-indicator:hover {
+  background-color: #fff;
+  transform: scale(1.2);
+}
+
+/* Steuerungs-Buttons */
+.image-controls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 3;
+}
+
+.optimized-image-card:hover .image-controls {
+  opacity: 1;
+}
+
+.image-control-button {
+  background-color: rgba(255,255,255,0.9);
+  border: none;
+  border-radius: 4px;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-control-button:hover {
+  background-color: rgba(220,248,198,0.9);
+  transform: scale(1.1);
+}
+
+/* Bild-Zähler */
+.image-counter {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: rgba(0,0,0,0.7);
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  z-index: 3;
+}
+
+/* Thumbnail-Galerie */
+.thumbnail-gallery {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.thumbnail-gallery::-webkit-scrollbar {
+  height: 4px;
+}
+
+.thumbnail-gallery::-webkit-scrollbar-track {
+  background-color: #f1f1f1;
+  border-radius: 2px;
+}
+
+.thumbnail-gallery::-webkit-scrollbar-thumb {
+  background-color: #c1c1c1;
+  border-radius: 2px;
+}
+
+.thumbnail-gallery::-webkit-scrollbar-thumb:hover {
+  background-color: #a8a8a8;
+}
+
+.thumbnail-item {
+  position: relative;
+  min-width: 80px;
+  height: 60px;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.thumbnail-item:hover {
+  transform: scale(1.05);
+  border-color: #dcf8c6;
+}
+
+.thumbnail-item.active {
+  border-color: #dcf8c6;
+  transform: scale(1.05);
+}
+
+.thumbnail-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Navigation-Pfeile */
+.image-nav-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(255,255,255,0.9);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 3;
+}
+
+.image-nav-button:hover {
+  background-color: rgba(220,248,198,0.9);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.image-nav-button.prev {
+  left: 16px;
+}
+
+.image-nav-button.next {
+  right: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .optimized-image-card {
+    border-radius: 6px;
+  }
+  
+  .image-controls {
+    opacity: 1; /* Immer sichtbar auf Mobile */
+  }
+  
+  .image-control-button {
+    padding: 6px;
+  }
+  
+  .thumbnail-item {
+    min-width: 60px;
+    height: 45px;
+  }
+  
+  .image-nav-button {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* Accessibility */
+.image-control-button:focus,
+.thumbnail-item:focus,
+.image-nav-button:focus {
+  outline: 2px solid #dcf8c6;
+  outline-offset: 2px;
+}
+
+/* Performance-Optimierungen */
+.optimized-image-card img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* WebP-Fallback */
+@supports not (background-image: url('test.webp')) {
+  .optimized-image-card img {
+    image-rendering: auto;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .optimized-image-card {
+    background-color: #2d2d2d;
+  }
+  
+  .image-loading-skeleton {
+    background: linear-gradient(90deg, #404040 25%, #303030 50%, #404040 75%);
+  }
+  
+  .image-control-button {
+    background-color: rgba(0,0,0,0.7);
+    color: #fff;
+  }
+  
+  .image-control-button:hover {
+    background-color: rgba(220,248,198,0.2);
+  }
+}

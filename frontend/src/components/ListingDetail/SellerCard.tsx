@@ -5,9 +5,9 @@ import {
   Paper,
   Button,
   TextField,
-  Avatar,
-  Link
+  Avatar
 } from '@mui/material';
+import { Link } from 'react-router-dom';
 import {
   Phone as PhoneIcon,
   Message as MessageIcon,
@@ -83,7 +83,7 @@ export const SellerCard: React.FC<SellerCardProps> = ({
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-        <Link to={`/user/${seller.id}`} style={{ textDecoration: 'none' }} component={Link as any}>
+        <Link to={`/user/${seller.id}`} style={{ textDecoration: 'none' }}>
           <Avatar
             src={seller.avatar ? getImageUrl(seller.avatar) : undefined}
             sx={{ 
@@ -102,20 +102,23 @@ export const SellerCard: React.FC<SellerCardProps> = ({
           </Avatar>
         </Link>
         <Box sx={{ flex: 1 }}>
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              fontWeight: 600, 
-              color: '#1a1a1a', 
-              mb: 0.5,
-              cursor: 'pointer',
-              '&:hover': { color: '#22c55e' }
-            }}
-            component={Link}
+          <Link 
             to={`/user/${seller.id}`}
+            style={{ textDecoration: 'none' }}
           >
-            {seller.name}
-          </Typography>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontWeight: 600, 
+                color: '#1a1a1a', 
+                mb: 0.5,
+                cursor: 'pointer',
+                '&:hover': { color: '#22c55e' }
+              }}
+            >
+              {seller.name}
+            </Typography>
+          </Link>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <StarIcon sx={{ fontSize: 18, color: '#f57c00' }} />
             <Typography variant="body2" color="text.secondary">{seller.rating ?? '—'}{seller.rating ? '/5' : ''}</Typography>

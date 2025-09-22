@@ -375,6 +375,23 @@ export const Layout = ({ children, onSearchChange, searchValue, onSidebarToggle,
               </ListItemButton>
             </ListItem>
 
+        <ListItem disablePadding>
+          <ListItemButton onClick={() => { navigate('/payments'); handleMobileSidebarClose(); }}>
+            <ListItemIcon>
+              <img src={tagIcon} alt="Zahlungen" width="24" height="24" />
+            </ListItemIcon>
+            <ListItemText primary="Zahlungen" />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton onClick={() => { navigate('/analytics'); handleMobileSidebarClose(); }}>
+            <ListItemIcon>
+              <img src={tagIcon} alt="Analytics" width="24" height="24" />
+            </ListItemIcon>
+            <ListItemText primary="Analytics" />
+          </ListItemButton>
+        </ListItem>
+
             <ListItem disablePadding>
               <ListItemButton onClick={() => { navigate('/dashboard'); handleMobileSidebarClose(); }}>
                 <ListItemIcon>

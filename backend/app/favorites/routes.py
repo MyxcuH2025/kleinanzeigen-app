@@ -142,7 +142,7 @@ def get_favorites(
         try:
             import json
             attributes = json.loads(listing.attributes) if listing.attributes else {}
-            images = json.loads(listing.images) if listing.images else []
+            images = json.loads(listing.images) if listing.images and listing.images != "Array[]" else []
         except:
             attributes = {}
             images = []

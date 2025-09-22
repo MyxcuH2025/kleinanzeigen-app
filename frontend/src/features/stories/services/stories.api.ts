@@ -4,21 +4,18 @@
 import { apiService } from '../../../services/api';
 import type { 
   Story, 
-  StoriesFeedResponse, 
-  StoryStats, 
-  CreateStoryRequest,
   StoryReactionType 
 } from '../types/stories.types';
 
 const STORIES_API = '/api/stories';
-
+const baseUrl = 'http://localhost:8000';
 export const storiesApi = {
   /**
    * Stories-Feed abrufen
    */
   async getFeed(limit: number = 20, offset: number = 0): Promise<Story[]> {
     try {
-      const response = await apiService.get<StoriesFeedResponse>(
+      const response = await apiService.get<{ stories: Story[] }>(
         `${STORIES_API}/feed?limit=${limit}&offset=${offset}`
       );
       return response.stories || [];
@@ -64,12 +61,7 @@ export const storiesApi = {
 
       const response = await apiService.post<{ story_id: number; media_url: string }>(
         STORIES_API,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
+        formData
       );
       
       return response;
@@ -84,9 +76,22 @@ export const storiesApi = {
    */
   async viewStory(storyId: number): Promise<void> {
     try {
+      const token = localStorage.getItem('token');
+      
+      // Prüfe ob Token vorhanden ist
+      if (!token) {
+        console.warn(`⚠️ Kein Token gefunden - Story ${storyId} wird nicht als gesehen markiert`);
+        return; // Graceful degradation - nicht als Fehler behandeln
+      }
+      
       await apiService.post(`${STORIES_API}/${storyId}/view`);
     } catch (error: any) {
-      console.error(`Fehler beim Markieren der Story ${storyId} als gesehen:`, error);
+      // Graceful degradation - 401 Fehler nicht als kritisch behandeln
+      if (error.message?.includes('401') || error.message?.includes('credentials')) {
+        console.warn(`⚠️ Token ungültig - Story ${storyId} wird nicht als gesehen markiert`);
+      } else {
+        console.error(`Fehler beim Markieren der Story ${storyId} als gesehen:`, error);
+      }
       // Nicht kritisch - Fehler ignorieren
     }
   },
@@ -110,10 +115,27 @@ export const storiesApi = {
    */
   async deleteStory(storyId: number): Promise<void> {
     try {
+      const token = localStorage.getItem('token');
+      
+      // Prüfe ob Token vorhanden ist
+      if (!token) {
+        throw new Error('Nicht authentifiziert - Bitte melden Sie sich erneut an');
+      }
+      
+      console.log('🗑️ API: Story wird gelöscht:', storyId);
       await apiService.delete(`${STORIES_API}/${storyId}`);
+      console.log('✅ API: Story erfolgreich gelöscht:', storyId);
     } catch (error: any) {
-      console.error(`Fehler beim Löschen der Story ${storyId}:`, error);
-      throw new Error(error.response?.data?.detail || 'Fehler beim Löschen der Story');
+      console.error(`❌ API: Fehler beim Löschen der Story ${storyId}:`, error);
+      
+      // Spezifische Fehlerbehandlung
+      if (error.message?.includes('401') || error.message?.includes('credentials')) {
+        throw new Error('Nicht authentifiziert - Bitte melden Sie sich erneut an');
+      } else if (error.message?.includes('403')) {
+        throw new Error('Keine Berechtigung zum Löschen dieser Story');
+      } else {
+        throw new Error(error.response?.data?.detail || 'Fehler beim Löschen der Story');
+      }
     }
   },
 
@@ -133,9 +155,9 @@ export const storiesApi = {
   /**
    * Story-Statistiken abrufen
    */
-  async getStoryStats(storyId: number): Promise<StoryStats> {
+  async getStoryStats(storyId: number): Promise<any> {
     try {
-      const response = await apiService.get<StoryStats>(`${STORIES_API}/${storyId}/stats`);
+      const response = await apiService.get<any>(`${STORIES_API}/${storyId}/stats`);
       return response;
     } catch (error: any) {
       console.error(`Fehler beim Abrufen der Story-Statistiken ${storyId}:`, error);
@@ -144,16 +166,104 @@ export const storiesApi = {
   },
 
   /**
+   * Text-Antwort auf eine Story senden (REST Fallback)
+   */
+  async replyToStory(storyId: number, text: string): Promise<void> {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${baseUrl}${STORIES_API}/${storyId}/reply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) {
+        // 401 Unauthenticated ist normal - User ist nicht eingeloggt
+        if (res.status === 401) {
+          console.log('User nicht authentifiziert - Story-Antwort nicht möglich');
+          return;
+        }
+        const msg = await res.text();
+        throw new Error(msg || 'HTTP error');
+      }
+    } catch (error: any) {
+      console.error(`Fehler beim Senden der Story-Antwort ${storyId}:`, error);
+      // 401 Authentication Error nicht als Fehler werfen
+      if (error?.message?.includes('Not authenticated') || error?.message?.includes('401')) {
+        console.log('User nicht authentifiziert - Story-Antwort übersprungen');
+        return;
+      }
+      throw new Error(error?.message || 'Fehler beim Senden der Story-Antwort');
+    }
+  },
+
+  /**
+   * Story-Insights abrufen (Viewer-Liste)
+   */
+  async getStoryInsights(storyId: number): Promise<any> {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Prüfe ob Token vorhanden ist
+      if (!token) {
+        console.warn(`⚠️ Kein Token gefunden - Insights für Story ${storyId} können nicht geladen werden`);
+        throw new Error('Nicht authentifiziert - Bitte melden Sie sich erneut an');
+      }
+      
+      const response = await apiService.get<any>(`${STORIES_API}/${storyId}/insights`);
+      return response;
+    } catch (error: any) {
+      // Graceful degradation - 401 Fehler nicht als kritisch behandeln
+      if (error.message?.includes('401') || error.message?.includes('credentials') || error.message?.includes('Not authenticated')) {
+        console.warn(`⚠️ Token ungültig - Insights für Story ${storyId} können nicht geladen werden`);
+        throw new Error('Nicht authentifiziert - Bitte melden Sie sich erneut an');
+      }
+      console.error(`Fehler beim Abrufen der Story-Insights ${storyId}:`, error);
+      throw new Error(error.response?.data?.detail || 'Fehler beim Laden der Insights');
+    }
+  },
+
+  /**
    * Media-URL für Stories generieren
    */
   getMediaUrl(mediaUrl: string): string {
-    if (mediaUrl.startsWith('http')) {
+    // REPARIERT: Base64-Bilder komplett blockieren (vermeidet "Image corrupt" Fehler)
+    if (mediaUrl.startsWith('data:') || mediaUrl.includes('base64') || mediaUrl.includes('data:image/')) {
+      console.warn('❌ Base64-Story-Media blockiert:', mediaUrl.substring(0, 50) + '...');
+      return 'http://localhost:8000/api/images/noimage.jpeg';
+    }
+    
+    // REPARIERT: Nur externe URLs blockieren, nicht lokale Backend-URLs
+    if (mediaUrl.startsWith('http') && !mediaUrl.includes('localhost:8000')) {
+      console.warn('❌ Externe Story-Media blockiert:', mediaUrl.substring(0, 50) + '...');
+      return 'http://localhost:8000/api/images/noimage.jpeg';
+    }
+    
+    // REPARIERT: Lokale Backend-URLs erlauben (verursacht "gelbe story media url blockiert fehler")
+    if (mediaUrl.startsWith('/api/images/') || mediaUrl.startsWith('/uploads/')) {
+      return `http://localhost:8000${mediaUrl}`;
+    }
+    
+    // REPARIERT: Andere lokale URLs erlauben
+    if (mediaUrl.startsWith('/') && !mediaUrl.startsWith('http')) {
+      return `http://localhost:8000${mediaUrl}`;
+    }
+    
+    // REPARIERT: URLs die mit localhost:8000 beginnen erlauben
+    if (mediaUrl.includes('localhost:8000')) {
       return mediaUrl;
     }
     
-    // Relative URL zu vollständiger URL konvertieren
-    const baseUrl = apiService.baseUrl || 'http://localhost:8000';
-    return `${baseUrl}${mediaUrl}`;
+    // REPARIERT: URLs die mit api/images/ beginnen erlauben (ohne führenden Slash)
+    if (mediaUrl.startsWith('api/images/') || mediaUrl.startsWith('uploads/')) {
+      return `http://localhost:8000/${mediaUrl}`;
+    }
+    
+    // Fallback für unbekannte URLs
+    console.warn('❌ Unbekannte Story-Media-URL blockiert:', mediaUrl.substring(0, 50) + '...');
+    return 'http://localhost:8000/api/images/noimage.jpeg';
   },
 
   /**
@@ -190,6 +300,26 @@ export const storiesApi = {
     const created = new Date(createdAt);
     const now = new Date();
     return (now.getTime() - created.getTime()) / (1000 * 60 * 60);
+  },
+
+  /**
+   * Story-Zeit als "vor X Stunden" formatieren
+   */
+  formatTimeAgo(createdAt: string): string {
+    const created = new Date(createdAt);
+    const now = new Date();
+    const diffInHours = (now.getTime() - created.getTime()) / (1000 * 60 * 60);
+    
+    if (diffInHours < 1) {
+      const diffInMinutes = Math.floor(diffInHours * 60);
+      return `vor ${diffInMinutes}m`;
+    } else if (diffInHours < 24) {
+      const hours = Math.floor(diffInHours);
+      return `vor ${hours}h`;
+    } else {
+      const days = Math.floor(diffInHours / 24);
+      return `vor ${days}d`;
+    }
   }
 };
 
