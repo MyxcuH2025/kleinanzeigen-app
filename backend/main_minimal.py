@@ -81,6 +81,33 @@ async def get_story(story_id: int):
         "status": "success"
     }
 
+# Auth-API für Login
+@app.post("/api/auth/login")
+async def login():
+    """Login-Endpoint für Mobile"""
+    return {
+        "access_token": "demo_token_mobile",
+        "token_type": "bearer",
+        "user": {
+            "id": 1,
+            "email": "demo@mobile.de",
+            "name": "Mobile User"
+        }
+    }
+
+@app.post("/api/auth/register")
+async def register():
+    """Register-Endpoint für Mobile"""
+    return {
+        "access_token": "demo_token_mobile",
+        "token_type": "bearer",
+        "user": {
+            "id": 2,
+            "email": "new@mobile.de", 
+            "name": "New Mobile User"
+        }
+    }
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8000))

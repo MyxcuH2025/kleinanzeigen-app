@@ -9,7 +9,8 @@ export interface Listing {
 }
 
 export async function getListings(): Promise<Listing[]> {
-  const res = await fetch("http://localhost:8000/api/listings");
+  const apiUrl = import.meta.env.PROD ? 'https://kleinanzeigen-backend.onrender.com' : 'http://localhost:8000';
+  const res = await fetch(`${apiUrl}/api/listings`);
   if (!res.ok) throw new Error("Fehler beim Laden der Listings");
   return res.json();
 }
@@ -30,7 +31,8 @@ export async function createListing(listing: Omit<Listing, "id">): Promise<Listi
     headers['Authorization'] = `Bearer ${token}`;
   }
   
-  const res = await fetch("http://localhost:8000/api/listings", {
+  const apiUrl = import.meta.env.PROD ? 'https://kleinanzeigen-backend.onrender.com' : 'http://localhost:8000';
+  const res = await fetch(`${apiUrl}/api/listings`, {
     method: "POST",
     headers,
     body: JSON.stringify(payload),
@@ -61,7 +63,7 @@ export async function login(email: string, password: string) {
 
 // API Service für Vorlagen und andere Funktionen
 export class ApiService {
-  private baseUrl = 'http://localhost:8000';
+  private baseUrl = import.meta.env.PROD ? 'https://kleinanzeigen-backend.onrender.com' : 'http://localhost:8000';
 
   private getAuthHeaders(): HeadersInit {
     const token = localStorage.getItem('token');
