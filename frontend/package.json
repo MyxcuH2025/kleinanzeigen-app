@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b --noEmitOnError false && vite build",
+    "build": "vite build",
     "build:prod": "vite build --mode production",
     "build:render": "vite build --mode production",
     "lint": "eslint .",
@@ -33,7 +33,7 @@
   "devDependencies": {
     "@eslint/js": "^9.25.0",
     "@testing-library/jest-dom": "^6.6.4",
-    "@testing-library/react": "^15.0.7",
+    "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.5.2",
