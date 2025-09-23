@@ -6,7 +6,8 @@ uvicorn[standard]==0.34.3
 sqlalchemy==2.0.41
 sqlmodel==0.0.24
 alembic==1.13.1
-asyncpg==0.28.0  # Modern PostgreSQL driver
+asyncpg==0.28.0  # Modern async PostgreSQL driver
+databases[postgresql]==0.8.0  # SQLAlchemy async support
 
 # Authentication & Security
 python-jose[cryptography]==3.3.0
