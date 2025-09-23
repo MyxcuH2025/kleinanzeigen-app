@@ -62,6 +62,25 @@ async def get_categories():
         {"id": 2, "name": "Auto & Rad", "slug": "auto-rad-boot"}
     ]
 
+# Stories-API für Mobile-Fix
+@app.get("/api/stories/feed")
+async def get_stories_feed():
+    """Stories-Feed für Mobile-Browser"""
+    return {
+        "stories": [],
+        "message": "Stories-Feature wird geladen...",
+        "status": "success"
+    }
+
+@app.get("/api/stories/{story_id}")
+async def get_story(story_id: int):
+    """Einzelne Story abrufen"""
+    return {
+        "id": story_id,
+        "message": "Story wird geladen...",
+        "status": "success"
+    }
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8000))
