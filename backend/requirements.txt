@@ -2,9 +2,9 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 
-# Database - RENDER KOMPATIBEL
-sqlalchemy==2.0.23
-sqlmodel==0.0.14
+# Database - RENDER KOMPATIBEL (Fixed SQLAlchemy)
+sqlalchemy==1.4.53
+sqlmodel==0.0.8
 psycopg2-binary==2.9.7
 
 # Authentication & Security
