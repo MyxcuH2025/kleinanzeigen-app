@@ -332,11 +332,11 @@ export const ListingsTable: React.FC<ListingsTableProps> = ({
           {/* REPARIERT: Nur Avatar anzeigen wenn Bild vorhanden (verursacht "gleiche platzhalter bilder") */}
           {getImageUrl(listing.images, listing.category, listing.title) ? (
             <Avatar
-              src={getImageUrl(listing.images, listing.category, listing.title)}
+              src={getImageUrl(listing.images, listing.category, listing.title) || undefined}
               alt={listing.title}
               sx={{ width: 80, height: 80, borderRadius: 1 }}
               variant="rounded"
-              onError={(e) => {
+              onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
                 (e.currentTarget as HTMLImageElement).src = PLACEHOLDER_IMAGE_URL;
               }}
             />
@@ -778,11 +778,11 @@ export const ListingsTable: React.FC<ListingsTableProps> = ({
                   {/* REPARIERT: Nur Avatar anzeigen wenn Bild vorhanden (verursacht "gleiche platzhalter bilder") */}
                   {getImageUrl(listing.images, listing.category, listing.title) ? (
                     <Avatar
-                      src={getImageUrl(listing.images, listing.category, listing.title)}
+                      src={getImageUrl(listing.images, listing.category, listing.title) || undefined}
                       alt={listing.title}
                       sx={{ width: 60, height: 60, borderRadius: 1 }}
                       variant="rounded"
-                      onError={(e) => {
+                      onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
                         (e.currentTarget as HTMLImageElement).src = PLACEHOLDER_IMAGE_URL;
                       }}
                     />

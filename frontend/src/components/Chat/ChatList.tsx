@@ -286,7 +286,7 @@ export const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
   };
 
   const handleChatClick = (chat: Conversation) => {
-    setSelectedChatId(chat.id);
+    setSelectedChatId(typeof chat.id === 'string' ? parseInt(chat.id) : chat.id);
     onChatSelect(chat);
   };
 

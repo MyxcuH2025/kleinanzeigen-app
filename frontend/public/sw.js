@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tüka-v1';
+const CACHE_NAME = 'tüka-v3-no-cache'; // Cache-Version ändern um alten Cache zu löschen
 const urlsToCache = [
   '/',
   '/index.html',
@@ -19,13 +19,9 @@ self.addEventListener('install', (event) => {
 
 // Fetch event - serve from cache when offline
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Return cached version or fetch from network
-        return response || fetch(event.request);
-      })
-  );
+  // SERVICE WORKER KOMPLETT DEAKTIVIERT - KEINE CACHE-INTERVENTION
+  // Alle Requests gehen direkt an das Netzwerk
+  return;
 });
 
 // Activate event - clean up old caches

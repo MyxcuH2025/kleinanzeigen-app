@@ -21,9 +21,9 @@ interface ImageUploadFormProps {
   images: File[];
   setImages: (images: File[]) => void;
   imagePreviews: string[];
-  setImagePreviews: (previews: string[]) => void;
+  setImagePreviews: React.Dispatch<React.SetStateAction<string[]>>;
   uploadedUrls: string[]; // REPARIERT: Hochgeladene URLs
-  setUploadedUrls: (urls: string[]) => void; // REPARIERT: Setter für URLs
+  setUploadedUrls: React.Dispatch<React.SetStateAction<string[]>>; // REPARIERT: Setter für URLs
   errors: { [key: string]: string };
 }
 
@@ -59,7 +59,7 @@ export const ImageUploadForm: React.FC<ImageUploadFormProps> = ({
       const urls = await Promise.all(uploadPromises);
       
       // URLs speichern
-      setUploadedUrls(prev => [...prev, ...urls]);
+      setUploadedUrls((prev: string[]) => [...prev, ...urls]);
       
       // Dateien und Previews aktualisieren
       const newImages = [...images, ...validFiles];
@@ -69,7 +69,7 @@ export const ImageUploadForm: React.FC<ImageUploadFormProps> = ({
       validFiles.forEach(file => {
         const reader = new FileReader();
         reader.onload = (e) => {
-          setImagePreviews(prev => [...prev, e.target?.result as string]);
+          setImagePreviews((prev: string[]) => [...prev, e.target?.result as string]);
         };
         reader.readAsDataURL(file);
       });

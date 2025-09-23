@@ -67,7 +67,7 @@ class BreadcrumbService {
 
       // Subkategorie hinzufügen (falls vorhanden)
       if (subcategoryValue && mainCategory.subcategories) {
-        const subcategory = mainCategory.subcategories.find(sub => sub.value === subcategoryValue);
+        const subcategory = mainCategory.subcategories.find((sub: any) => sub.value === subcategoryValue);
         if (subcategory) {
           path.push({
             id: subcategory.id || 999,
@@ -79,7 +79,7 @@ class BreadcrumbService {
 
           // Item hinzufügen (falls vorhanden)
           if (itemValue && subcategory.items) {
-            const item = subcategory.items.find(item => item === itemValue);
+            const item = subcategory.items.find((item: any) => item === itemValue);
             if (item) {
               path.push({
                 id: 9999,

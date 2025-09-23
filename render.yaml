@@ -1,0 +1,19 @@
+# Render.com Deployment Configuration - OPTIMIERT
+services:
+  # Backend Service - HAUPTSERVICE
+  - type: web
+    name: kleinanzeigen-backend
+    runtime: python
+    env: python
+    rootDir: ./backend
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: python -m uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: DATABASE_URL
+        value: postgresql://postgres.hcwilqiczkmesxmetprm:Suncahaharhudu1!@aws-1-eu-central-1.pooler.supabase.com:6543/postgres
+      - key: ENVIRONMENT
+        value: production

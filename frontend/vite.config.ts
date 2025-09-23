@@ -7,7 +7,9 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   build: {
-    sourcemap: false, // Source-Maps aktivieren für besseres Debugging
+    sourcemap: false, // Keine Source-Maps für Produktion
+    outDir: 'dist',
+    emptyOutDir: true,
     rollupOptions: {
       output: {
         sourcemapExcludeSources: true,

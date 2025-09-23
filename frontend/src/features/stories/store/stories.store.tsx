@@ -288,8 +288,8 @@ export function StoriesProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'ADD_STORY', payload: story });
   }, []);
 
-  const deleteStory = useCallback((storyId: string) => {
-    dispatch({ type: 'DELETE_STORY', payload: { storyId } });
+  const deleteStory = useCallback((storyId: string, userId?: string) => {
+    dispatch({ type: 'DELETE_STORY', payload: { storyId, userId: userId || '' } });
   }, []);
 
   const markStoryViewed = useCallback((userId: string, storyId: string) => {

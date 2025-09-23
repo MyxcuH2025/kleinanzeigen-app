@@ -413,13 +413,13 @@ export const ChatPage: React.FC = () => {
     if (conversationId.toString().startsWith('story_')) {
       // Für Story-Conversations: Lade temporäre Nachrichten aus localStorage
       const tempConversations = JSON.parse(localStorage.getItem('temp_conversations') || '[]');
-      const storyConv = tempConversations.find(c => c.id === conversationId.toString());
+      const storyConv = tempConversations.find((c: any) => c.id === conversationId.toString());
       if (storyConv) {
         setMessages([{
           id: Date.now(),
           content: storyConv.lastMessage,
           sender_id: 0,
-          conversation_id: parseInt(conversationId.toString().replace('story_', '')),
+          conversationId: parseInt(conversationId.toString().replace('story_', '')),
           created_at: storyConv.timestamp,
           isOwn: true,
           type: 'text'
@@ -484,7 +484,7 @@ export const ChatPage: React.FC = () => {
     if (selectedConversation.id.toString().startsWith('story_')) {
       // Für Story-Conversations: Nachricht zu localStorage hinzufügen
       const tempConversations = JSON.parse(localStorage.getItem('temp_conversations') || '[]');
-      const storyConv = tempConversations.find(c => c.id === selectedConversation.id.toString());
+      const storyConv = tempConversations.find((c: any) => c.id === selectedConversation.id.toString());
       if (storyConv) {
         storyConv.lastMessage = newMessage;
         storyConv.timestamp = new Date().toISOString();
@@ -698,7 +698,7 @@ export const ChatPage: React.FC = () => {
         await loadConversations(false);
         
         // Finde und öffne die neue Konversation
-        const newConv = conversations.find(conv => conv.id === conversationId);
+        const newConv = conversations.find(conv => conv.id === parseInt(conversationId.toString()));
         if (newConv) {
           setSelectedConversation(newConv);
           return;
@@ -737,7 +737,7 @@ export const ChatPage: React.FC = () => {
       
       // Speichere in localStorage für Persistenz (nur wenn nicht bereits vorhanden)
       const savedConversations = JSON.parse(localStorage.getItem('temp_conversations') || '[]');
-      const existingSaved = savedConversations.find(c => c.other_user?.id === parseInt(userId));
+      const existingSaved = savedConversations.find((c: any) => c.other_user?.id === parseInt(userId));
       if (!existingSaved) {
         savedConversations.push(tempConv);
         localStorage.setItem('temp_conversations', JSON.stringify(savedConversations));

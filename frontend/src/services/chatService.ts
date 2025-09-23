@@ -63,7 +63,7 @@ class ChatService {
       
       if (existing) {
         console.log(`✅ Bestehende Conversation gefunden: ID=${existing.id}`);
-        return existing.id;
+        return typeof existing.id === 'string' ? parseInt(existing.id) : existing.id;
       }
       console.log(`❌ Keine bestehende Conversation gefunden`);
     } catch (_) {
@@ -104,7 +104,7 @@ class ChatService {
         }
         if (existing) {
           console.log(`🔄 Fallback: Bestehende Conversation gefunden: ID=${existing.id}`);
-          return existing.id;
+          return typeof existing.id === 'string' ? parseInt(existing.id) : existing.id;
         }
       } catch (_) { /* ignore */ }
       throw new Error(text || `Failed to create conversation (status ${response.status})`);
@@ -218,7 +218,7 @@ class ChatService {
 
       let conversationId: number;
       if (existingConversation) {
-        conversationId = existingConversation.id;
+        conversationId = typeof existingConversation.id === 'string' ? parseInt(existingConversation.id) : existingConversation.id;
         // Using existing conversation
       } else {
         // Create new conversation

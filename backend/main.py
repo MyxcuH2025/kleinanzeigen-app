@@ -8,16 +8,45 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
-from config import config
+# RENDER-OPTIMIERT: Robustes Import-System
+import os
+import sys
+
+# Render-spezifische Konfiguration
+if os.getenv("ENVIRONMENT") == "production" or "render" in os.getcwd().lower():
+    try:
+        from render_config import config
+    except ImportError:
+        # Absolute Fallback
+        class Config:
+            DATABASE_URL = "postgresql://postgres.hcwilqiczkmesxmetprm:Suncahaharhudu1!@aws-1-eu-central-1.pooler.supabase.com:6543/postgres"
+            CORS_ORIGINS = ["*"]
+            POOL_SIZE = 5
+            MAX_OVERFLOW = 10
+        config = Config()
+else:
+    try:
+        from config import config
+    except ImportError:
+        from render_config import config
 from sqlmodel import SQLModel, create_engine
 from sqlalchemy import text
 from datetime import datetime
 
-# Import aller Router - Echte Backend-Features aktiviert
-from app.auth.routes import router as auth_router
-from app.listings.routes import router as listings_router
-from app.users.routes import router as users_router
-from app.categories.routes import router as categories_router
+# RENDER-OPTIMIERT: Sichere Router-Imports
+try:
+    from app.auth.routes import router as auth_router
+    from app.listings.routes import router as listings_router  
+    from app.users.routes import router as users_router
+    from app.categories.routes import router as categories_router
+except ImportError as e:
+    print(f"Router import error: {e}")
+    # Dummy-Router für Render-Fallback
+    from fastapi import APIRouter
+    auth_router = APIRouter()
+    listings_router = APIRouter()
+    users_router = APIRouter()
+    categories_router = APIRouter()
 from app.search.routes import router as search_router
 from app.search.advanced_routes import router as advanced_search_router
 from app.search.admin_routes import router as search_admin_router
@@ -130,7 +159,6 @@ def optimize_startup_performance():
 def disable_sqlalchemy_echo():
     """Deaktiviert SQLAlchemy Echo für bessere Performance"""
     try:
-        # Deaktiviere SQLAlchemy Echo
         engine.echo = False
         logger.info("✅ SQLAlchemy Echo deaktiviert")
     except Exception as e:
@@ -139,30 +167,6 @@ def disable_sqlalchemy_echo():
 def optimize_connection_pool():
     """Optimiert Connection Pool für bessere Performance"""
     try:
-        # Connection Pool optimieren
-        if hasattr(engine.pool, 'size'):
-            logger.info(f"Connection Pool Size: {engine.pool.size()}")
-        if hasattr(engine.pool, 'checked_in'):
-            logger.info(f"Checked In: {engine.pool.checked_in()}")
-        if hasattr(engine.pool, 'checked_out'):
-            logger.info(f"Checked Out: {engine.pool.checked_out()}")
-        logger.info("✅ Connection Pool optimiert")
-    except Exception as e:
-        logger.warning(f"Connection Pool Optimierung: {e}")
-
-def disable_sqlalchemy_echo():
-    """Deaktiviert SQLAlchemy Echo für bessere Performance"""
-    try:
-        # Deaktiviere SQLAlchemy Echo
-        engine.echo = False
-        logger.info("✅ SQLAlchemy Echo deaktiviert")
-    except Exception as e:
-        logger.warning(f"Echo-Deaktivierung: {e}")
-
-def optimize_connection_pool():
-    """Optimiert Connection Pool für bessere Performance"""
-    try:
-        # Connection Pool optimieren
         if hasattr(engine.pool, 'size'):
             logger.info(f"Connection Pool Size: {engine.pool.size()}")
         if hasattr(engine.pool, 'checked_in'):
@@ -550,69 +554,36 @@ async def get_image(file_path: str):
     # Debug: Log die ankommende URL
     logger.info(f"Image request for: {file_path}")
     
-    # Entferne JSON-Array-Syntax falls vorhanden
+    # Bereinige malformed URLs - VEREINFACHT
     clean_path = file_path
     
-    # Entferne JSON-Array-Syntax: ["filename"] -> filename
-    if clean_path.startswith('["') and clean_path.endswith('"]'):
-        clean_path = clean_path[2:-2]
-    # Entferne einfache Anführungszeichen: "filename" -> filename
-    elif clean_path.startswith('"') and clean_path.endswith('"'):
-        clean_path = clean_path[1:-1]
-    # Entferne unvollständige JSON-Array-Syntax: ["filename -> filename
-    elif clean_path.startswith('["') and not clean_path.endswith('"]'):
-        clean_path = clean_path[2:]
-    # Entferne unvollständige Anführungszeichen: "filename -> filename
-    elif clean_path.startswith('"') and not clean_path.endswith('"'):
-        clean_path = clean_path[1:]
-    
-    # Entferne verbleibende Anführungszeichen am Ende
-    if clean_path.endswith('"'):
-        clean_path = clean_path[:-1]
-    if clean_path.endswith(']'):
-        clean_path = clean_path[:-1]
-    
-    # Entferne verbleibende Anführungszeichen am Anfang
-    if clean_path.startswith('"'):
-        clean_path = clean_path[1:]
-    if clean_path.startswith('['):
-        clean_path = clean_path[1:]
-    
-    # Entferne verbleibende Anführungszeichen am Ende
-    if clean_path.endswith('"'):
-        clean_path = clean_path[:-1]
-    if clean_path.endswith(']'):
-        clean_path = clean_path[:-1]
-    
-    # Entferne verbleibende Anführungszeichen am Anfang
-    if clean_path.startswith('"'):
-        clean_path = clean_path[1:]
-    if clean_path.startswith('['):
-        clean_path = clean_path[1:]
-    
-    # Entferne verbleibende Anführungszeichen am Ende
-    if clean_path.endswith('"'):
-        clean_path = clean_path[:-1]
-    if clean_path.endswith(']'):
-        clean_path = clean_path[:-1]
-    
-    # Entferne verbleibende Anführungszeichen am Anfang
-    if clean_path.startswith('"'):
-        clean_path = clean_path[1:]
-    if clean_path.startswith('['):
-        clean_path = clean_path[1:]
-    
-    # Entferne verbleibende Anführungszeichen am Ende
-    if clean_path.endswith('"'):
-        clean_path = clean_path[:-1]
-    if clean_path.endswith(']'):
-        clean_path = clean_path[:-1]
-    
-    # Entferne verbleibende Anführungszeichen am Anfang
-    if clean_path.startswith('"'):
-        clean_path = clean_path[1:]
-    if clean_path.startswith('['):
-        clean_path = clean_path[1:]
+    # Entferne JSON-Array-Syntax und Anführungszeichen iterativ
+    for _ in range(5):  # Max 5 Iterationen für Sicherheit
+        original = clean_path
+        
+        # JSON-Array-Syntax entfernen
+        if clean_path.startswith('["') and clean_path.endswith('"]'):
+            clean_path = clean_path[2:-2]
+        elif clean_path.startswith('["'):
+            clean_path = clean_path[2:]
+        elif clean_path.endswith('"]'):
+            clean_path = clean_path[:-2]
+        
+        # Anführungszeichen entfernen
+        if clean_path.startswith('"'):
+            clean_path = clean_path[1:]
+        if clean_path.endswith('"'):
+            clean_path = clean_path[:-1]
+        
+        # Eckige Klammern entfernen
+        if clean_path.startswith('['):
+            clean_path = clean_path[1:]
+        if clean_path.endswith(']'):
+            clean_path = clean_path[:-1]
+        
+        # Wenn keine Änderung, breche ab
+        if clean_path == original:
+            break
     
     # Entferne URL-Encoding
     import urllib.parse

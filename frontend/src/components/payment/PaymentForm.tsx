@@ -18,7 +18,7 @@ import {
   Grid,
   Divider
 } from '@mui/material';
-import { CreditCard, PayPal, Euro } from '@mui/icons-material';
+import { CreditCard, AccountBalance, Euro } from '@mui/icons-material';
 import { paymentService, PaymentCreate } from '../../services/paymentService';
 
 interface PaymentFormProps {
@@ -132,7 +132,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
             </MenuItem>
             <MenuItem value="paypal">
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <PayPal />
+                <AccountBalance />
                 <Typography>PayPal</Typography>
               </Box>
             </MenuItem>

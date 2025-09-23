@@ -24,7 +24,7 @@ import {
 } from '@mui/material';
 import {
   CreditCard,
-  PayPal,
+  AccountBalance,
   Receipt,
   Euro,
   Refresh
@@ -118,7 +118,7 @@ export const PaymentHistory: React.FC<PaymentHistoryProps> = ({ onRefresh }) => 
       case 'stripe':
         return <CreditCard />;
       case 'paypal':
-        return <PayPal />;
+        return <AccountBalance />;
       default:
         return <Receipt />;
     }
