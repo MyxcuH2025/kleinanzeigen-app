@@ -6,7 +6,7 @@ uvicorn[standard]==0.34.3
 sqlalchemy==2.0.41
 sqlmodel==0.0.24
 alembic==1.13.1
-psycopg2-binary==2.9.5  # PostgreSQL adapter
+asyncpg==0.28.0  # Modern PostgreSQL driver
 
 # Authentication & Security
 python-jose[cryptography]==3.3.0
