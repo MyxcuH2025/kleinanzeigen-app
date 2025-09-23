@@ -54,50 +54,62 @@ async def api_health():
 # Vollständige API Endpoints
 @app.get("/api/listings")
 async def get_listings():
-    """Get all listings - Production Ready"""
-    return {
-        "listings": [
-            {
-                "id": 1,
-                "title": "BMW 3er Limousine 320d",
-                "description": "BMW 3er Limousine 320d - 45 Tkm · BJ 2019 · Diesel",
-                "price": "28.900 €",
-                "location": "München",
-                "category": "autos",
-                "images": ["https://via.placeholder.com/400x300"],
-                "user": {"name": "Max Müller", "rating": 4.5},
-                "created_at": "2025-09-23T10:00:00Z",
+    """Get all listings - Mit Supabase-Fallback"""
+    try:
+        # Versuche Supabase-Verbindung (wenn verfügbar)
+        import psycopg2
+        DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres.hcwilqiczkmesxmetprm:Suncahaharhudu1!@aws-1-eu-central-1.pooler.supabase.com:6543/postgres")
+        
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
+        cur.execute("SELECT id, title, description, price, location, category, created_at FROM listing ORDER BY created_at DESC LIMIT 20")
+        rows = cur.fetchall()
+        
+        listings = []
+        for row in rows:
+            listings.append({
+                "id": row[0],
+                "title": row[1],
+                "description": row[2],
+                "price": str(row[3]) + " €",
+                "location": row[4],
+                "category": row[5],
+                "images": [],
+                "created_at": row[6].isoformat() if row[6] else datetime.utcnow().isoformat(),
                 "status": "active"
-            },
-            {
-                "id": 2,
-                "title": "iPhone 15 Pro Max",
-                "description": "iPhone 15 Pro Max 256GB - Wie neu, mit Originalverpackung",
-                "price": "1.200 €",
-                "location": "Berlin",
-                "category": "elektronik",
-                "images": ["https://via.placeholder.com/400x300"],
-                "user": {"name": "Anna Schmidt", "rating": 4.8},
-                "created_at": "2025-09-23T09:30:00Z",
-                "status": "active"
-            },
-            {
-                "id": 3,
-                "title": "Sofa 3-Sitzer",
-                "description": "Modernes 3-Sitzer Sofa in grau, sehr guter Zustand",
-                "price": "450 €",
-                "location": "Hamburg",
-                "category": "moebel",
-                "images": ["https://via.placeholder.com/400x300"],
-                "user": {"name": "Tom Weber", "rating": 4.2},
-                "created_at": "2025-09-23T08:15:00Z",
-                "status": "active"
-            }
-        ],
-        "total": 3,
-        "status": "success",
-        "timestamp": datetime.utcnow().isoformat()
-    }
+            })
+        
+        cur.close()
+        conn.close()
+        
+        return {
+            "listings": listings,
+            "total": len(listings),
+            "status": "supabase_connected",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.warning(f"Supabase-Verbindung fehlgeschlagen: {e}")
+        # Fallback auf Demo-Daten
+        return {
+            "listings": [
+                {
+                    "id": 1,
+                    "title": "Test Anzeige",
+                    "description": "Test Beschreibung",
+                    "price": "100 €",
+                    "location": "Berlin",
+                    "category": "kleinanzeigen",
+                    "images": [],
+                    "status": "active"
+                }
+            ],
+            "total": 1,
+            "status": "fallback_demo",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }
 
 @app.get("/api/categories")
 async def get_categories():
