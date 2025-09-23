@@ -8,7 +8,7 @@ import type {
 } from '../types/stories.types';
 
 const STORIES_API = '/api/stories';
-const baseUrl = 'http://localhost:8000';
+const baseUrl = import.meta.env.PROD ? 'https://kleinanzeigen-backend.onrender.com' : 'http://localhost:8000';
 export const storiesApi = {
   /**
    * Stories-Feed abrufen
@@ -232,23 +232,23 @@ export const storiesApi = {
     // REPARIERT: Base64-Bilder komplett blockieren (vermeidet "Image corrupt" Fehler)
     if (mediaUrl.startsWith('data:') || mediaUrl.includes('base64') || mediaUrl.includes('data:image/')) {
       console.warn('❌ Base64-Story-Media blockiert:', mediaUrl.substring(0, 50) + '...');
-      return 'http://localhost:8000/api/images/noimage.jpeg';
+      return `${baseUrl}/api/images/noimage.jpeg`;
     }
     
     // REPARIERT: Nur externe URLs blockieren, nicht lokale Backend-URLs
     if (mediaUrl.startsWith('http') && !mediaUrl.includes('localhost:8000')) {
       console.warn('❌ Externe Story-Media blockiert:', mediaUrl.substring(0, 50) + '...');
-      return 'http://localhost:8000/api/images/noimage.jpeg';
+      return `${baseUrl}/api/images/noimage.jpeg`;
     }
     
     // REPARIERT: Lokale Backend-URLs erlauben (verursacht "gelbe story media url blockiert fehler")
     if (mediaUrl.startsWith('/api/images/') || mediaUrl.startsWith('/uploads/')) {
-      return `http://localhost:8000${mediaUrl}`;
+      return `${baseUrl}${mediaUrl}`;
     }
     
     // REPARIERT: Andere lokale URLs erlauben
     if (mediaUrl.startsWith('/') && !mediaUrl.startsWith('http')) {
-      return `http://localhost:8000${mediaUrl}`;
+      return `${baseUrl}${mediaUrl}`;
     }
     
     // REPARIERT: URLs die mit localhost:8000 beginnen erlauben
@@ -258,12 +258,12 @@ export const storiesApi = {
     
     // REPARIERT: URLs die mit api/images/ beginnen erlauben (ohne führenden Slash)
     if (mediaUrl.startsWith('api/images/') || mediaUrl.startsWith('uploads/')) {
-      return `http://localhost:8000/${mediaUrl}`;
+      return `${baseUrl}/${mediaUrl}`;
     }
     
     // Fallback für unbekannte URLs
     console.warn('❌ Unbekannte Story-Media-URL blockiert:', mediaUrl.substring(0, 50) + '...');
-    return 'http://localhost:8000/api/images/noimage.jpeg';
+    return `${baseUrl}/api/images/noimage.jpeg`;
   },
 
   /**

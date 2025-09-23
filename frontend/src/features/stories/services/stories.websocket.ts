@@ -46,7 +46,9 @@ export class StoriesWebSocketService {
         return;
       }
 
-      const wsUrl = `ws://localhost:8000/ws/stories?token=${encodeURIComponent(token)}`;
+      const wsUrl = import.meta.env.PROD 
+        ? `wss://kleinanzeigen-backend.onrender.com/ws/stories?token=${encodeURIComponent(token)}`
+        : `ws://localhost:8000/ws/stories?token=${encodeURIComponent(token)}`;
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
