@@ -81,8 +81,9 @@ async def get_story(story_id: int):
         "status": "success"
     }
 
-# Auth-API für Login
+# Auth-API für Login - BEIDE ROUTEN
 @app.post("/api/auth/login")
+@app.post("/api/login")  # Fallback für Frontend
 async def login():
     """Login-Endpoint für Mobile"""
     return {
@@ -96,6 +97,7 @@ async def login():
     }
 
 @app.post("/api/auth/register")
+@app.post("/api/register")  # Fallback für Frontend
 async def register():
     """Register-Endpoint für Mobile"""
     return {

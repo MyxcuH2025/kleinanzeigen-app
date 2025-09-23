@@ -42,7 +42,8 @@ export async function createListing(listing: Omit<Listing, "id">): Promise<Listi
 }
 
 export async function register(email: string, password: string) {
-  const res = await fetch(`http://localhost:8000/api/register`, {
+  const apiUrl = import.meta.env.PROD ? 'https://kleinanzeigen-backend.onrender.com' : 'http://localhost:8000';
+  const res = await fetch(`${apiUrl}/api/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -52,7 +53,8 @@ export async function register(email: string, password: string) {
 }
 
 export async function login(email: string, password: string) {
-  const res = await fetch(`http://localhost:8000/api/login`, {
+  const apiUrl = import.meta.env.PROD ? 'https://kleinanzeigen-backend.onrender.com' : 'http://localhost:8000';
+  const res = await fetch(`${apiUrl}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
