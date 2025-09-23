@@ -50,11 +50,21 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': 'http://localhost:8000',
-      '/ads': 'http://localhost:8000',
-      '/categories': 'http://localhost:8000',
-      '/users': 'http://localhost:8000',
-      '/favorites': 'http://localhost:8000',
+      '/api': process.env.NODE_ENV === 'production' 
+        ? 'https://kleinanzeigen-backend.onrender.com'
+        : 'http://localhost:8000',
+      '/ads': process.env.NODE_ENV === 'production' 
+        ? 'https://kleinanzeigen-backend.onrender.com'
+        : 'http://localhost:8000',
+      '/categories': process.env.NODE_ENV === 'production' 
+        ? 'https://kleinanzeigen-backend.onrender.com'
+        : 'http://localhost:8000',
+      '/users': process.env.NODE_ENV === 'production' 
+        ? 'https://kleinanzeigen-backend.onrender.com'
+        : 'http://localhost:8000',
+      '/favorites': process.env.NODE_ENV === 'production' 
+        ? 'https://kleinanzeigen-backend.onrender.com'
+        : 'http://localhost:8000',
     },
     allowedHosts: [
       "guild-consoles-marks-south.trycloudflare.com"
