@@ -118,6 +118,13 @@ export const ListingsPage_Optimized: React.FC = () => {
         return;
       }
       
+      // SICHERHEIT: Prüfe ob listingsData ein Array ist
+      if (!Array.isArray(listingsData)) {
+        console.error('Backend liefert kein Array:', listingsData);
+        setListings([]);
+        return;
+      }
+      
       // REPARIERT: Bilder korrekt verarbeiten (verursacht "bilder werden nicht angezeigt")
       const processedListings = listingsData.map((listing: any) => {
         let parsedImages: string[] = [];

@@ -169,6 +169,14 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
         // Backend gibt jetzt {listings: [...], pagination: {...}} zurück
         const listingsData = data.listings || data;
         
+        // SICHERHEIT: Prüfe ob listingsData ein Array ist
+        if (!Array.isArray(listingsData)) {
+          console.error('Backend liefert kein Array:', listingsData);
+          setListings([]);
+          setLoadingAds(false);
+          return;
+        }
+        
         // PERFORMANCE-OPTIMIERUNG: Memoized Bildverarbeitung
         const processedListings = listingsData.map((listing: any) => {
           let parsedImages: string[] = [];

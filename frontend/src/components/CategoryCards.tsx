@@ -56,11 +56,14 @@ export const CategoryCards: React.FC<CategoryCardsProps> = ({ theme }) => {
         }
         const data = await response.json();
         
+        // Backend gibt {'categories': [...]} zurück, nicht direkt Array
+        const categoriesArray = data.categories || data;
+        
         // Konvertiere Backend-Format zu Frontend-Format
-        const convertedCategories = data.map((cat: any) => ({
-          id: cat.id,
-          name: cat.label,
-          slug: cat.value,
+        const convertedCategories = categoriesArray.map((cat: any, index: number) => ({
+          id: cat.id || index + 1,
+          name: cat.name,
+          slug: cat.slug,
           icon: cat.icon,
           color: '#059669',
           bgColor: '#f0fdf4'
