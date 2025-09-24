@@ -12,9 +12,9 @@ import logging
 
 # Engine und OAuth2 - PRODUKTIONS-READY CONFIG
 # Engine hier definieren um Circular Import zu vermeiden
-# Standard psycopg2 verwenden (kompatibel mit Python 3.11)
+# psycopg3 verwenden (kompatibel mit Python 3.13) - URL-basierte Auto-Erkennung
 engine = create_engine(
-    config.DATABASE_URL,
+    config.DATABASE_URL,  # postgresql+psycopg:// wird automatisch erkannt
     pool_size=config.POOL_SIZE,  # 20 Verbindungen
     max_overflow=config.MAX_OVERFLOW,  # 30 zusätzliche Verbindungen
     pool_timeout=config.POOL_TIMEOUT,  # 30 Sekunden Timeout
