@@ -270,7 +270,7 @@ const AdCard: React.FC<AdCardProps> = ({
         cursor: 'pointer',
         transition: 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
         border: '1px solid rgba(220, 248, 198, 0.3)',
-        height: '440px',
+        height: '420px',
         width: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -697,7 +697,7 @@ const AdCard: React.FC<AdCardProps> = ({
             fontWeight: 700, 
             fontSize: { xs: '1.15rem', sm: '1.25rem' }, 
             color: '#1a1a1a', 
-            mb: 0.375,
+            mb: 0.5,
             transition: 'all 0.3s ease',
             background: 'linear-gradient(135deg, #1a1a1a 0%, #2d3748 100%)',
             backgroundClip: 'text',
@@ -707,7 +707,6 @@ const AdCard: React.FC<AdCardProps> = ({
         >
           {formatPrice(price)}
         </Typography>
-
 
         <Box sx={{ 
           display: 'flex', 
