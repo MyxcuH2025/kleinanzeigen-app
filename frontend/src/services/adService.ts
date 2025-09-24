@@ -181,7 +181,7 @@ export const adService = {
                     if (cleanPath.startsWith('/uploads/')) {
                       return `http://localhost:8000/api/images/${cleanPath.replace('/uploads/', '')}`;
                     }
-                    const apiUrl = import.meta.env.PROD ? 'https://kleinanzeigen-backend.onrender.com' : 'http://localhost:8000';
+                    const apiUrl = import.meta.env.PROD ? 'https://' : 'http://localhost:8000';
                     return `${apiUrl}/api/images/${cleanPath}`;
                   });
                 }
@@ -352,7 +352,7 @@ export const adService = {
                     if (cleanPath.startsWith('/uploads/')) {
                       return `http://localhost:8000/api/images/${cleanPath.replace('/uploads/', '')}`;
                     }
-                    const apiUrl = import.meta.env.PROD ? 'https://kleinanzeigen-backend.onrender.com' : 'http://localhost:8000';
+                    const apiUrl = import.meta.env.PROD ? 'https://' : 'http://localhost:8000';
                     return `${apiUrl}/api/images/${cleanPath}`;
                   });
                 }

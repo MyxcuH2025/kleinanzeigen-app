@@ -4,12 +4,12 @@
 
 // Automatische API-URL basierend auf Environment
 export const API_BASE_URL = import.meta.env.PROD 
-  ? 'https://kleinanzeigen-backend.onrender.com'
+  ? 'https://'
   : 'http://localhost:8000';
 
 // WebSocket-URL für Echtzeit-Features  
 export const WS_BASE_URL = import.meta.env.PROD
-  ? 'wss://kleinanzeigen-backend.onrender.com'
+  ? 'wss://'
   : 'ws://localhost:8000';
 
 // Helper-Funktionen
