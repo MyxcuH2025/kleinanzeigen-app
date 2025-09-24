@@ -555,102 +555,102 @@ const AdCard: React.FC<AdCardProps> = ({
           background: 'linear-gradient(90deg, transparent 0%, rgba(220, 248, 198, 0.3) 50%, transparent 100%)'
         }
       }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mb: 0.125, height: '24px' }}>
-          <Box className="ad-card-icons" sx={{ display: 'flex', gap: 1.5 }}>
-            <Box 
-              onClick={handleFavoriteToggle}
-              className="icon-bg"
-              sx={{ 
-                width: 16, 
-                height: 16, 
-                borderRadius: '50%',
-                backgroundColor: favoriteState ? 'rgba(255, 71, 87, 0.06)' : 'rgba(0, 0, 0, 0.01)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: isLoading ? 'default' : 'pointer',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  backgroundColor: favoriteState ? 'rgba(255, 71, 87, 0.08)' : 'rgba(0, 0, 0, 0.02)',
-                  transform: 'scale(1.05)'
-                }
-              }}
-            >
-              <Box sx={{ fontSize: 14, color: favoriteState ? '#ff4757' : '#666' }}>
-                <FavoriteIcon />
-              </Box>
-            </Box>
-            <Box 
-              onClick={handleShare}
-              className="icon-bg"
-              sx={{ 
-                width: 16, 
-                height: 16, 
-                borderRadius: '50%',
-                backgroundColor: 'rgba(0, 0, 0, 0.01)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                  transform: 'scale(1.05)'
-                }
-              }}
-            >
-              <Box sx={{ fontSize: 14, color: '#666' }}>
-                <ShareIcon />
-              </Box>
-            </Box>
-            <Box 
-              className="ad-card-menu-button icon-bg" 
-              onClick={handleMenuOpen}
-              sx={{ 
-                width: 16, 
-                height: 16, 
-                borderRadius: '50%',
-                backgroundColor: 'rgba(0, 0, 0, 0.01)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                  transform: 'scale(1.05)'
-                }
-              }}
-            >
-              <Box sx={{ fontSize: 14, color: '#666' }}>
-                <MehrIcon />
-              </Box>
-            </Box>
-          </Box>
-        </Box>
-
-        <Typography 
-          className="ad-card-title"
-          variant="h6" 
-          sx={{ 
-            fontWeight: 600, 
-            fontSize: { xs: '1.05rem', sm: '1.15rem' }, 
-            color: '#1a1a1a', 
-            mb: 0.25,
-            mt: -0.375, // Ausgewogener Versatz
-            lineHeight: 1.38, // Ausgewogene Lesbarkeit
-            letterSpacing: '-0.01em',
-            minHeight: '3.0rem', // Ausgewogene Höhe für 2 Zeilen
-            maxHeight: '3.0rem', // Ausgewogene Höhe für 2 Zeilen
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
+        {/* Titel und Buttons in derselben Zeile */}
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 0.5, gap: 1 }}>
+          <Typography 
+            className="ad-card-title"
+            variant="h6" 
+            sx={{ 
+              fontWeight: 600, 
+              fontSize: { xs: '1.05rem', sm: '1.15rem' }, 
+              color: '#1a1a1a', 
+              lineHeight: 1.38,
+              letterSpacing: '-0.01em',
+              flex: 1,
+              minWidth: 0, // Wichtig für Text-Overflow
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
           }}
         >
           {title}
         </Typography>
+        
+        {/* Action Buttons */}
+        <Box className="ad-card-icons" sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
+          <Box 
+            onClick={handleFavoriteToggle}
+            className="icon-bg"
+            sx={{ 
+              width: 16, 
+              height: 16, 
+              borderRadius: '50%',
+              backgroundColor: favoriteState ? 'rgba(255, 71, 87, 0.06)' : 'rgba(0, 0, 0, 0.01)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: isLoading ? 'default' : 'pointer',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                backgroundColor: favoriteState ? 'rgba(255, 71, 87, 0.08)' : 'rgba(0, 0, 0, 0.02)',
+                transform: 'scale(1.05)'
+              }
+            }}
+          >
+            <Box sx={{ fontSize: 14, color: favoriteState ? '#ff4757' : '#666' }}>
+              <FavoriteIcon />
+            </Box>
+          </Box>
+          <Box 
+            onClick={handleShare}
+            className="icon-bg"
+            sx={{ 
+              width: 16, 
+              height: 16, 
+              borderRadius: '50%',
+              backgroundColor: 'rgba(0, 0, 0, 0.01)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                transform: 'scale(1.05)'
+              }
+            }}
+          >
+            <Box sx={{ fontSize: 14, color: '#666' }}>
+              <ShareIcon />
+            </Box>
+          </Box>
+          <Box 
+            className="ad-card-menu-button icon-bg" 
+            onClick={handleMenuOpen}
+            sx={{ 
+              width: 16, 
+              height: 16, 
+              borderRadius: '50%',
+              backgroundColor: 'rgba(0, 0, 0, 0.01)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                transform: 'scale(1.05)'
+              }
+            }}
+          >
+            <Box sx={{ fontSize: 14, color: '#666' }}>
+              <MehrIcon />
+            </Box>
+          </Box>
+        </Box>
+      </Box>
 
         {/* Beschreibung hinzufügen - immer 2 Zeilen */}
         <Box sx={{ 
