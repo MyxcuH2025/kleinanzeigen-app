@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 class Config:
     # Datenbank - SUPABASE für bessere Performance
     # PostgreSQL für Produktion (Supabase) - OPTIMIERT für bessere Performance
-    DATABASE_URL = "postgresql+psycopg://postgres.hcwilqiczkmesxmetprm:Suncahaharhudu1!@aws-1-eu-central-1.pooler.supabase.com:6543/postgres"  # Korrekte vaybuzeu Supabase-URL mit psycopg3
+    DATABASE_URL = "postgresql://postgres.hcwilqiczkmesxmetprm:Suncahaharhudu1!@aws-1-eu-central-1.pooler.supabase.com:6543/postgres"  # Standard postgresql:// für psycopg2
     
     # PostgreSQL Support
     POSTGRES_URL = os.getenv("POSTGRES_URL", None)  # Supabase PostgreSQL URL

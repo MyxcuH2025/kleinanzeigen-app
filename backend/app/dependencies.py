@@ -12,8 +12,7 @@ import logging
 
 # Engine und OAuth2 - PRODUKTIONS-READY CONFIG
 # Engine hier definieren um Circular Import zu vermeiden
-# EXPLIZIT psycopg3 verwenden statt psycopg2
-import psycopg
+# Standard psycopg2 verwenden (kompatibel mit Python 3.11)
 engine = create_engine(
     config.DATABASE_URL,
     pool_size=config.POOL_SIZE,  # 20 Verbindungen
@@ -22,7 +21,6 @@ engine = create_engine(
     pool_recycle=config.POOL_RECYCLE,  # 1 Stunde
     pool_pre_ping=config.POOL_PRE_PING,  # Verbindungen testen
     echo=False,  # Performance-Optimierung: Kein SQL-Logging
-    module=psycopg,  # EXPLIZIT psycopg3 verwenden
     # Performance-Optimierungen
     connect_args={
         "options": "-c default_transaction_isolation=read_committed"
