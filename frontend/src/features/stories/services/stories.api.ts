@@ -14,6 +14,11 @@ export const storiesApi = {
    * Stories-Feed abrufen
    */
   async getFeed(limit: number = 20, offset: number = 0): Promise<Story[]> {
+    // TEMPORÄR DEAKTIVIERT: Stories-API-Aufruf
+    console.log('Stories-API temporär deaktiviert');
+    return [];
+    
+    /* ORIGINAL CODE DEAKTIVIERT
     try {
       const response = await apiService.get<{ stories: Story[] }>(
         `${STORIES_API}/feed?limit=${limit}&offset=${offset}`
@@ -28,6 +33,7 @@ export const storiesApi = {
       console.error('Fehler beim Abrufen des Stories-Feeds:', error);
       throw new Error(error.response?.data?.detail || 'Fehler beim Laden der Stories');
     }
+    */
   },
 
   /**
