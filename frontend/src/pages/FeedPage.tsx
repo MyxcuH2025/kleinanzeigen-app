@@ -247,7 +247,7 @@ const FeedPage: React.FC = () => {
       </Box>
 
       {/* Feed-Listings */}
-      {feedData?.listings && feedData.listings.length > 0 ? (
+      {feedData?.listings && Array.isArray(feedData.listings) && feedData.listings.length > 0 && (
         <>
           <Box sx={{
             display: 'grid',
@@ -261,7 +261,7 @@ const FeedPage: React.FC = () => {
             gap: { xs: 1.5, sm: 1.5, md: 2, lg: 2.5 },
             alignItems: 'start'
           }}>
-            {Array.isArray(feedData.listings) ? feedData.listings.map((listing) => (
+            {feedData.listings.map((listing) => (
               <Box key={listing.id} position="relative">
                 {/* Followed-Badge */}
                 {listing.is_from_followed && (
@@ -321,8 +321,8 @@ const FeedPage: React.FC = () => {
             </Box>
           )}
         </>
-      ) : null}
-      {!Array.isArray(feedData.listings) && (
+      )}
+      {feedData?.listings && !Array.isArray(feedData.listings) && (
         <Paper sx={{ p: 4, textAlign: 'center' }}>
           <Typography variant="h6" color="text.secondary" gutterBottom>
             Keine Anzeigen im Feed
