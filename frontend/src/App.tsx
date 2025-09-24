@@ -22,8 +22,8 @@ import { FavoritesProvider } from "./context/FavoritesContext";
 import { AdminProvider } from "./context/AdminContext";
 import { FollowProvider } from "./context/FollowContext";
 // REPARIERT: StoriesProvider korrekt importieren (verursacht "useStoriesStore must be used within a StoriesProvider")
-// import { StoriesProvider } from "./features/stories/store/stories.store";
-// import { StoriesFeature } from "./features/stories/StoriesFeature";
+import { StoriesProvider } from "./features/stories/store/stories.store";
+import { StoriesFeature } from "./features/stories/StoriesFeature";
 import SessionManager from "./components/SessionManager";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -292,14 +292,14 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
       {/* Keine Suchmaske mehr - direkt zu Kleinanzeigen-Inhalten */}
       <Box sx={{ px: { xs: 1, sm: 2, md: 3 }, bgcolor: '#ffffff', pt: { xs: 0.5, sm: 1, md: 1 } }}>
         
-                {/* Modulare Stories-Feature direkt unter dem Menü - TEMPORÄR DEAKTIVIERT */}
-                {/* <Box sx={{ mb: { xs: 2, sm: 3, md: 3 } }}>
+                {/* Modulare Stories-Feature direkt unter dem Menü */}
+                <Box sx={{ mb: { xs: 2, sm: 3, md: 3 } }}>
                   <StoriesFeature
                     showInFeed={true}
                     showCreateButton={true}
                     maxStories={10}
                   />
-                </Box> */}
+                </Box>
 
         {/* Kategorie-Buttons nur auf Desktop */}
         {/* Hauptkategorien entfernt - Autos Button ist jetzt in der oberen Menüleiste */}
@@ -369,7 +369,7 @@ function App() {
           <FavoritesProvider>
             <AdminProvider>
               <FollowProvider>
-                {/* <StoriesProvider> */}
+                <StoriesProvider>
                   <SnackbarProvider>
               <SessionManager timeoutMinutes={30} warningMinutes={5} />
               <Router>
@@ -553,7 +553,7 @@ function App() {
                 </Box>
               </Router>
                   </SnackbarProvider>
-                {/* </StoriesProvider> */}
+                </StoriesProvider>
               </FollowProvider>
             </AdminProvider>
           </FavoritesProvider>
