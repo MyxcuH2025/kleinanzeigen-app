@@ -215,9 +215,7 @@ export function StoriesProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_ERROR', payload: null });
     
     try {
-      // TEMPORÄR DEAKTIVIERT: Stories-API-Aufruf
-      // const stories = await storiesApi.getFeed(20, 0);
-      const stories: any[] = []; // Leeres Array statt API-Aufruf
+      const stories = await storiesApi.getFeed(20, 0);
       
       // Stories nach User gruppieren
       const groupedStoriesMap = new Map<string, StoryGroup>();

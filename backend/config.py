@@ -1,7 +1,8 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+# TEMPORÄR DEAKTIVIERT: load_dotenv() - verursacht Unicode-Fehler
+# load_dotenv()
 
 class Config:
     # Datenbank - SUPABASE für bessere Performance

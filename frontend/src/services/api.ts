@@ -9,24 +9,13 @@ export interface Listing {
 }
 
 export async function getListings(): Promise<Listing[]> {
-  // TEMPORÄR DEAKTIVIERT: Backend-API-Aufruf
-  console.log('Listings-API temporär deaktiviert');
-  return [];
-  
-  /* ORIGINAL CODE DEAKTIVIERT
   const apiUrl = import.meta.env.PROD ? 'https://kleinanzeigen-backend.onrender.com' : 'http://localhost:8000';
   const res = await fetch(`${apiUrl}/api/listings`);
   if (!res.ok) throw new Error("Fehler beim Laden der Listings");
   return res.json();
-  */
 }
 
 export async function createListing(listing: Omit<Listing, "id">): Promise<Listing> {
-  // TEMPORÄR DEAKTIVIERT: Backend-API-Aufruf
-  console.log('Create Listing API temporär deaktiviert');
-  return { ...listing, id: Math.random() };
-  
-  /* ORIGINAL CODE DEAKTIVIERT
   // REPARIERT: Bilder immer als Array senden, nie als JSON-String (verursacht "Image corrupt" Fehler)
   const images = listing.images ?? [];
   const payload = { 
@@ -50,7 +39,6 @@ export async function createListing(listing: Omit<Listing, "id">): Promise<Listi
   });
   if (!res.ok) throw new Error("Fehler beim Erstellen des Listings");
   return res.json();
-  */
 }
 
 export async function register(email: string, password: string) {
