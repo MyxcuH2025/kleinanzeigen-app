@@ -24,6 +24,7 @@ import { FollowProvider } from "./context/FollowContext";
 // REPARIERT: StoriesProvider korrekt importieren (verursacht "useStoriesStore must be used within a StoriesProvider")
 import { StoriesProvider } from "./features/stories/store/stories.store";
 import { StoriesFeature } from "./features/stories/StoriesFeature";
+const StoriesPage = lazy(() => import('./pages/StoriesPage'));
 import SessionManager from "./components/SessionManager";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ProtectedRoute } from "./components/ProtectedRoute";
