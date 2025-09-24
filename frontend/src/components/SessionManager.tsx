@@ -97,6 +97,10 @@ const SessionManager: React.FC<SessionManagerProps> = ({
         }
         
         // Für echte JWT-Tokens: Decode JWT token (basic check)
+        if (!token || typeof token !== 'string' || token.split('.').length !== 3) {
+          console.warn('Invalid token format');
+          return;
+        }
         const payload = JSON.parse(atob(token.split('.')[1]));
         const expirationTime = payload.exp * 1000; // Convert to milliseconds
         

@@ -42,7 +42,7 @@ export const CategoryCards: React.FC<CategoryCardsProps> = ({ theme }) => {
       'Verschenken & Tauschen': 'Tauschen'
     };
     
-    return shortNames[categoryName] || categoryName.split(' ')[0];
+    return shortNames[categoryName] || (categoryName ? categoryName.split(' ')[0] : 'Kategorie');
   };
 
   // Kategorien vom Backend laden

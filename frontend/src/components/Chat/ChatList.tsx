@@ -711,7 +711,7 @@ export const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
                             mb: 0.8 // Größerer Abstand
                           }}
                         >
-                          {chat.other_user.email.split('@')[0]}
+                          {chat.other_user?.email ? chat.other_user.email.split('@')[0] : 'User'}
                         </Typography>
                         
                         {chat.listing.price && chat.listing.price > 0 && (
