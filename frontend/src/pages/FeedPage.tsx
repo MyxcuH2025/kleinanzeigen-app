@@ -24,7 +24,7 @@ import {
 } from '@mui/icons-material';
 import { useUser } from '../context/UserContext';
 import AdCard from '../components/AdCard';
-import { StoriesFeature } from '../features/stories';
+// import { StoriesFeature } from '../features/stories';
 
 // Lokale Definitionen
 interface FeedListing {
@@ -197,12 +197,12 @@ const FeedPage: React.FC = () => {
         </Box>
 
         {/* Feed-Info */}
-        {/* Stories-Feature */}
-        <StoriesFeature 
+        {/* Stories-Feature - TEMPORÄR DEAKTIVIERT */}
+        {/* <StoriesFeature 
           showInFeed={true}
           showCreateButton={true}
           maxStories={10}
-        />
+        /> */}
 
         <Paper sx={{ p: 2, mb: 3, backgroundColor: 'grey.50' }}>
           <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
