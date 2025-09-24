@@ -183,12 +183,12 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
                 if (Array.isArray(parsed)) {
                   imageList = parsed;
                 } else {
-                  // Fallback: Kommagetrennte Liste
-                  imageList = listing.images.split(',').map((img: string) => img.trim()).filter((img: string) => img.length > 0);
+                  // Fallback: Kommagetrennte Liste - SICHER gegen undefined
+                  imageList = listing.images ? listing.images.split(',').map((img: string) => img.trim()).filter((img: string) => img.length > 0) : [];
                 }
               } catch {
-                // Fallback: Kommagetrennte Liste
-                imageList = listing.images.split(',').map((img: string) => img.trim()).filter((img: string) => img.length > 0);
+                // Fallback: Kommagetrennte Liste - SICHER gegen undefined
+                imageList = listing.images ? listing.images.split(',').map((img: string) => img.trim()).filter((img: string) => img.length > 0) : [];
               }
             } else if (Array.isArray(listing.images)) {
               imageList = listing.images;

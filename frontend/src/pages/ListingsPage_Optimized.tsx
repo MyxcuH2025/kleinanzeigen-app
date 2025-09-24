@@ -132,10 +132,10 @@ export const ListingsPage_Optimized: React.FC = () => {
               if (Array.isArray(parsed)) {
                 imageList = parsed;
               } else {
-                imageList = listing.images.split(',').map((img: string) => img.trim()).filter((img: string) => img.length > 0);
+                imageList = listing.images ? listing.images.split(',').map((img: string) => img.trim()).filter((img: string) => img.length > 0) : [];
               }
             } catch {
-              imageList = listing.images.split(',').map((img: string) => img.trim()).filter((img: string) => img.length > 0);
+              imageList = listing.images ? listing.images.split(',').map((img: string) => img.trim()).filter((img: string) => img.length > 0) : [];
             }
           } else if (Array.isArray(listing.images)) {
             imageList = listing.images;

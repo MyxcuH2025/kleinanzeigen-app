@@ -42,11 +42,6 @@ export async function createListing(listing: Omit<Listing, "id">): Promise<Listi
 }
 
 export async function register(email: string, password: string) {
-  // TEMPORÄR DEAKTIVIERT: Backend-API-Aufruf
-  console.log('Register API temporär deaktiviert');
-  return { message: 'Registrierung temporär deaktiviert' };
-  
-  /* ORIGINAL CODE DEAKTIVIERT
   const apiUrl = import.meta.env.PROD ? 'https://kleinanzeigen-backend.onrender.com' : 'http://localhost:8000';
   const res = await fetch(`${apiUrl}/api/register`, {
     method: "POST",
@@ -55,7 +50,6 @@ export async function register(email: string, password: string) {
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
-  */
 }
 
 export async function login(email: string, password: string) {
