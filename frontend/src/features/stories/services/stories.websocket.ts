@@ -46,9 +46,7 @@ export class StoriesWebSocketService {
         return;
       }
 
-      const wsUrl = import.meta.env.PROD 
-        ? `wss:///ws/stories?token=${encodeURIComponent(token)}`
-        : `ws://localhost:8000/ws/stories?token=${encodeURIComponent(token)}`;
+      const wsUrl = `ws://localhost:8000/ws/stories?token=${encodeURIComponent(token)}`; // TEMP: Immer lokales Backend verwenden
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {

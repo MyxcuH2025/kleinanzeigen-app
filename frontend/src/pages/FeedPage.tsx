@@ -79,7 +79,8 @@ const FeedPage: React.FC = () => {
       }
 
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8000/api/feed?limit=20&offset=${offset}`, {
+      const apiUrl = 'http://localhost:8000'; // TEMP: Immer lokales Backend verwenden
+      const response = await fetch(`${apiUrl}/api/feed?limit=20&offset=${offset}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

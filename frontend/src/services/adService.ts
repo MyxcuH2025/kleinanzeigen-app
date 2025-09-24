@@ -181,8 +181,7 @@ export const adService = {
                     if (cleanPath.startsWith('/uploads/')) {
                       return `http://localhost:8000/api/images/${cleanPath.replace('/uploads/', '')}`;
                     }
-                    const apiUrl = import.meta.env.PROD ? 'https://' : 'http://localhost:8000';
-                    return `${apiUrl}/api/images/${cleanPath}`;
+                    return `http://localhost:8000/api/images/${cleanPath}`; // TEMP: Immer lokales Backend verwenden
                   });
                 }
                 return [];
@@ -352,8 +351,7 @@ export const adService = {
                     if (cleanPath.startsWith('/uploads/')) {
                       return `http://localhost:8000/api/images/${cleanPath.replace('/uploads/', '')}`;
                     }
-                    const apiUrl = import.meta.env.PROD ? 'https://' : 'http://localhost:8000';
-                    return `${apiUrl}/api/images/${cleanPath}`;
+                    return `http://localhost:8000/api/images/${cleanPath}`; // TEMP: Immer lokales Backend verwenden
                   });
                 }
                 return [];

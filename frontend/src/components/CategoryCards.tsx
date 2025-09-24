@@ -50,7 +50,7 @@ export const CategoryCards: React.FC<CategoryCardsProps> = ({ theme }) => {
     const fetchCategories = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${import.meta.env.PROD ? 'https://' : 'http://localhost:8000'}/api/categories`);
+        const response = await fetch('http://localhost:8000/api/categories'); // TEMP: Immer lokales Backend verwenden
         if (!response.ok) {
           throw new Error('Fehler beim Laden der Kategorien');
         }

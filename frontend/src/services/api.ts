@@ -66,7 +66,7 @@ export async function login(email: string, password: string) {
 
 // API Service für Vorlagen und andere Funktionen
 export class ApiService {
-  private baseUrl = import.meta.env.PROD ? 'https://kleinanzeigen-backend.onrender.com' : 'http://localhost:8000';
+  private baseUrl = 'http://localhost:8000'; // TEMP: Immer lokales Backend verwenden
 
   private getAuthHeaders(): HeadersInit {
     const token = localStorage.getItem('token');
