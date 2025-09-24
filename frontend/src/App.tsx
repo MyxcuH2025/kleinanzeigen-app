@@ -153,7 +153,7 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
         
         // REPARIERT: Cache-Busting für Bild-Updates (verursacht "bild wird nicht aktualisiert")
         const timestamp = new Date().getTime();
-        const apiUrl = import.meta.env.PROD ? '' : 'http://localhost:8000';
+        const apiUrl = 'http://localhost:8000'; // TEMP: Immer lokales Backend verwenden
         const response = await fetch(`${apiUrl}/api/listings?t=${timestamp}`, {
           cache: 'no-cache',
           headers: {
@@ -220,7 +220,7 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
                   .replace('uploads/', '');
                 
                 // Verwende den /api/images/ Endpunkt
-                const apiUrl = import.meta.env.PROD ? '' : 'http://localhost:8000';
+                const apiUrl = 'http://localhost:8000'; // TEMP: Immer lokales Backend verwenden
                 return `${apiUrl}/api/images/${cleanPath}`;
               });
             }

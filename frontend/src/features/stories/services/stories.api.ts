@@ -8,7 +8,7 @@ import type {
 } from '../types/stories.types';
 
 const STORIES_API = '/api/stories';
-const baseUrl = import.meta.env.PROD ? '' : 'http://localhost:8000';
+const baseUrl = 'http://localhost:8000'; // TEMP: Immer lokales Backend verwenden
 export const storiesApi = {
   /**
    * Stories-Feed abrufen

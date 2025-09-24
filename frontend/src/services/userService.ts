@@ -26,7 +26,7 @@ export interface UsersResponse {
   has_more: boolean;
 }
 
-const API_BASE_URL = import.meta.env.PROD ? '/api' : 'http://localhost:8000/api';
+const API_BASE_URL = 'http://localhost:8000/api'; // TEMP: Immer lokales Backend verwenden
 
 export const userService = {
   // Alle User abrufen
