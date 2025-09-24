@@ -54,15 +54,26 @@ async def api_health():
 # Vollständige API Endpoints
 @app.get("/api/listings")
 async def get_listings():
-    """Get all listings - Mit Supabase-Fallback"""
+    """Get all listings - ECHTE SUPABASE-VERBINDUNG"""
     try:
-        # Versuche Supabase-Verbindung (wenn verfügbar)
+        # Direkte Supabase-Verbindung ohne SQLModel
         import psycopg2
-        DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres.hcwilqiczkmesxmetprm:Suncahaharhudu1!@aws-1-eu-central-1.pooler.supabase.com:6543/postgres")
+        DATABASE_URL = os.getenv("DATABASE_URL")
         
+        if not DATABASE_URL:
+            raise Exception("DATABASE_URL nicht gesetzt")
+            
         conn = psycopg2.connect(DATABASE_URL)
         cur = conn.cursor()
-        cur.execute("SELECT id, title, description, price, location, category, created_at FROM listing ORDER BY created_at DESC LIMIT 20")
+        
+        # Echte Listings aus Supabase laden
+        cur.execute("""
+            SELECT id, title, description, price, location, category, created_at, status
+            FROM listing 
+            WHERE status = 'active'
+            ORDER BY created_at DESC 
+            LIMIT 20
+        """)
         rows = cur.fetchall()
         
         listings = []
@@ -70,44 +81,36 @@ async def get_listings():
             listings.append({
                 "id": row[0],
                 "title": row[1],
-                "description": row[2],
-                "price": str(row[3]) + " €",
-                "location": row[4],
-                "category": row[5],
+                "description": row[2] or "",
+                "price": str(row[3]) if row[3] else "Preis auf Anfrage",
+                "location": row[4] or "",
+                "category": row[5] or "kleinanzeigen",
                 "images": [],
                 "created_at": row[6].isoformat() if row[6] else datetime.utcnow().isoformat(),
-                "status": "active"
+                "status": row[7] or "active"
             })
         
         cur.close()
         conn.close()
         
+        logger.info(f"✅ Supabase: {len(listings)} echte Listings geladen")
+        
         return {
             "listings": listings,
             "total": len(listings),
             "status": "supabase_connected",
+            "message": f"Echte Daten aus Supabase: {len(listings)} Listings",
             "timestamp": datetime.utcnow().isoformat()
         }
         
     except Exception as e:
-        logger.warning(f"Supabase-Verbindung fehlgeschlagen: {e}")
-        # Fallback auf Demo-Daten
+        logger.error(f"❌ Supabase-Fehler: {e}")
         return {
-            "listings": [
-                {
-                    "id": 1,
-                    "title": "Test Anzeige",
-                    "description": "Test Beschreibung",
-                    "price": "100 €",
-                    "location": "Berlin",
-                    "category": "kleinanzeigen",
-                    "images": [],
-                    "status": "active"
-                }
-            ],
-            "total": 1,
-            "status": "fallback_demo",
+            "listings": [],
+            "total": 0,
+            "status": "database_error",
             "error": str(e),
+            "message": "Datenbank-Verbindung fehlgeschlagen",
             "timestamp": datetime.utcnow().isoformat()
         }
 
