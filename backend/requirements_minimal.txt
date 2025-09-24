@@ -1,4 +1,4 @@
-# PYTHON 3.11 KOMPATIBEL - Render Fix
+# PYTHON 3.13 KOMPATIBEL - Latest psycopg2
 fastapi==0.104.1
 uvicorn==0.24.0
-psycopg2-binary==2.9.9
+psycopg2-binary==2.9.10
