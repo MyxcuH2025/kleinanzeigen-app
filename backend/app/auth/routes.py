@@ -18,7 +18,7 @@ from pathlib import Path as PathLib
 router = APIRouter(prefix="/api", tags=["auth"])
 
 # Engine und OAuth2
-engine = create_engine(config.DATABASE_URL)
+engine = create_engine(config.DATABASE_URL, pool_pre_ping=True)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
 
 # Password hashing
