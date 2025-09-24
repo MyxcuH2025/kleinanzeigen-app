@@ -71,11 +71,10 @@ async def get_listings():
         conn = psycopg2.connect(DATABASE_URL, connect_timeout=10)
         cur = conn.cursor()
         
-        # Echte Listings aus Supabase laden
+        # Echte Listings aus Supabase laden - OHNE STATUS FILTER
         cur.execute("""
             SELECT id, title, description, price, location, category, created_at, status
             FROM listing 
-            WHERE status = 'active'
             ORDER BY created_at DESC 
             LIMIT 20
         """)
