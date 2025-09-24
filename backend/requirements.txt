@@ -1,22 +1,15 @@
-# Core Framework - RENDER OPTIMIERT
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
-
-# Database - RENDER KOMPATIBEL (Fixed SQLAlchemy)
-sqlalchemy==1.4.53
-sqlmodel==0.0.8
-psycopg2-binary==2.9.7
-
-# Authentication & Security
+sqlmodel==0.0.14
+psycopg2-binary==2.9.9
+python-dotenv==1.0.0
+python-multipart==0.0.6
+pydantic==2.5.0
+sqlalchemy==2.0.23
+alembic==1.13.0
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
-python-multipart==0.0.6
-
-# Environment & Configuration
-python-dotenv==1.0.0
-
-# Monitoring & Performance - MINIMAL
-psutil==5.9.6
-
-# Development Tools - MINIMAL
-httpx==0.25.2
+bcrypt==4.1.2
+supabase==2.3.4
+redis==5.0.1
+websockets==12.0

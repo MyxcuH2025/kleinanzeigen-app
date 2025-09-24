@@ -8,7 +8,7 @@ import type {
 } from '../types/stories.types';
 
 const STORIES_API = '/api/stories';
-const baseUrl = import.meta.env.PROD ? 'https://kleinanzeigen-backend.onrender.com' : 'http://localhost:8000';
+const baseUrl = import.meta.env.PROD ? '' : 'http://localhost:8000';
 export const storiesApi = {
   /**
    * Stories-Feed abrufen
