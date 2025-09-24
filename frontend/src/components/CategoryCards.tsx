@@ -50,7 +50,7 @@ export const CategoryCards: React.FC<CategoryCardsProps> = ({ theme }) => {
     const fetchCategories = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:8000/api/categories/all`);
+        const response = await fetch(`${import.meta.env.PROD ? 'https://kleinanzeigen-backend.onrender.com' : 'http://localhost:8000'}/api/categories`);
         if (!response.ok) {
           throw new Error('Fehler beim Laden der Kategorien');
         }

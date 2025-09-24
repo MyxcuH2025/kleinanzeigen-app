@@ -220,7 +220,8 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
                   .replace('uploads/', '');
                 
                 // Verwende den /api/images/ Endpunkt
-                return `http://localhost:8000/api/images/${cleanPath}`;
+                const apiUrl = import.meta.env.PROD ? 'https://kleinanzeigen-backend.onrender.com' : 'http://localhost:8000';
+                return `${apiUrl}/api/images/${cleanPath}`;
               });
             }
           } catch (error) {
