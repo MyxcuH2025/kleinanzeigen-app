@@ -2,27 +2,18 @@
   "version": 2,
   "builds": [
     {
-      "src": "frontend/dist/**",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "backend/main.py",
-      "use": "@vercel/python"
+      "src": "frontend/package.json",
+      "use": "@vercel/node",
+      "config": {
+        "buildCommand": "cd frontend && npm run build",
+        "outputDirectory": "frontend/dist"
+      }
     }
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/backend/main.py"
-    },
-    {
       "src": "/(.*)",
       "dest": "/frontend/dist/$1"
     }
-  ],
-  "env": {
-    "SUPABASE_URL": "https://hcwilqiczkmesxmetprm.supabase.co",
-    "SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhjd2lscWljemttZXN4bWV0cHJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Mjc1ODQsImV4cCI6MjA3MzIwMzU4NH0.3nCn2FyAVXQ4tltfrSL6VfedKsIS3nRPgADapYPGnI8",
-    "DATABASE_URL": "postgresql://postgres.hcwilqiczkmesxmetprm:Suncahaharhudu1!@aws-1-eu-central-1.pooler.supabase.com:6543/postgres"
-  }
+  ]
 }
