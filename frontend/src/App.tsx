@@ -153,7 +153,7 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
         
         // REPARIERT: Cache-Busting für Bild-Updates (verursacht "bild wird nicht aktualisiert")
         const timestamp = new Date().getTime();
-        const apiUrl = 'https://kleinanzeigen-backend.onrender.com';
+        const apiUrl = import.meta.env.PROD ? 'https://kleinanzeigen-backend.onrender.com' : 'http://localhost:8000';
         const response = await fetch(`${apiUrl}/api/listings?t=${timestamp}`, {
           cache: 'no-cache',
           headers: {

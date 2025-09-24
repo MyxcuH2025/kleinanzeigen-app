@@ -26,7 +26,7 @@ export interface UsersResponse {
   has_more: boolean;
 }
 
-const API_BASE_URL = 'https://kleinanzeigen-backend.onrender.com/api';
+const API_BASE_URL = import.meta.env.PROD ? 'https://kleinanzeigen-backend.onrender.com/api' : 'http://localhost:8000/api';
 
 export const userService = {
   // Alle User abrufen
