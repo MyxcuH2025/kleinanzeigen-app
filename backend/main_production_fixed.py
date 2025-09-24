@@ -56,14 +56,19 @@ async def api_health():
 async def get_listings():
     """Get all listings - ECHTE SUPABASE-VERBINDUNG"""
     try:
-        # Direkte Supabase-Verbindung ohne SQLModel
-        import psycopg2
+        # Direkte Supabase-Verbindung - Python 3.11 kompatibel
+        try:
+            import psycopg2
+        except ImportError as e:
+            logger.error(f"psycopg2 Import-Fehler: {e}")
+            raise Exception("psycopg2 nicht verfügbar - Python Version Problem")
+            
         DATABASE_URL = os.getenv("DATABASE_URL")
         
         if not DATABASE_URL:
             raise Exception("DATABASE_URL nicht gesetzt")
             
-        conn = psycopg2.connect(DATABASE_URL)
+        conn = psycopg2.connect(DATABASE_URL, connect_timeout=10)
         cur = conn.cursor()
         
         # Echte Listings aus Supabase laden

@@ -1,4 +1,4 @@
-# Vollständige Requirements mit Supabase für Render - FIXED
+# PYTHON 3.11 KOMPATIBEL - Render Fix
 fastapi==0.104.1
 uvicorn==0.24.0
-psycopg2-binary==2.9.7
+psycopg2-binary==2.9.9
