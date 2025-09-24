@@ -479,12 +479,12 @@ function App() {
                         <FeedPage />
                       </ProtectedRoute>
                     } />
-                    {/* Stories temporär deaktiviert */}
-                    {/* <Route path="/stories" element={
+                    {/* Stories Route */}
+                    <Route path="/stories" element={
                       <ProtectedRoute>
                         <SuspenseWrapper><StoriesPage /></SuspenseWrapper>
                       </ProtectedRoute>
-                    } /> */}
+                    } />
                     <Route path="/shops" element={<Navigate to="/entities?type=shops" replace />} />
                     <Route path="/shops/" element={<Navigate to="/entities?type=shops" replace />} />
                     <Route path="/dienstleister" element={<Navigate to="/entities?type=providers" replace />} />

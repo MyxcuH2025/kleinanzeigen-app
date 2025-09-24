@@ -46,23 +46,27 @@ export class StoriesWebSocketService {
         return;
       }
 
-      const wsUrl = `ws://localhost:8000/ws/stories?token=${encodeURIComponent(token)}`; // TEMP: Immer lokales Backend verwenden
-      this.ws = new WebSocket(wsUrl);
+      // TEMP: WebSocket deaktiviert - Backend hat keinen WebSocket-Endpoint
+      // const wsUrl = `ws://localhost:8000/ws/stories?token=${encodeURIComponent(token)}`;
+      // this.ws = new WebSocket(wsUrl);
+      console.log('WebSocket temporär deaktiviert - Backend hat keinen WebSocket-Endpoint');
 
-      this.ws.onopen = () => {
-        console.log('✅ Stories-WebSocket verbunden');
-        this.reconnectAttempts = 0;
-        this.startHeartbeat();
-      };
+      // TEMP: WebSocket Event-Handler deaktiviert
+      // this.ws.onopen = () => {
+      //   console.log('✅ Stories-WebSocket verbunden');
+      //   this.reconnectAttempts = 0;
+      //   this.startHeartbeat();
+      // };
 
-      this.ws.onmessage = (event) => {
-        try {
-          const message: WebSocketMessage = JSON.parse(event.data);
-          this.handleMessage(message);
-        } catch (error) {
-          console.error('Fehler beim Parsen der WebSocket-Nachricht:', error);
-        }
-      };
+      // TEMP: WebSocket onmessage deaktiviert
+      // this.ws.onmessage = (event) => {
+      //   try {
+      //     const message: WebSocketMessage = JSON.parse(event.data);
+      //     this.handleMessage(message);
+      //   } catch (error) {
+      //     console.error('Fehler beim Parsen der WebSocket-Nachricht:', error);
+      //   }
+      // };
 
       this.ws.onclose = (event) => {
         console.log('Stories-WebSocket getrennt:', event.code, event.reason);
