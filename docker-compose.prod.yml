@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: kleinanzeigen
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: \
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      -  5432:5432
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - 6379:6379
+
+  backend:
+    build: ./backend
+    ports:
+      - 8000:8000
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:\@postgres:5432/kleinanzeigen
+      REDIS_URL: redis://redis:6379
+      FRONTEND_URL: http://vaydu.com
+      CORS_ORIGINS: http://vaydu.com,http://www.vaydu.com
+      SECRET_KEY: \
+    depends_on:
+      - postgres
+      - redis
+
+  frontend:
+    build: ./frontend
+    ports:
+      - 3000:80
+
+volumes:
+  postgres_data:

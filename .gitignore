@@ -1,0 +1,67 @@
+# SECURITY: Sensible Dateien die NIEMALS auf GitHub landen dÃ¼rfen
+# Secrets/Keys
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa*
+id_ed25519*
+gcp-*.json
+*service-account*.json
+firebase-adminsdk*.json
+aws/credentials
+stripe*
+*.cert
+
+# Environment-Dateien (auÃŸer .env.example)
+.env
+.env.*
+!.env.example
+
+# Datenbanken/Backups
+*.sqlite3
+db.sqlite3
+*.sql
+*.dump
+*.bak
+
+# Build-/Cache-Artefakte & groÃŸe Ordner
+node_modules/
+dist/
+build/
+.next/
+coverage/
+*.log
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+ENV/
+env/
+
+# Uploads/Benutzerdaten
+uploads/
+media/
+storage/
+pgdata/
+
+# Zertifikate/NGINX-TLS
+nginx/certs/
+
+# IDE-spezifische Dateien
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
